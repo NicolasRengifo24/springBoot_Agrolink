@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 
 
 @Entity
@@ -22,13 +23,12 @@ public class Calificacion implements Serializable {
      private Integer idCalificacion;
 
      @Column(name = "puntaje", precision = 5, scale = 2)
-     private Double puntaje;
+     private BigDecimal puntaje;
 
      @Column(name = "promedio", precision = 5, scale = 2)
-     private Double promedio;
+     private BigDecimal promedio;
 
 
 
 
 }
-
