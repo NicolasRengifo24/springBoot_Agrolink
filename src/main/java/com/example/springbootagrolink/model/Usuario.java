@@ -1,12 +1,18 @@
 package com.example.springbootagrolink.model;
 
 import jakarta.persistence.*;
+import lombok.*;
 
 import java.io.Serializable;
 
 
 @Entity
 @Table(name = "tb_usuarios")
+@AllArgsConstructor
+@NoArgsConstructor
+@Getter
+@Setter
+@ToString
 public class Usuario implements Serializable {
 
     @Id
@@ -44,54 +50,5 @@ public class Usuario implements Serializable {
     @Column(length = 15)
     private String telefono = "0000000000";
 
-    public Usuario() {}
-
-    public Usuario(Integer idUsuario, String nombre, String nombreUsuario, String contrasenaUsuario, String apellido, String correo, String ciudad, String departamento, String direccion, String cedula, String telefono) {
-        this.idUsuario = idUsuario;
-        this.nombre = nombre;
-        this.nombreUsuario = nombreUsuario;
-        this.contrasenaUsuario = contrasenaUsuario;
-        this.apellido = apellido;
-        this.correo = correo;
-        this.ciudad = ciudad;
-        this.departamento = departamento;
-        this.direccion = direccion;
-        this.cedula = cedula;
-        this.telefono = telefono;
-    }
-
-    // Getters y Setters
-    public Integer getIdUsuario() { return idUsuario; }
-    public void setIdUsuario(Integer idUsuario) { this.idUsuario = idUsuario; }
-
-    public String getNombre() { return nombre; }
-    public void setNombre(String nombre) { this.nombre = nombre; }
-
-    public String getNombreUsuario() { return nombreUsuario; }
-    public void setNombreUsuario(String nombreUsuario) { this.nombreUsuario = nombreUsuario; }
-
-    public String getContrasenaUsuario() { return contrasenaUsuario; }
-    public void setContrasenaUsuario(String contrasenaUsuario) { this.contrasenaUsuario = contrasenaUsuario; }
-
-    public String getApellido() { return apellido; }
-    public void setApellido(String apellido) { this.apellido = apellido; }
-
-    public String getCorreo() { return correo; }
-    public void setCorreo(String correo) { this.correo = correo; }
-
-    public String getCiudad() { return ciudad; }
-    public void setCiudad(String ciudad) { this.ciudad = ciudad; }
-
-    public String getDepartamento() { return departamento; }
-    public void setDepartamento(String departamento) { this.departamento = departamento; }
-
-    public String getDireccion() { return direccion; }
-    public void setDireccion(String direccion) { this.direccion = direccion; }
-
-    public String getCedula() { return cedula; }
-    public void setCedula(String cedula) { this.cedula = cedula; }
-
-    public String getTelefono() { return telefono; }
-    public void setTelefono(String telefono) { this.telefono = telefono; }
-}
+   }
 
