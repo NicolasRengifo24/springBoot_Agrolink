@@ -1,0 +1,173 @@
+:root{
+  --emerald-700: #065f46;
+  --emerald-600: #047857;
+  --bg-soft: linear-gradient(135deg, #ecfccb 0%, #d1fae5 50%, #e6fffa 100%);
+  --card-bg: #ffffff;
+  --muted: #6b7280;
+  --text: #0f1724;
+  --radius: 14px;
+}
+
+
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  background:var(--bg-soft);
+  color:var(--text);
+  -webkit-font-smoothing:antialiased;
+}
+
+/* Centrado vertical y horizontal */
+.login-page{
+  min-height:100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:24px;
+}
+
+
+.login-wrap{
+  width:100%;
+  max-width:920px;
+  display:grid;
+  grid-template-columns: 1fr;
+  gap:20px;
+  align-items:center;
+  position:relative;
+}
+
+/* Tarjeta principal */
+.login-card{
+  background: linear-gradient(180deg, rgba(255,255,255,0.9), rgba(255,255,255,0.98));
+  border-radius:var(--radius);
+  box-shadow: 0 12px 40px rgba(2,6,23,0.12);
+  overflow:hidden;
+  padding:28px;
+}
+
+/* Header */
+.login-header{
+  text-align:center;
+  margin-bottom:18px;
+}
+
+.login-header h2{
+  margin:0;
+  font-size:1.6rem;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  color:var(--emerald-700);
+}
+
+.icon-leaf{
+  background:linear-gradient(90deg,#34d399,#059669);
+  -webkit-background-clip:text;
+  background-clip:text;
+  color:transparent;
+  font-size:1.6rem;
+}
+
+.muted{ color:var(--muted); margin-top:6px }
+
+/* Form body */
+.login-body{ padding:4px 8px 0 8px }
+
+.custom-input .input-group-text{
+  background:rgba(6,95,70,0.08);
+  border:1px solid rgba(6,95,70,0.12);
+  color:var(--emerald-700);
+  border-right:0;
+  min-width:44px;
+  justify-content:center;
+}
+
+.custom-input .form-control{
+  border:1px solid rgba(15,23,36,0.08);
+  border-left:0;
+  padding:10px 12px;
+  border-radius:8px;
+}
+
+.custom-input .form-control:focus{
+  box-shadow:0 0 0 4px rgba(4,120,87,0.08);
+  border-color:var(--emerald-600);
+}
+
+/* Checkbox text */
+.form-check-label{ color:var(--muted) }
+
+/* Botón principal */
+.btn-login{
+  background:var(--emerald-700);
+  color:#fff;
+  border:none;
+  padding:12px 16px;
+  border-radius:10px;
+  font-weight:600;
+  transition:background .15s ease, transform .05s ease;
+}
+
+.btn-login:hover{ background:var(--emerald-600); transform:translateY(-1px) }
+
+/* Footer y enlaces */
+.login-footer{
+  text-align:center;
+  margin-top:14px;
+  color:var(--muted);
+}
+
+.login-footer a, .link-muted{
+  color:var(--emerald-700);
+  text-decoration:none;
+}
+
+.login-footer a:hover, .link-muted:hover{ text-decoration:underline }
+
+/* Responsividad: a dos columnas en pantallas grandes con imagen lateral */
+@media(min-width:1000px){
+  .login-wrap{
+    grid-template-columns: 1fr 420px;
+    align-items:stretch;
+  }
+  .login-card{
+    padding:32px;
+  }
+  /* Opcional: tarjeta lateral decorativa (puedes ajustar o añadir imagen) */
+  .login-card::before{
+    content:"";
+    display:block;
+    position:absolute;
+    right:32px;
+    top:32px;
+    width:360px;
+    height:calc(100% - 64px);
+    background: linear-gradient(180deg, rgba(6,95,70,0.06), rgba(4,120,87,0.04));
+    border-radius:12px;
+    pointer-events:none;
+    z-index:0;
+  }
+}
+
+/* Ajustes pequeños */
+@media(max-width:480px){
+  .login-card{ padding:20px; border-radius:12px }
+  .login-header h2{ font-size:1.35rem }
+}
+
+/* Accessibility: aumenta foco visible */
+input:focus, button:focus, a:focus{
+  outline: 3px solid rgba(4,120,87,0.12);
+  outline-offset:2px;
+}
+
+
+.input-group.custom-input{ display:flex; align-items:center; gap:0 }
+.input-group.custom-input .input-group-text{ border-top-right-radius:0; border-bottom-right-radius:0 }
+.input-group.custom-input .form-control{ border-top-left-radius:0; border-bottom-left-radius:0; flex:1 }
+
+
