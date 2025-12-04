@@ -5,6 +5,7 @@ import lombok.*;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.util.List;
 
 @Entity
 @Table(name = "tb_productos")
@@ -12,7 +13,7 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @Getter
 @Setter
-@ToString(exclude = {"productor", "categoria", "calificacion"})
+@ToString(exclude = {"productor", "categoria", "calificacion", "productoFincas"})
 public class Producto implements Serializable {
 
     @Id
@@ -57,5 +58,8 @@ public class Producto implements Serializable {
 
     @Column(name = "peso_kg", precision = 10, scale = 2)
     private BigDecimal pesoKg = BigDecimal.valueOf(1.00);
-}
 
+    // Relación con ProductoFinca: un Producto puede estar asociado a muchas Fincas
+    @OneToMany(mappedBy = "producto", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<ProductoFinca> productoFincas;
+}

@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.io.Serializable;
+import java.util.List;
 
 @Entity
 @Table(name = "tb_fincas")
@@ -11,7 +12,7 @@ import java.io.Serializable;
 @NoArgsConstructor
 @Getter
 @Setter
-@ToString(exclude = "productor")
+@ToString(exclude = {"productor", "productoFincas"})
 public class Finca implements Serializable {
 
     @Id
@@ -44,5 +45,8 @@ public class Finca implements Serializable {
 
     @Column(name = "registro_ICA", length = 200)
     private String registroICA = "Sin Certificado";
-}
 
+    // Relación con ProductoFinca: una Finca puede tener muchas asociaciones ProductoFinca
+    @OneToMany(mappedBy = "finca", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<ProductoFinca> productoFincas;
+}

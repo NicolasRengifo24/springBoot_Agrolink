@@ -3,7 +3,6 @@ package com.example.springbootagrolink.services;
 import com.example.springbootagrolink.repository.UsuarioRepository;
 import com.example.springbootagrolink.model.Usuario;
 import com.example.springbootagrolink.services.Idao.Idao;
-import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -168,25 +167,19 @@ public class UsuarioService implements Idao<Usuario, Integer> {
      * Útil para validaciones antes de realizar operaciones.
      * Por ejemplo, antes de actualizar, puedes verificar si existe.
      */
+
+    /*
     @Override
     public boolean existe(Integer id) {
         return usuarioRepository.existsById(id);
     }
+*/
 
-    /**
-     * Implementación del método contar() de la interfaz Idao
-     *
-     * @return Número total de usuarios en la base de datos
-     *
-     * usuarioRepository.count() ejecuta:
-     *     SELECT COUNT(*) FROM tb_usuarios
-     *
-     * Útil para paginación, estadísticas, dashboards, etc.
-     */
 
     // ==================== MÉTODOS PERSONALIZADOS ====================
     // Aquí puedes agregar métodos específicos para Usuario que no están en Idao
     // Por ejemplo: buscarPorCorreo, buscarPorCedula, cambiarContrasena, etc.
+
 
     /**
      * Ejemplo de método personalizado: buscar usuario por correo

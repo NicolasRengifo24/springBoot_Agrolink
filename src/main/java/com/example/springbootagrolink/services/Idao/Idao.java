@@ -105,7 +105,8 @@ public interface Idao<T, ID> {
      *     // Proceder con la operación
      * }
      */
-    boolean existe(ID id);
+
+
 
 
 }
