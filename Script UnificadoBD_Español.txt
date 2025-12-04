@@ -1,0 +1,555 @@
+DROP DATABASE IF EXISTS agro;
+CREATE DATABASE agro CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE agro;
+
+/* ==========================================================
+   TABLAS PRINCIPALES
+   ========================================================== */
+CREATE TABLE tb_usuarios (
+    id_usuario INT PRIMARY KEY AUTO_INCREMENT,
+    nombre VARCHAR(50) NOT NULL,
+    nombre_usuario VARCHAR(100) NOT NULL,
+    contrasena_usuario VARCHAR(100) NOT NULL,
+    apellido VARCHAR(50) NOT NULL,
+    correo VARCHAR(100) UNIQUE NOT NULL,
+    ciudad VARCHAR(50) NOT NULL,
+    departamento VARCHAR(50) NOT NULL,
+    direccion VARCHAR(200) NOT NULL,
+    cedula VARCHAR(20) UNIQUE NOT NULL,
+    telefono VARCHAR(15) NOT NULL DEFAULT '0000000000'
+);
+
+CREATE TABLE tb_calificacion (
+    id_calificacion INT PRIMARY KEY AUTO_INCREMENT,
+    puntaje DECIMAL(5,2) CHECK (puntaje BETWEEN 0 AND 5),
+    promedio DECIMAL(5,2)
+);
+
+CREATE TABLE tb_categorias_productos (
+    id_categoria INT PRIMARY KEY AUTO_INCREMENT,
+    nombre_categoria VARCHAR(50)
+);
+
+/* ==========================================================
+   TABLAS DE ROLES
+   ========================================================== */
+CREATE TABLE tb_productores (
+    id_usuario INT PRIMARY KEY,
+    id_calificacion INT,
+    tipo_cultivo ENUM('Monocultivo','Policultivo','Huerta','Cultivo Urbano'),
+    FOREIGN KEY (id_usuario) REFERENCES tb_usuarios(id_usuario) ON DELETE CASCADE,
+    FOREIGN KEY (id_calificacion) REFERENCES tb_calificacion(id_calificacion)
+);
+
+CREATE TABLE tb_clientes (
+    id_usuario INT PRIMARY KEY,
+    id_calificacion INT,
+    preferencias VARCHAR(150) DEFAULT 'Sin Preferencias',
+    FOREIGN KEY (id_usuario) REFERENCES tb_usuarios(id_usuario),
+    FOREIGN KEY (id_calificacion) REFERENCES tb_calificacion(id_calificacion)
+);
+
+CREATE TABLE tb_transportistas (
+    id_usuario INT PRIMARY KEY,
+    id_calificacion INT,
+    zonas_entrega VARCHAR(250),
+    FOREIGN KEY (id_usuario) REFERENCES tb_usuarios(id_usuario),
+    FOREIGN KEY (id_calificacion) REFERENCES tb_calificacion(id_calificacion)
+);
+
+CREATE TABLE tb_administradores (
+    id_usuario INT PRIMARY KEY,
+    privilegios_admin VARCHAR(200),
+    FOREIGN KEY (id_usuario) REFERENCES tb_usuarios(id_usuario) ON DELETE CASCADE
+);
+
+CREATE TABLE tb_asesores (
+    id_usuario INT PRIMARY KEY,
+    id_calificacion INT,
+    tipo_asesoria ENUM('Asesor Agricola','Veterinario','Maquinista'),
+    FOREIGN KEY (id_usuario) REFERENCES tb_usuarios(id_usuario) ON DELETE CASCADE,
+    FOREIGN KEY (id_calificacion) REFERENCES tb_calificacion(id_calificacion)
+);
+
+/* ==========================================================
+   TABLAS SECUNDARIAS
+   ========================================================== */
+CREATE TABLE tb_fincas (
+    id_finca INT PRIMARY KEY AUTO_INCREMENT,
+    id_usuario INT,
+    nombre_finca VARCHAR(100),
+    direccion_finca VARCHAR(200),
+    certificado_BPA VARCHAR(200) DEFAULT 'Sin Certificado',
+    certificado_MIRFE VARCHAR(200) DEFAULT 'Sin Certificado',
+    certificado_MIPE VARCHAR(200) DEFAULT 'Sin Certificado',
+    registro_ICA VARCHAR(200) DEFAULT 'Sin Certificado',
+    FOREIGN KEY (id_usuario) REFERENCES tb_productores(id_usuario) ON DELETE CASCADE
+);
+
+CREATE TABLE tb_productos (
+    id_producto INT PRIMARY KEY AUTO_INCREMENT,
+    id_usuario INT,
+    id_categoria INT,
+    id_calificacion INT,
+    precio DECIMAL(12,2),
+    nombre_producto VARCHAR(100) NOT NULL,
+    descripcion_producto VARCHAR(255),
+    stock INT,
+    peso_kg DECIMAL(10,2) DEFAULT 1.00 COMMENT 'Peso en kilogramos por unidad',
+    FOREIGN KEY (id_usuario) REFERENCES tb_productores(id_usuario) ON DELETE CASCADE,
+    FOREIGN KEY (id_categoria) REFERENCES tb_categorias_productos(id_categoria) ON DELETE CASCADE,
+    FOREIGN KEY (id_calificacion) REFERENCES tb_calificacion(id_calificacion)
+);
+
+CREATE TABLE tb_imagenes_productos (
+    id_imagen INT PRIMARY KEY AUTO_INCREMENT,
+    id_producto INT NOT NULL,
+    url_imagen VARCHAR(255) NOT NULL,
+    es_principal BOOLEAN DEFAULT FALSE,
+    FOREIGN KEY (id_producto) REFERENCES tb_productos(id_producto) ON DELETE CASCADE
+);
+
+CREATE TABLE tb_productos_fincas (
+    id_producto_finca INT PRIMARY KEY AUTO_INCREMENT,
+    id_finca INT,
+    id_producto INT,
+    cantidad_produccion DECIMAL(10,2),
+    fecha_cosecha DATE,
+    FOREIGN KEY (id_finca) REFERENCES tb_fincas(id_finca) ON DELETE CASCADE,
+    FOREIGN KEY (id_producto) REFERENCES tb_productos(id_producto)
+);
+
+/* ==========================================================
+   TABLAS DE COMPRAS Y TRANSPORTE
+   ========================================================== */
+CREATE TABLE tb_compras (
+    id_compra INT PRIMARY KEY AUTO_INCREMENT,
+    id_cliente INT,
+    fecha_hora_compra DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    subtotal DECIMAL(10,2) NOT NULL DEFAULT 0,
+    impuestos DECIMAL(10,2) NOT NULL DEFAULT 0,
+    valor_envio DECIMAL(10,2) DEFAULT 0,
+    total DECIMAL(10,2) NOT NULL DEFAULT 0,
+    direccion_entrega VARCHAR(200),
+    metodo_pago VARCHAR(50),
+    FOREIGN KEY (id_cliente) REFERENCES tb_clientes(id_usuario)
+);
+
+CREATE TABLE tb_detalles_compra (
+    id_detalle INT PRIMARY KEY AUTO_INCREMENT,
+    id_compra INT NOT NULL,
+    id_producto INT NOT NULL,
+    cantidad INT NOT NULL DEFAULT 1,
+    precio_unitario DECIMAL(12,2) NOT NULL,
+    subtotal DECIMAL(12,2) DEFAULT 0,
+    FOREIGN KEY (id_compra) REFERENCES tb_compras(id_compra) ON DELETE CASCADE,
+    FOREIGN KEY (id_producto) REFERENCES tb_productos(id_producto) ON DELETE RESTRICT
+);
+
+CREATE TABLE tb_vehiculos (
+    id_vehiculo INT PRIMARY KEY AUTO_INCREMENT,
+    id_transportista INT,
+    tipo_vehiculo VARCHAR(50),
+    capacidad_carga DECIMAL(10,2),
+    documento_propiedad VARCHAR(250),
+    placa_vehiculo VARCHAR(15),
+    FOREIGN KEY (id_transportista) REFERENCES tb_transportistas(id_usuario)
+);
+
+CREATE TABLE tb_envios (
+    id_envio INT PRIMARY KEY AUTO_INCREMENT,
+    id_compra INT,
+    id_vehiculo INT,
+    id_transportista INT DEFAULT NULL,
+    estado_envio ENUM('Buscando Transporte','Asignado','Finalizado') DEFAULT 'Buscando Transporte',
+    fecha_salida DATE DEFAULT NULL,
+    fecha_entrega DATE DEFAULT NULL,
+    numero_seguimiento VARCHAR(50) DEFAULT NULL,
+    FOREIGN KEY (id_compra) REFERENCES tb_compras(id_compra) ON DELETE CASCADE,
+    FOREIGN KEY (id_transportista) REFERENCES tb_transportistas(id_usuario) ON DELETE CASCADE,
+    FOREIGN KEY (id_vehiculo) REFERENCES tb_vehiculos(id_vehiculo)
+);
+
+/* ==========================================================
+   TABLAS DE ASESORÍAS
+   ========================================================== */
+CREATE TABLE tb_maquinas (
+    id_maquina INT PRIMARY KEY AUTO_INCREMENT,
+    id_asesor INT,
+    tipo_maquina VARCHAR(50) NOT NULL,
+    documento_propiedad VARCHAR(50) NOT NULL,
+    modelo VARCHAR(50),
+    registro_RNMA VARCHAR(200) NOT NULL DEFAULT 'Sin Certificado',
+    tarjeta_registro_maquinaria VARCHAR(300) NOT NULL DEFAULT 'Sin Tarjeta',
+    FOREIGN KEY (id_asesor) REFERENCES tb_asesores(id_usuario) ON DELETE CASCADE
+);
+
+CREATE TABLE tb_servicios (
+    id_servicio INT PRIMARY KEY AUTO_INCREMENT,
+    id_asesor INT,
+    descripcion VARCHAR(250),
+    estado ENUM('Activo','Inactivo'),
+    FOREIGN KEY (id_asesor) REFERENCES tb_asesores(id_usuario) ON DELETE CASCADE
+);
+
+CREATE TABLE tb_certificados (
+    id_certificado INT PRIMARY KEY AUTO_INCREMENT,
+    id_usuario INT,
+    tipo_certificado VARCHAR(100) NOT NULL,
+    descripcion_cert VARCHAR(255) NOT NULL,
+    fecha_expedicion DATE NOT NULL,
+    FOREIGN KEY (id_usuario) REFERENCES tb_asesores(id_usuario) ON DELETE CASCADE
+);
+
+/* ==========================================================
+   INSERTS
+   ========================================================== */
+-- Usuarios
+INSERT INTO tb_usuarios (nombre, nombre_usuario, contrasena_usuario, apellido, correo, ciudad, departamento, direccion, cedula, telefono) VALUES
+('Carlos','carlosagricola','claveSegura123','Gómez','c.gomez@email.com','Medellín','Antioquia','Carrera 45 #12-34','123456789012','3101111111'),
+('María','mariacampesina','password1234','Rodríguez','m.rodriguez@email.com','Bogotá','Cundinamarca','Calle 23 #45-67','234567890123','3202222222'),
+('Juan','juanproductor','juanito2023','Pérez','j.perez@email.com','Cali','Valle del Cauca','Avenida 6N #23-45','345678901234','3003333333'),
+('Ana','anitacliente','anaclave456','López','a.lopez@email.com','Barranquilla','Atlántico','Carrera 54 #78-90','456789012345','3014444444'),
+('Pedro','pedrotransport','transporte2023','Martínez','p.martinez@email.com','Pereira','Risaralda','Calle 30 #12-34','567890123456','3025555555'),
+('Luisa','luisaasesora','luisapass789','García','l.garcia@email.com','Manizales','Caldas','Carrera 22 #33-44','678901234567','3036666666'),
+('Jorge','jorgeadmin','adminjorge12','Fernández','j.fernandez@email.com','Armenia','Quindío','Avenida Bolívar #15-25','789012345678','3047777777'),
+('Sofía','sofiadmin','sofiaadmin456','Hernández','s.hernandez@email.com','Ibagué','Tolima','Calle 18 #20-30','890123456789','3058888888'),
+('Diego','diegoproductor','diego2023pass','Díaz','d.diaz@email.com','Neiva','Huila','Carrera 5 #10-15','901234567890','3069999999'),
+('Camila','camilacliente','camipass789','Vargas','c.vargas@email.com','Villavicencio','Meta','Avenida 40 #50-60','012345678901','3070000000'),
+('Nicolas','clienteNicolas','nicopass789','Mendez','mendez@email.com','Villavicencio','Meta','Avenida 67 #23-5','1007846932','3111111111'),
+('Pepe','MaquinistaPepe','pepepass769','Mujica','pepe@email.com','Madrid','Cundinamarca','cra 77 #23-5','1887846932','3122222222'),
+('Laura','lauracafe','laurapass2024','Ramírez','l.ramirez@email.com','Popayán','Cauca','Cra 12 #8-23','345999888777','3133333333'),
+('Mateo','mateotransport','mateo2025','Suárez','m.suarez@email.com','Tunja','Boyacá','Cl 10 #22-14','234888777666','3144444444'),
+('Valentina','valeclient','valepass123','Castro','v.castro@email.com','Santa Marta','Magdalena','Av 1 #20-45','123777666555','3155555555');
+
+-- Calificaciones
+INSERT INTO tb_calificacion (puntaje, promedio) VALUES
+(4.5,4.3),(4.8,4.6),(3.9,4.0),(4.2,4.1),(4.7,4.5),
+(4.0,4.2),(4.9,4.7),(3.8,4.0),(4.3,4.2),(4.6,4.4),
+(2.2,2.4),(5.0,5.0);
+
+-- Categorías
+INSERT INTO tb_categorias_productos (nombre_categoria) VALUES
+('Lácteos'),('Cárnicos'),('Frutas'),('Verduras'),('Granos'),('Café'),
+('Tubérculos'),('Aceites'),('Semillas'),('Hierbas');
+
+-- Roles
+INSERT INTO tb_productores (id_usuario,id_calificacion,tipo_cultivo) VALUES
+(1,1,'Monocultivo'),(3,3,'Policultivo'),(9,9,'Huerta'),(13,2,'Cultivo_Urbano');
+
+INSERT INTO tb_clientes (id_usuario,id_calificacion,preferencias) VALUES
+(4,4,'Prefiere productos orgánicos'),
+(10,10,'Sin preferencias'),
+(11,11,'Productos locales'),
+(15,6,'Compra frutas y verduras frescas');
+
+INSERT INTO tb_transportistas (id_usuario,id_calificacion,zonas_entrega) VALUES
+(5,5,'Antioquia, Risaralda, Caldas'),(14,2,'Boyacá, Santander, Meta');
+
+INSERT INTO tb_administradores (id_usuario,privilegios_admin) VALUES
+(7,'Super administrador con acceso total'),(8,'Administrador de usuarios y productos');
+
+INSERT INTO tb_asesores (id_usuario,id_calificacion,tipo_asesoria) VALUES
+(6,6,'Asesor_Agricola'),(2,2,'Veterinario'),(12,12,'Maquinista');
+
+-- Fincas
+INSERT INTO tb_fincas (id_usuario,nombre_finca,direccion_finca) VALUES
+(1,'Finca Tierra Verde','Vereda El Roble, Antioquia'),
+(1,'Finca Las Lomas','Vereda La Ceiba, Tolima'),
+(3,'Finca El Mirador','Vereda El Trigal, Boyacá'),
+(9,'Finca La Colina','Vereda La Pradera, Meta'),
+(9,'Finca Agua Clara','Vereda San Isidro, Huila'),
+(9,'Finca Brisa Fresca','Vereda Montebello, Cundinamarca'),
+(13,'Finca AgroVida','Vereda El Cedro, Cauca');
+
+-- Productos
+INSERT INTO tb_productos (id_usuario,id_categoria,id_calificacion,precio,nombre_producto,descripcion_producto,stock,peso_kg) VALUES
+(1,6,1,12000,'Café especial','Café de alta calidad cultivado en Antioquia',500,1.0),
+(3,3,3,2500,'Plátano hartón','Plátano cultivado en el Valle del Cauca',800,1.2),
+(9,1,9,3500,'Queso campesino','Queso fresco producido en Huila',300,0.5),
+(1,4,1,1800,'Tomate chonto','Tomate cultivado sin pesticidas',600,0.3),
+(3,5,3,4000,'Frijol rojo','Frijol de excelente calidad',400,0.2),
+(13,2,2,15000,'Carne de res','Carne fresca certificada',250,1.5),
+(9,7,9,1200,'Papa criolla','Papa de producción local',900,0.4);
+
+-- Imágenes de productos
+INSERT INTO tb_imagenes_productos (id_producto, url_imagen, es_principal) VALUES
+(1, 'images/products/cafe_especial_1.webp', TRUE),
+(1, 'images/products/cafe_especial_2.jpg', FALSE),
+(3, 'images/products/queso_campesino.jpg', TRUE),
+(4, 'images/products/tomate_chonto.jpg', TRUE),
+(7, 'images/products/papa_criolla.jpg', TRUE);
+
+-- Productos de fincas
+INSERT INTO tb_productos_fincas (id_finca,id_producto,cantidad_produccion,fecha_cosecha) VALUES
+(1,1,150.00,'2025-06-01'),
+(1,2,80.00,'2025-06-10'),
+(2,3,120.00,'2025-05-15'),
+(3,4,200.00,'2025-07-05');
+
+-- Compras
+INSERT INTO tb_compras (id_cliente,subtotal,impuestos,total,metodo_pago,direccion_entrega) VALUES
+(4,24000,2000,26000,'Tarjeta débito','Calle 23 #45-67, Bogotá'),
+(10,7000,500,7500,'Efectivo','Avenida 40 #50-60, Villavicencio'),
+(11,15000,1200,16200,'Nequi','Avenida 67 #23-5, Villavicencio'),
+(15,18000,1440,19440,'Tarjeta crédito','Av 1 #20-45, Santa Marta');
+
+-- Detalles de compras
+INSERT INTO tb_detalles_compra (id_compra,id_producto,cantidad,precio_unitario,subtotal) VALUES
+(1,1,2,12000,24000),
+(2,3,2,3500,7000),
+(3,4,5,1800,9000),
+(4,7,15,1200,18000);
+
+-- Vehículos
+INSERT INTO tb_vehiculos (id_transportista,tipo_vehiculo,capacidad_carga,documento_propiedad,placa_vehiculo) VALUES
+(5,'Camión',5000,'Documento propiedad 123','ABC123'),
+(5,'Camioneta',2000,'Documento propiedad 456','DEF456'),
+(14,'Camión',4000,'Documento propiedad 789','GHI789');
+
+-- Envíos
+INSERT INTO tb_envios (id_compra) VALUES (1),(2),(3),(4);
+
+-- Máquinas
+INSERT INTO tb_maquinas (id_asesor,tipo_maquina,documento_propiedad,modelo) VALUES
+(12,'Tractor','Documento tractor 101','John Deere 5100'),
+(12,'Cosechadora','Documento cosechadora 202','New Holland CX8080');
+
+-- Servicios
+INSERT INTO tb_servicios (id_asesor,descripcion,estado) VALUES
+(6,'Asesoría en cultivo de café','Activo'),
+(6,'Análisis de suelos','Activo'),
+(2,'Asesoría en ganadería','Inactivo'),
+(12,'Alquiler de maquinaria y servicios de operación','Activo');
+
+-- Certificados
+INSERT INTO tb_certificados (id_usuario,tipo_certificado,descripcion_cert,fecha_expedicion) VALUES
+(6,'Ingeniero Agrónomo','Título profesional','2018-06-15'),
+(6,'Especialista en suelos','Posgrado','2020-11-20'),
+(2,'Técnico pecuario','Certificación SENA','2019-03-10'),
+(12,'Técnico Operario Agrícola','SENA CBA','2020-03-29');
+
+/* ==========================================================
+   PROCEDIMIENTOS ALMACENADOS
+   ========================================================== */
+
+-- Procedimiento: cancelar compra y restaurar stock
+DROP PROCEDURE IF EXISTS sp_cancelar_compra;
+DELIMITER $$
+CREATE PROCEDURE sp_cancelar_compra(IN p_id_compra INT)
+BEGIN
+    DECLARE v_terminado INT DEFAULT FALSE;
+    DECLARE v_id_producto INT;
+    DECLARE v_cantidad INT;
+
+    DECLARE cur CURSOR FOR
+        SELECT id_producto, cantidad
+        FROM tb_detalles_compra
+        WHERE id_compra = p_id_compra;
+
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET v_terminado = TRUE;
+
+    -- Restaurar stock
+    OPEN cur;
+    bucle_lectura: LOOP
+        FETCH cur INTO v_id_producto, v_cantidad;
+        IF v_terminado THEN
+            LEAVE bucle_lectura;
+        END IF;
+        UPDATE tb_productos
+        SET stock = stock + v_cantidad
+        WHERE id_producto = v_id_producto;
+    END LOOP;
+    CLOSE cur;
+
+    -- Eliminar detalles y cabecera
+    DELETE FROM tb_detalles_compra WHERE id_compra = p_id_compra;
+    DELETE FROM tb_compras WHERE id_compra = p_id_compra;
+END$$
+DELIMITER ;
+
+-- Procedimiento: registrar compra con cálculo de totales
+DROP PROCEDURE IF EXISTS sp_registrar_compra_con_envio;
+DELIMITER $$
+CREATE PROCEDURE sp_registrar_compra_con_envio(
+    IN p_id_cliente INT,
+    IN p_metodo_pago VARCHAR(50),
+    IN p_direccion_entrega VARCHAR(200),
+    OUT p_id_compra INT
+)
+BEGIN
+    INSERT INTO tb_compras (id_cliente, metodo_pago, direccion_entrega)
+    VALUES (p_id_cliente, p_metodo_pago, p_direccion_entrega);
+    SET p_id_compra = LAST_INSERT_ID();
+END$$
+DELIMITER ;
+
+-- Procedimiento: crear compra con envío (vacía, solo cabecera)
+DROP PROCEDURE IF EXISTS sp_crear_compra_con_envio;
+DELIMITER $$
+CREATE PROCEDURE sp_crear_compra_con_envio(
+    IN p_id_cliente INT,
+    IN p_metodo_pago VARCHAR(50),
+    IN p_direccion_entrega VARCHAR(200)
+)
+BEGIN
+    INSERT INTO tb_compras (id_cliente, metodo_pago, direccion_entrega)
+    VALUES (p_id_cliente, p_metodo_pago, p_direccion_entrega);
+END$$
+DELIMITER ;
+
+-- Procedimiento: agregar producto a una compra (con validación de stock y cálculo de envío)
+DROP PROCEDURE IF EXISTS sp_agregar_producto_con_peso;
+DELIMITER $$
+CREATE PROCEDURE sp_agregar_producto_con_peso(
+    IN p_id_compra INT,
+    IN p_id_producto INT,
+    IN p_cantidad INT
+)
+BEGIN
+    DECLARE v_precio DECIMAL(12,2);
+    DECLARE v_stock INT;
+    DECLARE v_peso_unitario DECIMAL(10,2);
+    DECLARE v_subtotal DECIMAL(12,2);
+    DECLARE v_peso_total DECIMAL(12,2);
+    DECLARE v_valor_envio DECIMAL(12,2);
+
+    -- Obtener datos del producto
+    SELECT precio, stock, peso_kg
+    INTO v_precio, v_stock, v_peso_unitario
+    FROM tb_productos
+    WHERE id_producto = p_id_producto;
+
+    -- Validar stock suficiente
+    IF v_stock < p_cantidad THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Stock insuficiente';
+    ELSE
+        -- Calcular subtotal del producto
+        SET v_subtotal = p_cantidad * v_precio;
+
+        -- Insertar detalle
+        INSERT INTO tb_detalles_compra (id_compra, id_producto, cantidad, precio_unitario, subtotal)
+        VALUES (p_id_compra, p_id_producto, p_cantidad, v_precio, v_subtotal);
+
+        -- Actualizar stock
+        UPDATE tb_productos
+        SET stock = stock - p_cantidad
+        WHERE id_producto = p_id_producto;
+
+        -- Calcular el peso total de la compra
+        SELECT SUM(d.cantidad * p.peso_kg)
+        INTO v_peso_total
+        FROM tb_detalles_compra d
+        JOIN tb_productos p ON d.id_producto = p.id_producto
+        WHERE d.id_compra = p_id_compra;
+
+        -- Calcular flete ($800 por kg)
+        SET v_valor_envio = v_peso_total * 800;
+
+        -- Actualizar envío
+        UPDATE tb_compras
+        SET valor_envio = v_valor_envio
+        WHERE id_compra = p_id_compra;
+    END IF;
+END$$
+DELIMITER ;
+
+/* ==========================================================
+   FUNCIÓN DE CAPACIDAD VEHICULAR
+   ========================================================== */
+DROP FUNCTION IF EXISTS fn_verificar_capacidad_vehiculo;
+DELIMITER $$
+CREATE FUNCTION fn_verificar_capacidad_vehiculo(
+    p_id_compra INT,
+    p_id_transportista INT
+) RETURNS VARCHAR(100)
+DETERMINISTIC
+BEGIN
+    DECLARE v_peso_total DECIMAL(10,2);
+    DECLARE v_capacidad_vehiculo DECIMAL(10,2);
+    DECLARE v_capacidad_disponible DECIMAL(10,2);
+
+    -- Calcular peso total de la compra
+    SELECT SUM(dc.cantidad * p.peso_kg)
+    INTO v_peso_total
+    FROM tb_detalles_compra dc
+    JOIN tb_productos p ON dc.id_producto = p.id_producto
+    WHERE dc.id_compra = p_id_compra;
+
+    -- Capacidad del vehículo
+    SELECT capacidad_carga
+    INTO v_capacidad_vehiculo
+    FROM tb_vehiculos
+    WHERE id_transportista = p_id_transportista
+    LIMIT 1;
+
+    IF v_capacidad_vehiculo IS NULL THEN
+        RETURN 'Transportista sin vehículo asignado';
+    ELSEIF v_peso_total <= v_capacidad_vehiculo THEN
+        SET v_capacidad_disponible = v_capacidad_vehiculo - v_peso_total;
+        RETURN CONCAT('Capacidad suficiente. Disponible: ', v_capacidad_disponible, ' kg');
+    ELSE
+        RETURN CONCAT('Sobrecarga: ', v_peso_total - v_capacidad_vehiculo, ' kg exceden la capacidad');
+    END IF;
+END$$
+DELIMITER ;
+
+/* ==========================================================
+   TRIGGERS
+   ========================================================== */
+
+-- Recalcula el subtotal, impuestos y total de una compra
+DROP TRIGGER IF EXISTS calcular_totales_compra;
+DELIMITER $$
+CREATE TRIGGER calcular_totales_compra
+AFTER INSERT ON tb_detalles_compra
+FOR EACH ROW
+BEGIN
+    DECLARE v_subtotal DECIMAL(12,2);
+    DECLARE v_impuestos DECIMAL(12,2);
+    DECLARE v_envio DECIMAL(12,2);
+    DECLARE v_total DECIMAL(12,2);
+
+    -- Calcular subtotal
+    SELECT SUM(cantidad * precio_unitario)
+    INTO v_subtotal
+    FROM tb_detalles_compra
+    WHERE id_compra = NEW.id_compra;
+
+    -- Impuestos (8%)
+    SET v_impuestos = v_subtotal * 0.08;
+
+    -- Envío
+    SELECT IFNULL(valor_envio, 0)
+    INTO v_envio
+    FROM tb_compras
+    WHERE id_compra = NEW.id_compra;
+
+    -- Total
+    SET v_total = v_subtotal + v_impuestos + v_envio;
+
+    -- Actualizar cabecera
+    UPDATE tb_compras
+    SET subtotal = v_subtotal,
+        impuestos = v_impuestos,
+        total = v_total
+    WHERE id_compra = NEW.id_compra;
+END$$
+DELIMITER ;
+
+-- Restaurar stock cuando se elimina un detalle
+DROP TRIGGER IF EXISTS restaurar_stock_despues_eliminar;
+DELIMITER $$
+CREATE TRIGGER restaurar_stock_despues_eliminar
+AFTER DELETE ON tb_detalles_compra
+FOR EACH ROW
+BEGIN
+    UPDATE tb_productos
+    SET stock = stock + OLD.cantidad
+    WHERE id_producto = OLD.id_producto;
+END$$
+DELIMITER ;
+
+/* ==========================================================
+   FIN DEL SCRIPT
+   ========================================================== */

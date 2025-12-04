@@ -12,7 +12,7 @@ import java.util.List;
 @NoArgsConstructor
 @Getter
 @Setter
-@ToString(exclude = {"productor", "productoFincas"})
+@ToString(exclude = {"productor", "productoFinca"})
 public class Finca implements Serializable {
 
     @Id
@@ -20,9 +20,11 @@ public class Finca implements Serializable {
     @Column(name = "id_finca")
     private Integer idFinca;
 
+    // Finca se asocia a Productor a través de la columna id_usuario (PK de tb_productores)
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(
-        name = "id_usuario",
+        name = "id_productor",
+        referencedColumnName = "id_usuario",
         nullable = false,
         foreignKey = @ForeignKey(name = "fk_fincas_productor")
     )
@@ -49,4 +51,5 @@ public class Finca implements Serializable {
     // Relación con ProductoFinca: una Finca puede tener muchas asociaciones ProductoFinca
     @OneToMany(mappedBy = "finca", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<ProductoFinca> productoFincas;
+
 }

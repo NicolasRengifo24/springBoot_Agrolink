@@ -6,12 +6,7 @@ import lombok.*;
 import java.io.Serializable;
 
 @Entity
-@Table(
-    name = "tb_clientes",
-    uniqueConstraints = {
-        @UniqueConstraint(name = "uq_clientes_usuario", columnNames = "id_usuario")
-    }
-)
+@Table(name = "tb_clientes")
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
@@ -20,27 +15,18 @@ import java.io.Serializable;
 public class Cliente implements Serializable {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id_cliente")
-    private Integer idCliente;
+    @Column(name = "id_usuario")
+    private Integer idUsuario;
 
     @OneToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(
-        name = "id_usuario",
-        nullable = false,
-        unique = true,
-        foreignKey = @ForeignKey(name = "fk_clientes_usuario")
-    )
+    @MapsId
+    @JoinColumn(name = "id_usuario", foreignKey = @ForeignKey(name = "fk_clientes_usuarios"))
     private Usuario usuario;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(
-        name = "id_calificacion",
-        foreignKey = @ForeignKey(name = "fk_clientes_calificacion")
-    )
+    @JoinColumn(name = "id_calificacion", foreignKey = @ForeignKey(name = "fk_clientes_calificacion"))
     private Calificacion calificacion;
 
     @Column(name = "preferencias", length = 150)
     private String preferencias = "Sin Preferencias";
 }
-

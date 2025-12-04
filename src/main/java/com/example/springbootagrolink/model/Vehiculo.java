@@ -23,6 +23,7 @@ public class Vehiculo implements Serializable {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(
         name = "id_transportista",
+        referencedColumnName = "id_usuario",
         nullable = false,
         foreignKey = @ForeignKey(name = "fk_vehiculos_transportista")
     )
@@ -40,4 +41,3 @@ public class Vehiculo implements Serializable {
     @Column(name = "placa_vehiculo", length = 15)
     private String placaVehiculo;
 }
-

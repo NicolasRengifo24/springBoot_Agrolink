@@ -6,34 +6,23 @@ import lombok.*;
 import java.io.Serializable;
 
 @Entity
-@Table(
-    name = "tb_administradores",
-    uniqueConstraints = {
-        @UniqueConstraint(name = "uq_administradores_usuario", columnNames = "id_usuario")
-    }
-)
+@Table(name = "tb_administradores")
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
 @Setter
-@ToString(exclude = "usuario")
+@ToString(exclude = {"usuario"})
 public class Administrador implements Serializable {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id_administrador")
-    private Integer idAdministrador;
+    @Column(name = "id_usuario")
+    private Integer idUsuario;
 
     @OneToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(
-        name = "id_usuario",
-        nullable = false,
-        unique = true,
-        foreignKey = @ForeignKey(name = "fk_administradores_usuario")
-    )
+    @MapsId
+    @JoinColumn(name = "id_usuario", foreignKey = @ForeignKey(name = "fk_administradores_usuarios"))
     private Usuario usuario;
 
     @Column(name = "privilegios_admin", length = 200)
     private String privilegiosAdmin;
 }
-

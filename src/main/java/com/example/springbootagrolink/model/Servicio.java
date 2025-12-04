@@ -22,6 +22,7 @@ public class Servicio implements Serializable {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(
         name = "id_asesor",
+        referencedColumnName = "id_usuario",
         nullable = false,
         foreignKey = @ForeignKey(name = "fk_servicios_asesor")
     )

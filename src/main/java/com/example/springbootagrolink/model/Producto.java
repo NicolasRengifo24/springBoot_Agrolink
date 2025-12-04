@@ -32,6 +32,7 @@ public class Producto implements Serializable {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(
         name = "id_categoria",
+        referencedColumnName = "id_categoria",
         nullable = false,
         foreignKey = @ForeignKey(name = "fk_productos_categoria")
     )
@@ -40,6 +41,7 @@ public class Producto implements Serializable {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(
         name = "id_calificacion",
+        referencedColumnName = "id_calificacion",
         foreignKey = @ForeignKey(name = "fk_productos_calificacion")
     )
     private Calificacion calificacion;
