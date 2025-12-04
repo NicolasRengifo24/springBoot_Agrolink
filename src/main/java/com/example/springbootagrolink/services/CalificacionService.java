@@ -3,7 +3,6 @@ package com.example.springbootagrolink.services;
 import com.example.springbootagrolink.model.Calificacion;
 import com.example.springbootagrolink.repository.CalificacionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -50,25 +49,12 @@ public class CalificacionService {
         return false;
     }
 
-    // Búsqueda multicriterio: todos los parámetros son opcionales
+    // Búsqueda multicriterio mediante JPQL en el repositorio
     @Transactional(readOnly = true)
     public List<Calificacion> buscar(BigDecimal puntajeMin,
                                      BigDecimal puntajeMax,
                                      BigDecimal promedioMin,
                                      BigDecimal promedioMax) {
-        Specification<Calificacion> spec = (root, query, cb) -> cb.conjunction();
-        if (puntajeMin != null) {
-            spec = spec.and((root, query, cb) -> cb.greaterThanOrEqualTo(root.get("puntaje"), puntajeMin));
-        }
-        if (puntajeMax != null) {
-            spec = spec.and((root, query, cb) -> cb.lessThanOrEqualTo(root.get("puntaje"), puntajeMax));
-        }
-        if (promedioMin != null) {
-            spec = spec.and((root, query, cb) -> cb.greaterThanOrEqualTo(root.get("promedio"), promedioMin));
-        }
-        if (promedioMax != null) {
-            spec = spec.and((root, query, cb) -> cb.lessThanOrEqualTo(root.get("promedio"), promedioMax));
-        }
-        return calificacionRepository.findAll(spec);
+        return calificacionRepository.buscarPorCriterios(puntajeMin, puntajeMax, promedioMin, promedioMax);
     }
 }
