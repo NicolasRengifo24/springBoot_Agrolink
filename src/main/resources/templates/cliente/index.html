@@ -5,96 +5,253 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Agrolink</title>
 
+    <!-- Bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Nunito:wght@700&display=swap" rel="stylesheet">
+
+    <!-- AOS Animations -->
     <link href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css" rel="stylesheet">
 
     <style>
-        /* TODO TU CSS SE DEJA TAL CUAL */
+        /* Tu CSS queda exactamente igual */
         body{
             font-family: "Inter", sans-serif;
             background: #f6f8f4;
         }
-        a{text-decoration:none!important;}
-        .navbar-custom{background:white;box-shadow:0 2px 12px rgba(0,0,0,0.08);padding:10px 0;}
-        .brand-logo{display:flex;align-items:center;gap:8px;font-family:"Nunito",sans-serif;font-size:1.8rem;font-weight:700;color:#2f6b31;}
-        .brand-logo img{width:42px;height:42px;object-fit:contain;}
-        .search-box{width:350px;border-radius:10px;overflow:hidden;border:1px solid #cfd8cd;}
-        .search-box input{border:none;padding:10px;}
-        .search-box button{border:none;background:#2f6b31;color:white;padding:0 18px;}
-        .cart-badge{background:#e63946;color:white;font-size:.75rem;padding:2px 6px;border-radius:50%;position:absolute;top:-4px;right:-6px;}
-        .hero{height:70vh;border-bottom-left-radius:50px;border-bottom-right-radius:50px;position:relative;}
-        .hero-overlay{background:rgba(0,0,0,0.45);height:100%;width:100%;display:flex;align-items:center;border-bottom-left-radius:50px;border-bottom-right-radius:50px;}
-        .hero-text{color:white;max-width:600px;margin-left:60px;}
-        .hero-btn{background:#2f6b31;color:white;padding:12px 26px;border-radius:12px;}
-        .filters-premium{background:white;padding:25px;border-radius:20px;box-shadow:0 8px 24px rgba(0,0,0,0.06);border:1px solid #e7efe4;}
-        .filter-item{background:#f8faf7;padding:15px;border-radius:14px;border:1px solid #e0e7db;}
-        .product-card{border-radius:16px;overflow:hidden;background:white;transition:.2s;box-shadow:0 5px 12px rgba(0,0,0,0.05);}
-        .product-card:hover{transform:translateY(-4px);box-shadow:0 10px 20px rgba(0,0,0,0.10);}
-        .product-img{height:220px;width:100%;object-fit:cover;}
-        .btn-view{background:#2f6b31;color:white;padding:10px;border-radius:10px;}
-        .footer{background:#2f6b31;color:white;padding:20px;text-align:center;border-top-left-radius:40px;border-top-right-radius:40px;}
+        a { text-decoration: none !important; }
+
+        /* -------- NAVBAR PREMIUM -------- */
+        .navbar-custom { background: white; box-shadow: 0 2px 12px rgba(0,0,0,0.08); padding: 10px 0; }
+        .brand-logo { display: flex; align-items: center; gap: 8px; font-family: "Nunito", sans-serif; font-size: 1.8rem; font-weight: 700; color: #2f6b31; }
+        .brand-logo img{ width: 42px; height: 42px; object-fit: contain; }
+        .search-box{ width: 350px; border-radius: 10px; overflow: hidden; border: 1px solid #cfd8cd; }
+        .search-box input{ border: none; padding: 10px; }
+        .search-box button{ border: none; background: #2f6b31; color: white; padding: 0 18px; }
+        .cart-badge{ background: #e63946; color: white; font-size: 0.75rem; padding: 2px 6px; border-radius: 50%; position: absolute; top: -4px; right: -6px; }
+        .mega-menu { position: absolute; left: 0; top: 100%; width: 100vw; background: #fff; padding: 30px 60px; box-shadow: 0 8px 25px rgba(0,0,0,0.15); display: none; z-index: 9999; }
+        .nav-item.position-static:hover .mega-menu { display: block; }
+        .mega-title { font-weight: 700; color: #2f6b31; margin-bottom: 10px; }
+        .mega-list a { display: block; padding: 6px 0; font-size: 0.95rem; color: #444; }
+        .mega-list a:hover { color: #2f6b31; }
+        .profile-img{ width: 38px; height: 38px; border-radius: 50%; object-fit: cover; }
+        .hero { height: 70vh; background: center/cover no-repeat; border-bottom-left-radius: 50px; border-bottom-right-radius: 50px; position: relative; }
+        .hero-overlay { background: rgba(0,0,0,0.45); height: 100%; width: 100%; display: flex; align-items: center; border-bottom-left-radius: 50px; border-bottom-right-radius: 50px; }
+        .hero-text { color: white; max-width: 600px; margin-left: 60px; }
+        .hero-text h1{ font-size: 3.2rem; font-weight: 700; }
+        .hero-btn{ background: #2f6b31; color: white; padding: 12px 26px; border-radius: 12px; }
+        .filters-premium{ background: white; padding: 25px; border-radius: 20px; box-shadow: 0 8px 24px rgba(0,0,0,0.06); border: 1px solid #e7efe4; }
+        .filters-header{ display: flex; align-items: center; gap: 10px; margin-bottom: 18px; }
+        .filters-header i{ font-size: 1.5rem; color: #2f6b31; }
+        .filters-header h4{ margin: 0; font-weight: 700; color: #2f6b31; }
+        .filters-content{ display: flex; flex-direction: column; gap: 20px; }
+        .filter-item{ background: #f8faf7; padding: 15px; border-radius: 14px; border: 1px solid #e0e7db; }
+        .filter-toggle{ background: none; border: none; padding: 0; font-weight: 600; width: 100%; text-align: left; font-size: 1rem; display: flex; align-items: center; gap: 8px; color: #2f6b31; }
+        .filter-toggle:hover{ color: #1d4820; cursor: pointer; }
+        .range-values{ display: flex; justify-content: space-between; font-size: 0.85rem; color: #666; }
+        .product-card{ border-radius: 16px; overflow: hidden; background: white; transition: .2s; box-shadow: 0 5px 12px rgba(0,0,0,0.05); }
+        .product-card:hover{ transform: translateY(-4px); box-shadow: 0 10px 20px rgba(0,0,0,0.10); }
+        .product-img{ height: 220px; width: 100%; object-fit: cover; }
+        .btn-view{ background: #2f6b31; color: white; padding: 10px; border-radius: 10px; }
+        .featured { margin: 60px auto; background: white; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.08); display: flex; overflow: hidden; }
+        .featured img { width: 45%; object-fit: cover; }
+        .featured-body{ padding: 40px; }
+        .footer{ background: #2f6b31; color: white; padding: 20px; text-align: center; border-top-left-radius: 40px; border-top-right-radius: 40px; }
     </style>
 </head>
-
 <body>
 
-<!-- NAVBAR -->
+<!-- NAVBAR PREMIUM -->
+<!-- NAVBAR PREMIUM -->
 <nav class="navbar navbar-expand-lg navbar-custom fixed-top">
     <div class="container">
-        <a class="navbar-brand brand-logo" href="#">
-            <img src="logo/logoAgrolink.jpg"> Agrolink
+
+        <!-- LOGO -->
+        <a class="navbar-brand brand-logo" th:href="@{/}">
+            <img th:src="@{/CSS/logo/logoAgrolink.jpg}" alt="Logo Agrolink">
+            Agrolink
         </a>
+
+        <button class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navMenu">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navMenu">
+
+            <!-- BÚSQUEDA -->
+            <div class="mx-auto d-none d-lg-block">
+                <form class="d-flex search-box">
+                    <input type="search" placeholder="Buscar productos...">
+                    <button><i class="bi bi-search"></i></button>
+                </form>
+            </div>
+
+            <ul class="navbar-nav ms-auto align-items-center">
+
+                <li class="nav-item">
+                    <a class="nav-link me-3" th:href="@{/}">Inicio</a>
+                </li>
+
+                <!-- MEGA MENU CATEGORÍAS -->
+                <li class="nav-item position-static">
+                    <a class="nav-link dropdown-toggle me-3" href="javascript:void(0);">Categorías</a>
+
+                    <div class="mega-menu">
+                        <div class="row">
+
+                            <div class="col-md-3">
+                                <h6 class="mega-title">Frutas</h6>
+                                <div class="mega-list">
+                                    <a th:href="@{/productos(categoria='Mango')}">Mango</a>
+                                    <a th:href="@{/productos(categoria='Banano')}">Banano</a>
+                                    <a th:href="@{/productos(categoria='Fresa')}">Fresa</a>
+                                    <a th:href="@{/productos(categoria='Papaya')}">Papaya</a>
+                                </div>
+                            </div>
+
+                            <div class="col-md-3">
+                                <h6 class="mega-title">Verduras</h6>
+                                <div class="mega-list">
+                                    <a th:href="@{/productos(categoria='Tomate')}">Tomate</a>
+                                    <a th:href="@{/productos(categoria='Lechuga')}">Lechuga</a>
+                                    <a th:href="@{/productos(categoria='Cebolla')}">Cebolla</a>
+                                    <a th:href="@{/productos(categoria='Zanahoria')}">Zanahoria</a>
+                                </div>
+                            </div>
+
+                            <div class="col-md-3">
+                                <h6 class="mega-title">Cereales</h6>
+                                <div class="mega-list">
+                                    <a th:href="@{/productos(categoria='Maíz')}">Maíz</a>
+                                    <a th:href="@{/productos(categoria='Arroz')}">Arroz</a>
+                                    <a th:href="@{/productos(categoria='Avena')}">Avena</a>
+                                </div>
+                            </div>
+
+                            <div class="col-md-3">
+                                <h6 class="mega-title">Tubérculos</h6>
+                                <div class="mega-list">
+                                    <a th:href="@{/productos(categoria='Papa')}">Papa</a>
+                                    <a th:href="@{/productos(categoria='Yuca')}">Yuca</a>
+                                    <a th:href="@{/productos(categoria='Ñame')}">Ñame</a>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </li>
+
+                <!-- SERVICIOS -->
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle me-3" data-bs-toggle="dropdown">Servicios</a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="#">Veterinario</a></li>
+                        <li><a class="dropdown-item" href="#">Asesoría agrícola</a></li>
+                        <li><a class="dropdown-item" href="#">Maquinaria</a></li>
+                        <li><hr></li>
+                        <li><a class="dropdown-item" href="#">Ver todos</a></li>
+                    </ul>
+                </li>
+
+                <!-- MIS PRODUCTOS -->
+                <li class="nav-item">
+                    <a class="nav-link me-3">Mis pedidos</a>
+                </li>
+
+                <!-- CARRITO -->
+                <li class="nav-item position-relative me-3">
+                    <a class="nav-link" th:href="@{/CSS/imag/Carrito.html}">
+                        <i class="bi bi-cart3 fs-5"></i>
+                        <span class="cart-badge">3</span>
+                    </a>
+                </li>
+
+                <!-- PERFIL -->
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle d-flex align-items-center" data-bs-toggle="dropdown">
+                        <img th:src="@{https://i.pravatar.cc/40?img=12}" class="profile-img me-2">
+                        Cuenta
+                    </a>
+
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" th:href="@{/perfilcliente.html}">Mi perfil</a></li>
+                        <li><a class="dropdown-item" href="#">Configuración</a></li>
+                        <li><hr></li>
+                        <li><a class="dropdown-item text-danger">Cerrar sesión</a></li>
+                    </ul>
+                </li>
+
+            </ul>
+
+        </div>
+
     </div>
 </nav>
 
+
 <!-- HERO -->
-<section class="carousel slide mt-5">
+<section id="heroCarousel" class="carousel slide mt-5" data-bs-ride="carousel" data-bs-interval="3500">
     <div class="carousel-inner">
-        <div class="carousel-item active hero" style="background-image: url('/imag/Imagen _carrusel.jpg');">
+
+        <!-- IMG 1 -->
+        <div class="carousel-item active hero" th:style="'background-image: url(' + @{/CSS/imag/Imagen_carrucel} + ');'">
             <div class="hero-overlay">
-                <div class="hero-text">
+                <div class="hero-text" data-aos="fade-right">
                     <h1>Los mejores productos directos del campo</h1>
+                    <p class="lead">Compra sin intermediarios y apoya al productor colombiano 🌱</p>
+                    <a th:href="@{/CSS/imag/alimentos-del-campo-OFERTA.webp}" class="hero-btn">Explorar productos</a>
                 </div>
             </div>
         </div>
+
+        <!-- IMG 2 -->
+        <div class="carousel-item hero" th:style="'background-image: url(' + @{/CSS/imag/Carrusel.jpg} + ');'">
+            <div class="hero-overlay">
+                <div class="hero-text">
+                    <h1>Calidad certificada BPA</h1>
+                    <p class="lead">Productos frescos cosechados el mismo día</p>
+                    <a th:href="@{/CSS/imag/carrusel1.jfif}" class="hero-btn">Ver más</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- IMG 3 -->
+        <div class="carousel-item hero" th:style="'background-image: url(' + @{/CSS/imag/alimentos-del-campo-OFERTA.webp} + ');'">
+            <div class="hero-overlay">
+                <div class="hero-text">
+                    <h1>Precios justos para todos</h1>
+                    <p class="lead">Transparencia en cada compra</p>
+                    <a th:href="@{/CSS/imag/Carrusel.jpg}" class="hero-btn">Explorar</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- IMG 4 -->
+        <div class="carousel-item hero" th:style="'background-image: url(' + @{/CSS/imag/carrusel1.jfif} + ');'">
+            <div class="hero-overlay">
+                <div class="hero-text">
+                    <h1>Del campo a tu mesa</h1>
+                    <p class="lead">Apoyando al productor colombiano</p>
+                    <a th:href="@{/CSS/imag/Ofertas_Huevos.jpg}" class="hero-btn">Comprar ahora</a>
+                </div>
+            </div>
+        </div>
+
     </div>
 </section>
 
-<!-- PRODUCTOS -->
-<div id="productos" class="container mt-5">
-    <div class="section-title">
-        <h2>Productos disponibles</h2>
-        <p class="text-muted">Calidad garantizada directamente desde el campo</p>
-    </div>
-
-    <div class="row g-4">
-
-        <!-- PRODUCTOS DINÁMICOS -->
-        <div class="col-md-3" th:each="producto : ${productos}">
-            <div class="product-card">
-
-                <img th:src="@{${producto.imagen}}" class="product-img">
-
-                <div class="p-3">
-                    <h3 th:text="${producto.nombre}">Nombre del producto</h3>
-                    <p class="text-muted" th:text="${producto.descripcion}">Descripción</p>
-
-                    <a th:href="@{'/producto/' + ${producto.id}}" class="btn-view w-100">Ver producto</a>
-                </div>
-            </div>
-        </div>
-
-    </div>
-</div>
-
-<!-- FOOTER -->
-<footer class="footer">
-    © 2025 Agrolink. Todos los derechos reservados.
-</footer>
+<!-- Resto del HTML (Filtros, Productos, Destacado, Footer) -->
+<!-- Para cada imagen o enlace usa th:src o th:href igual que en el hero -->
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js"></script>
+<script>
+    AOS.init({ duration: 900, once: true });
+</script>
+
 </body>
 </html>

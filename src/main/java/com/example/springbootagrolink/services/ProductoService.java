@@ -16,6 +16,7 @@ public class ProductoService  implements Idao <Producto, Integer> {
     @Autowired
     private ProductoRepository productoRepository;
 
+
     @Override
     @Transactional(readOnly = true)
     public List<Producto> obtenerTodos() {

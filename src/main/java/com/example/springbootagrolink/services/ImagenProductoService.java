@@ -52,12 +52,7 @@ public class ImagenProductoService {
         if (cambios.getUrlImagen() != null && !cambios.getUrlImagen().isBlank()) {
             existente.setUrlImagen(cambios.getUrlImagen());
         }
-        if (cambios.getDescripcionImagen() != null) {
-            existente.setDescripcionImagen(cambios.getDescripcionImagen());
-        }
-        if (cambios.getOrden() != null) {
-            existente.setOrden(cambios.getOrden());
-        }
+
         return imagenProductoRepository.save(existente);
     }
 

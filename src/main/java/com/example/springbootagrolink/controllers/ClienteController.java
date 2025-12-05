@@ -1,11 +1,15 @@
 package com.example.springbootagrolink.controllers;
 
 import com.example.springbootagrolink.model.Cliente;
+import com.example.springbootagrolink.model.Producto;
 import com.example.springbootagrolink.services.ClienteService;
+import com.example.springbootagrolink.services.ProductoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @Controller
 @RequestMapping("/clientes")
@@ -13,6 +17,15 @@ public class ClienteController {
 
     @Autowired
     private ClienteService clienteService;
+     @Autowired
+     private ProductoService productoService;
+
+     @GetMapping("/cliente-index")
+     public String Cliente(Model model){
+          List<Producto> productos = productoService.obtenerTodos();
+          model.addAttribute("producto", productos);
+          return "cliente/index";
+     }
 
     // GET - Listar todos los clientes
     @GetMapping
@@ -57,4 +70,3 @@ public class ClienteController {
         return "redirect:/clientes";
     }
 }
-
