@@ -52,6 +52,7 @@ public class ImagenProductoService {
         if (cambios.getUrlImagen() != null && !cambios.getUrlImagen().isBlank()) {
             existente.setUrlImagen(cambios.getUrlImagen());
         }
+        // Actualiza el flag de imagen principal si se proporciona
         if (cambios.getEsPrincipal() != null) {
             existente.setEsPrincipal(cambios.getEsPrincipal());
         }
