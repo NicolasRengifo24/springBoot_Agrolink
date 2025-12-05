@@ -96,6 +96,8 @@ public class ClienteController {
         model.addAttribute("productos", productos);
         model.addAttribute("categorias", categorias);
         model.addAttribute("categoriasServicios", categoriasServicios);
+        model.addAttribute("tituloSeccion", "Productos Frescos del Campo");
+        model.addAttribute("subtituloSeccion", "Directamente desde nuestros productores certificados");
         return "cliente/index";
     }
 
@@ -171,7 +173,7 @@ public class ClienteController {
                 } else if (descripcion.contains("capacita") || descripcion.contains("curso") ||
                           descripcion.contains("entrena") || descripcion.contains("taller")) {
                     categoriasServicios.get("Capacitación").add(servicio);
-                }else if (descripcion.contains("maquina") || descripcion.contains("tracto") ||
+                } else if (descripcion.contains("maquina") || descripcion.contains("tracto") ||
                         descripcion.contains("mecanica") || descripcion.contains("motor")) {
                     categoriasServicios.get("Maquinaria").add(servicio);
                 } else {
