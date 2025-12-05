@@ -10,6 +10,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.servlet.http.HttpSession;
+import java.math.BigDecimal;
 import java.util.*;
 
 @Controller
@@ -40,7 +41,8 @@ public class ClienteController {
     public String verProductoCliente(@PathVariable Integer id, Model model) {
         Optional<Producto> productoOpt = productoService.obtenerPorId(id);
         if (productoOpt.isEmpty()) {
-
+            model.addAttribute("idBuscado", id);
+            return "cliente/producto-no-encontrado";
         }
         Producto producto = productoOpt.get();
         model.addAttribute("producto", producto);
@@ -73,7 +75,19 @@ public class ClienteController {
         }
         cart.put(idProducto, cart.getOrDefault(idProducto, 0) + cantidad);
         session.setAttribute("cart", cart);
+        // Log simple para depuración: imprimir el contenido del carrito
+        System.out.println("[DEBUG] Carrito actual: " + cart);
         return "redirect:/cliente/producto/" + idProducto;
+    }
+
+    // Endpoint de depuración para inspeccionar el carrito en sesión (dev only)
+    @GetMapping("/cliente/carrito/raw")
+    @ResponseBody
+    public Map<Integer, Integer> verCarritoRaw(HttpSession session) {
+        @SuppressWarnings("unchecked")
+        Map<Integer, Integer> cart = (Map<Integer, Integer>) session.getAttribute("cart");
+        if (cart == null) return Collections.emptyMap();
+        return cart;
     }
 
     // GET - Listar todos los clientes
@@ -117,5 +131,119 @@ public class ClienteController {
     public String eliminarCliente(@PathVariable Integer id) {
         clienteService.eliminarCliente(id);
         return "redirect:/clientes";
+    }
+
+    // Clase interna para representar item del carrito en la vista (DTO ligero para evitar LazyInitialization)
+    public static class CartItem {
+        private final Integer id;
+        private final String nombre;
+        private final String descripcion;
+        private final java.math.BigDecimal precio;
+        private final Integer cantidad;
+        private final String imagenUrl;
+        private final java.math.BigDecimal subtotal;
+
+        public CartItem(Integer id, String nombre, String descripcion, java.math.BigDecimal precio, Integer cantidad, String imagenUrl) {
+            this.id = id;
+            this.nombre = nombre;
+            this.descripcion = descripcion;
+            this.precio = precio;
+            this.cantidad = cantidad;
+            this.imagenUrl = imagenUrl;
+            this.subtotal = (precio == null) ? java.math.BigDecimal.ZERO : precio.multiply(java.math.BigDecimal.valueOf(cantidad));
+        }
+
+        public Integer getId() { return id; }
+        public String getNombre() { return nombre; }
+        public String getDescripcion() { return descripcion; }
+        public java.math.BigDecimal getPrecio() { return precio; }
+        public Integer getCantidad() { return cantidad; }
+        public String getImagenUrl() { return imagenUrl; }
+        public java.math.BigDecimal getSubtotal() { return subtotal; }
+        public java.math.BigDecimal getSubtotalOld() {
+            if (precio == null) return java.math.BigDecimal.ZERO;
+            return precio.multiply(java.math.BigDecimal.valueOf(cantidad));
+        }
+    }
+
+    // Mostrar carrito (obtiene ids y cantidades desde la sesión y carga productos desde BD)
+    @GetMapping("/cliente/carrito")
+    public String verCarrito(HttpSession session, Model model) {
+        @SuppressWarnings("unchecked")
+        Map<Integer, Integer> cart = (Map<Integer, Integer>) session.getAttribute("cart");
+        List<CartItem> items = new ArrayList<>();
+        java.math.BigDecimal subtotal = java.math.BigDecimal.ZERO;
+        if (cart != null && !cart.isEmpty()) {
+            for (Map.Entry<Integer, Integer> e : cart.entrySet()) {
+                Integer idProd = e.getKey();
+                Integer qty = e.getValue();
+                productoService.obtenerPorId(idProd).ifPresent(prod -> {
+                    String img = "/imag/placeholder.jpg";
+                    if (prod.getImagenesProducto() != null && !prod.getImagenesProducto().isEmpty()) {
+                        img = "/" + prod.getImagenesProducto().get(0).getUrlImagen();
+                    }
+                    items.add(new CartItem(prod.getIdProducto(), prod.getNombreProducto(), prod.getDescripcionProducto(), prod.getPrecio(), qty, img));
+                });
+            }
+            for (CartItem it : items) {
+                subtotal = subtotal.add(it.getSubtotal());
+            }
+        }
+        // Debug: imprimir resumen del carrito y tamaño
+        System.out.println("[DEBUG] verCarrito - items=" + items.size() + " cartMap=" + cart);
+        java.math.BigDecimal envio = java.math.BigDecimal.valueOf(7000);
+        model.addAttribute("cartItems", items);
+        model.addAttribute("subtotal", subtotal);
+        model.addAttribute("envio", envio);
+        model.addAttribute("total", subtotal.add(envio));
+        int cartCount = 0;
+        if (cart != null) {
+            for (Integer q : cart.values()) cartCount += q == null ? 0 : q;
+        }
+        model.addAttribute("cartCount", cartCount);
+        return "cliente/carrito";
+    }
+
+    // Actualizar cantidad de un producto en el carrito
+    @PostMapping("/cliente/carrito/actualizar")
+    public String actualizarCantidadCarrito(@RequestParam Integer idProducto,
+                                            @RequestParam Integer cantidad,
+                                            HttpSession session) {
+        @SuppressWarnings("unchecked")
+        Map<Integer, Integer> cart = (Map<Integer, Integer>) session.getAttribute("cart");
+        if (cart == null) cart = new HashMap<>();
+        if (cantidad != null && cantidad > 0) {
+            cart.put(idProducto, cantidad);
+        } else {
+            cart.remove(idProducto);
+        }
+        session.setAttribute("cart", cart);
+        return "redirect:/cliente/carrito";
+    }
+
+    // Quitar un producto del carrito
+    @PostMapping("/cliente/carrito/quitar")
+    public String quitarDelCarrito(@RequestParam Integer idProducto, HttpSession session) {
+        @SuppressWarnings("unchecked")
+        Map<Integer, Integer> cart = (Map<Integer, Integer>) session.getAttribute("cart");
+        if (cart != null) {
+            cart.remove(idProducto);
+            session.setAttribute("cart", cart);
+        }
+        return "redirect:/cliente/carrito";
+    }
+
+    // Endpoint de prueba que añade 2 productos al carrito (solo para debug/testing local)
+    @GetMapping("/cliente/carrito/add-test")
+    public String addTestItemsToCart(HttpSession session) {
+        @SuppressWarnings("unchecked")
+        Map<Integer, Integer> cart = (Map<Integer, Integer>) session.getAttribute("cart");
+        if (cart == null) cart = new HashMap<>();
+        // intenta añadir ids 1 y 2 (si no existen en BD al mostrar se ignorarán)
+        cart.put(1, cart.getOrDefault(1, 0) + 2);
+        cart.put(2, cart.getOrDefault(2, 0) + 1);
+        session.setAttribute("cart", cart);
+        System.out.println("[DEBUG] Añadidos items de prueba: " + cart);
+        return "redirect:/cliente/carrito";
     }
 }

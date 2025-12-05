@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -153,8 +153,8 @@
 <nav class="navbar navbar-expand-lg navbar-custom fixed-top">
     <div class="container">
 
-        <a class="navbar-brand brand-logo d-flex align-items-center" href="index.html">
-            <img src="https://imag.es/Agrolink.png" alt="Agrolink Logo">
+        <a class="navbar-brand brand-logo d-flex align-items-center" th:href="@{/}">
+            <img th:src="@{/CSS/logo/logoAgrolink.jpg}" alt="Agrolink Logo">
             Agrolink
         </a>
 
@@ -176,13 +176,13 @@
             <ul class="navbar-nav ms-auto align-items-center">
 
                 <li class="nav-item">
-                    <a class="nav-link me-3" href="#">Mis pedidos</a>
+                    <a class="nav-link me-3" th:href="@{/compras}">Mis pedidos</a>
                 </li>
 
                 <li class="nav-item position-relative me-3">
-                    <a class="nav-link" href="carrito.html">
+                    <a class="nav-link" th:href="@{/cliente/carrito}">
                         <i class="bi bi-cart3 fs-5"></i>
-                        <span id="cartBadge" class="cart-badge">0</span>
+                        <span id="cartBadge" class="cart-badge" th:text="${cartCount}">0</span>
                     </a>
                 </li>
 
@@ -213,17 +213,45 @@
     <h1 class="cart-title text-center mb-5" data-aos="fade-down">🛒 Tu carrito de compras</h1>
 
     <!-- Carrito vacío -->
-    <div id="emptyCart" class="empty-cart-box d-none">
+    <div th:if="${cartItems == null or #lists.isEmpty(cartItems)}" class="empty-cart-box">
         <i class="bi bi-cart-x"></i>
         <h3 class="fw-bold mt-3">Tu carrito está vacío</h3>
         <p class="text-muted">Agrega productos y aparecerán aquí</p>
-        <a href="index.html" class="btn btn-success px-4">Volver a comprar</a>
+        <a th:href="@{/}" class="btn btn-success px-4">Volver a comprar</a>
     </div>
 
     <!-- Carrito lleno -->
-    <div id="cartContent" class="row g-4 d-none">
+    <div th:if="${cartItems != null and !#lists.isEmpty(cartItems)}" class="row g-4" id="cartContent">
         <div class="col-lg-8">
-            <div id="cartItems"></div>
+            <div id="cartItems">
+                <div th:each="item : ${cartItems}" class="mb-3">
+                    <div class="cart-card">
+                        <img th:src="${item.imagenUrl}" alt="imagen">
+                        <div class="flex-grow-1">
+                            <h5 class="fw-bold" th:text="${item.nombre}">Nombre</h5>
+                            <p class="text-muted mb-1" th:text="${item.descripcion}">Descripción</p>
+                            <div class="d-flex gap-2 align-items-center">
+                                <form th:action="@{/cliente/carrito/actualizar}" method="post" class="d-flex align-items-center">
+                                    <input type="hidden" name="idProducto" th:value="${item.id}" />
+                                    <button class="btn btn-outline-success qty-btn" type="button" onclick="this.closest('form').cantidad.stepDown();">−</button>
+                                    <input type="number" name="cantidad" min="1" th:value="${item.cantidad}" class="form-control mx-2" style="width:80px;" />
+                                    <button class="btn btn-outline-success qty-btn" type="button" onclick="this.closest('form').cantidad.stepUp();">+</button>
+                                    <button type="submit" class="btn btn-success ms-3">Actualizar</button>
+                                </form>
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            <h5 class="fw-bold text-success" th:text="${#numbers.formatDecimal(item.subtotal,1,'POINT',2,'POINT')}">$0</h5>
+                            <form th:action="@{/cliente/carrito/quitar}" method="post">
+                                <input type="hidden" name="idProducto" th:value="${item.id}" />
+                                <button class="btn btn-sm btn-danger mt-2" type="submit">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <div class="col-lg-4">
@@ -232,22 +260,24 @@
 
                 <div class="d-flex justify-content-between mb-2">
                     <span>Subtotal:</span>
-                    <strong id="summarySubtotal">$0</strong>
+                    <strong th:text="${#numbers.formatDecimal(subtotal,1,'POINT',2,'POINT')}">$0</strong>
                 </div>
 
                 <div class="d-flex justify-content-between mb-2">
                     <span>Envío:</span>
-                    <strong>$7.000</strong>
+                    <strong th:text="${#numbers.formatDecimal(envio,1,'POINT',2,'POINT')}">$0</strong>
                 </div>
 
                 <hr>
 
                 <div class="d-flex justify-content-between">
                     <h5 class="fw-bold">Total:</h5>
-                    <h5 id="summaryTotal" class="fw-bold text-success">$0</h5>
+                    <h5 th:text="${#numbers.formatDecimal(total,1,'POINT',2,'POINT')}" class="fw-bold text-success">$0</h5>
                 </div>
 
-                <button class="checkout-btn w-100 mt-4">Proceder al pago</button>
+                <form th:action="@{/compras/crear}" method="get">
+                    <button class="checkout-btn w-100 mt-4" type="submit">Proceder al pago</button>
+                </form>
             </div>
         </div>
     </div>
@@ -260,10 +290,9 @@
     <h3 class="fw-bold mb-4" data-aos="fade-right">Te podría interesar</h3>
 
     <div class="row g-4" id="recommendedSection">
-
         <div class="col-md-3" data-aos="zoom-in">
             <div class="recommended-card">
-                <img src="imag/frijoles.jpg">
+                <img th:src="@{/imag/products/frijoles.jpg}">
                 <h6 class="mt-2 fw-bold">Frijol Rojo</h6>
                 <p class="text-muted mb-1">Calidad premium</p>
                 <span class="fw-bold text-success">$4.000</span>
@@ -272,7 +301,7 @@
 
         <div class="col-md-3" data-aos="zoom-in">
             <div class="recommended-card">
-                <img src="imag/platano.png">
+                <img th:src="@{/imag/platano.png}">
                 <h6 class="mt-2 fw-bold">Plátano Hartón</h6>
                 <p class="text-muted mb-1">Agricultura limpia</p>
                 <span class="fw-bold text-success">$3.500</span>
@@ -281,7 +310,7 @@
 
         <div class="col-md-3" data-aos="zoom-in">
             <div class="recommended-card">
-                <img src="imag/tomate.jpg">
+                <img th:src="@{/imag/tomate.jpg}">
                 <h6 class="mt-2 fw-bold">Tomate Chonto</h6>
                 <p class="text-muted mb-1">Fresco del día</p>
                 <span class="fw-bold text-success">$1.800</span>
@@ -290,7 +319,7 @@
 
         <div class="col-md-3" data-aos="zoom-in">
             <div class="recommended-card">
-                <img src="imag/queso.jpg">
+                <img th:src="@{/imag/queso.jpg}">
                 <h6 class="mt-2 fw-bold">Queso Fresco</h6>
                 <p class="text-muted mb-1">Origen artesanal</p>
                 <span class="fw-bold text-success">$18.000</span>
@@ -308,101 +337,6 @@
 <!-- AOS -->
 <script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js"></script>
 <script>AOS.init({ duration: 900, once: true });</script>
-
-<!-- LÓGICA DEL CARRITO -->
-<script>
-    let cart = JSON.parse(localStorage.getItem("cart")) || [];
-
-    if(cart.length === 0){
-        cart = [
-            { id:101, name:"Queso fresco del Huila", price:18000, qty:2, image:"imag/queso.jpg" },
-            { id:102, name:"Tomate chonto BPA", price:1200, qty:3, image:"imag/tomate.jpg" }
-        ];
-        saveCart();
-    }
-
-    function saveCart(){
-        localStorage.setItem("cart", JSON.stringify(cart));
-    }
-
-    function updateBadge(){
-        document.getElementById("cartBadge").innerText =
-            cart.reduce((acc,i)=>acc+i.qty,0);
-    }
-
-    function renderCartPage(){
-        updateBadge();
-
-        const empty = document.getElementById("emptyCart");
-        const content = document.getElementById("cartContent");
-        const itemsBox = document.getElementById("cartItems");
-
-        if(cart.length === 0){
-            empty.classList.remove("d-none");
-            content.classList.add("d-none");
-            return;
-        }
-
-        empty.classList.add("d-none");
-        content.classList.remove("d-none");
-
-        itemsBox.innerHTML = "";
-        let subtotal = 0;
-
-        cart.forEach(item => {
-            const totalItem = item.qty * item.price;
-            subtotal += totalItem;
-
-            itemsBox.innerHTML += `
-            <div class="cart-card">
-                <img src="${item.image}">
-                <div class="flex-grow-1">
-                    <h5 class="fw-bold">${item.name}</h5>
-                    <p class="text-muted mb-1">${item.price.toLocaleString("es-CO",{style:"currency",currency:"COP"})}</p>
-                    <div class="d-flex gap-2 align-items-center">
-                        <button class="btn btn-outline-success qty-btn" onclick="changeQty(${item.id}, -1)">−</button>
-                        <strong>${item.qty}</strong>
-                        <button class="btn btn-outline-success qty-btn" onclick="changeQty(${item.id}, 1)">+</button>
-                    </div>
-                </div>
-                <div class="text-end">
-                    <h5 class="fw-bold text-success">
-                        ${totalItem.toLocaleString("es-CO",{style:"currency",currency:"COP"})}
-                    </h5>
-                    <button class="btn btn-sm btn-danger mt-2" onclick="removeItem(${item.id})">
-                        <i class="bi bi-trash"></i>
-                    </button>
-                </div>
-            </div>
-            <br>
-        `;
-        });
-
-        document.getElementById("summarySubtotal").innerText =
-            subtotal.toLocaleString("es-CO",{style:"currency",currency:"COP"});
-
-        document.getElementById("summaryTotal").innerText =
-            (subtotal + 7000).toLocaleString("es-CO",{style:"currency",currency:"COP"});
-    }
-
-    function changeQty(id, amount){
-        cart = cart.map(i=>{
-            if(i.id === id) i.qty += amount;
-            return i;
-        }).filter(i => i.qty > 0);
-
-        saveCart();
-        renderCartPage();
-    }
-
-    function removeItem(id){
-        cart = cart.filter(i => i.id !== id);
-        saveCart();
-        renderCartPage();
-    }
-
-    renderCartPage();
-</script>
 
 </body>
 </html>
