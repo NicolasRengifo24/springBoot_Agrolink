@@ -3,6 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>Agrolink</title>
 
     <!-- Bootstrap -->
@@ -27,17 +30,218 @@
 
         /* -------- NAVBAR PREMIUM -------- */
         .navbar-custom { background: white; box-shadow: 0 2px 12px rgba(0,0,0,0.08); padding: 10px 0; }
-        .brand-logo { display: flex; align-items: center; gap: 8px; font-family: "Nunito", sans-serif; font-size: 1.8rem; font-weight: 700; color: #2f6b31; }
-        .brand-logo img{ width: 42px; height: 42px; object-fit: contain; }
-        .search-box{ width: 350px; border-radius: 10px; overflow: hidden; border: 1px solid #cfd8cd; }
-        .search-box input{ border: none; padding: 10px; }
-        .search-box button{ border: none; background: #2f6b31; color: white; padding: 0 18px; }
+        .brand-logo { display: flex; align-items: center; gap: 8px; font-family: "Nunito", sans-serif; font-size: 2.4rem; font-weight: 700; color: #2f6b31; transition: all 0.3s ease; margin-left: -10px; }
+        .brand-logo img{
+            width: 70px;
+            height: 70px;
+            object-fit: cover;
+            border-radius: 50%;
+            border: 3px solid transparent;
+            background: white;
+            padding: 2px;
+            position: relative;
+            transition: all 0.4s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Borde degradado elegante */
+        .brand-logo img::before {
+            content: '';
+            position: absolute;
+            top: -3px;
+            left: -3px;
+            right: -3px;
+            bottom: -3px;
+            background: linear-gradient(135deg, #ff6b6b, #feca57, #48dbfb, #ff9ff3, #54a0ff);
+            border-radius: 50%;
+            z-index: -1;
+            animation: rotateBorder 3s linear infinite;
+        }
+
+        @keyframes rotateBorder {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .brand-logo:hover img {
+            transform: scale(1.15);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .brand-logo:hover {
+            transform: translateY(-3px);
+        }
+
+        .brand-logo:hover img::before {
+            animation-duration: 1s;
+        }
+
+        /* -------- PRODUCT CARDS -------- */
+        .product-card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 5px 12px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+            overflow: hidden;
+            border: none;
+            position: relative;
+            z-index: 1;
+        }
+
+        .product-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+            z-index: 10;
+        }
+
+        .product-img {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+            border-radius: 16px 16px 0 0;
+        }
+
+        .product-card .btn {
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .product-card .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        /* Contenido de la tarjeta con flexbox - FORZADO */
+        .product-card .p-3 {
+            display: flex !important;
+            flex-direction: column !important;
+            height: 100% !important;
+            min-height: 220px !important;
+        }
+
+        /* Estilos para el contenedor del precio y botón - FORZADO */
+        .product-card .mt-auto {
+            margin-top: auto !important;
+            padding-top: 0.75rem !important;
+            border-top: 1px solid #f8f9fa !important;
+            background: rgba(255, 255, 255, 0.98) !important;
+            position: relative !important;
+            z-index: 5 !important;
+        }
+
+        /* Asegurar altura consistente para todas las tarjetas - FORZADO */
+        .col-lg-3 .product-card,
+        .col-md-4 .product-card,
+        .col-sm-6 .product-card {
+            min-height: 380px !important;
+            display: flex !important;
+            flex-direction: column !important;
+        }
+
+        /* Forzar visibilidad del precio y botón */
+        .product-card .mt-auto .d-flex {
+            display: flex !important;
+            justify-content: space-between !important;
+            align-items: center !important;
+        }
+
+        .product-card .mt-auto .btn {
+            display: inline-block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            font-size: 0.85rem !important;
+            padding: 0.5rem 1rem !important;
+            font-weight: 500 !important;
+            white-space: nowrap !important;
+        }
+
+        .product-card .mt-auto .fw-bold {
+            display: inline !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+        }
+
+        /* Mejor espaciado entre elementos */
+        .product-card .mb-2,
+        .product-card .mb-3 {
+            margin-bottom: 0.75rem !important;
+        }
+
+        /* Espacio fijo para la descripción del producto */
+        .product-card .product-description {
+            height: 40px !important;
+            overflow: hidden !important;
+            display: -webkit-box !important;
+            -webkit-line-clamp: 2 !important;
+            -webkit-box-orient: vertical !important;
+            line-height: 1.4 !important;
+            font-size: 0.875rem !important;
+            margin-bottom: 0.75rem !important;
+        }
+
+        /* Espacio fijo para el título del producto */
+        .product-card .product-title {
+            height: 30px !important;
+            overflow: hidden !important;
+            display: -webkit-box !important;
+            -webkit-line-clamp: 1 !important;
+            -webkit-box-orient: vertical !important;
+            line-height: 1.5 !important;
+            margin-bottom: 0.5rem !important;
+        }
+        .search-box{
+            width: 350px;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid #cfd8cd;
+            display: flex !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+        .search-box input{
+            border: none;
+            padding: 10px 12px;
+            flex: 1;
+            outline: none;
+            background: white;
+            margin: 0;
+        }
+        .search-box button{
+            border: none;
+            background: #2f6b31;
+            color: white;
+            padding: 0 18px;
+            margin: 0;
+            outline: none;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+        .search-box button:hover {
+            background: #1d4820;
+        }
         .cart-badge{ background: #e63946; color: white; font-size: 0.75rem; padding: 2px 6px; border-radius: 50%; position: absolute; top: -4px; right: -6px; }
-        .mega-menu { position: absolute; left: 0; top: 100%; width: 100vw; background: #fff; padding: 30px 60px; box-shadow: 0 8px 25px rgba(0,0,0,0.15); display: none; z-index: 9999; }
-        .nav-item.position-static:hover .mega-menu { display: block; }
-        .mega-title { font-weight: 700; color: #2f6b31; margin-bottom: 10px; }
-        .mega-list a { display: block; padding: 6px 0; font-size: 0.95rem; color: #444; }
-        .mega-list a:hover { color: #2f6b31; }
+        .mega-menu-dropdown {
+            position: absolute;
+            left: 0;
+            top: 100%;
+            width: 100vw;
+            background: #fff;
+            padding: 20px 40px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            z-index: 9999;
+            max-height: 400px;
+            overflow-y: auto;
+            border: none;
+            border-radius: 12px;
+        }
+        .mega-title { font-weight: 600; color: #2f6b31; margin-bottom: 8px; font-size: 1rem; border-bottom: 2px solid #2f6b31; padding-bottom: 5px; }
+        .mega-list a { display: block; padding: 4px 0; font-size: 0.9rem; color: #555; transition: all 0.2s ease; }
+        .mega-list a:hover { color: #2f6b31; background-color: #f8f9fa; padding-left: 10px; border-radius: 4px; }
+        .categoria-item { background: #fafafa; border-radius: 8px; transition: all 0.2s ease; border: 1px solid #f0f0f0; }
+        .categoria-item:hover { background: #f0f8f0; border-color: #2f6b31; transform: translateY(-2px); }
         .profile-img{ width: 38px; height: 38px; border-radius: 50%; object-fit: cover; }
         .hero { height: 70vh; background: center/cover no-repeat; border-bottom-left-radius: 50px; border-bottom-right-radius: 50px; position: relative; }
         .hero-overlay { background: rgba(0,0,0,0.45); height: 100%; width: 100%; display: flex; align-items: center; border-bottom-left-radius: 50px; border-bottom-right-radius: 50px; }
@@ -53,14 +257,62 @@
         .filter-toggle{ background: none; border: none; padding: 0; font-weight: 600; width: 100%; text-align: left; font-size: 1rem; display: flex; align-items: center; gap: 8px; color: #2f6b31; }
         .filter-toggle:hover{ color: #1d4820; cursor: pointer; }
         .range-values{ display: flex; justify-content: space-between; font-size: 0.85rem; color: #666; }
-        .product-card{ border-radius: 16px; overflow: hidden; background: white; transition: .2s; box-shadow: 0 5px 12px rgba(0,0,0,0.05); }
-        .product-card:hover{ transform: translateY(-4px); box-shadow: 0 10px 20px rgba(0,0,0,0.10); }
-        .product-img{ height: 220px; width: 100%; object-fit: cover; }
-        .btn-view{ background: #2f6b31; color: white; padding: 10px; border-radius: 10px; }
         .featured { margin: 60px auto; background: white; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.08); display: flex; overflow: hidden; }
         .featured img { width: 45%; object-fit: cover; }
         .featured-body{ padding: 40px; }
         .footer{ background: #2f6b31; color: white; padding: 20px; text-align: center; border-top-left-radius: 40px; border-top-right-radius: 40px; }
+
+        /* Estilos para el logo del footer */
+        .footer-logo {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 12px;
+            border: 3px solid transparent;
+            background: linear-gradient(white, white) padding-box,
+                       linear-gradient(135deg, #8B4513, #A0522D, #2f6b31, #556B2F, #6B8E23) border-box;
+            padding: 3px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(255, 255, 255, 0.2);
+        }
+
+        .footer-logo:hover {
+            transform: scale(1.1) rotate(5deg);
+            box-shadow: 0 6px 20px rgba(139, 69, 19, 0.4);
+        }
+
+        /* Estilos para el menú desplegable de servicios */
+        .dropdown-menu {
+            border: none;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            border-radius: 12px;
+            padding: 8px 0;
+            min-width: 280px;
+        }
+
+        .dropdown-header {
+            font-size: 0.9rem;
+            padding: 8px 16px 4px 16px;
+            margin-bottom: 0;
+            border-bottom: 2px solid #2f6b31;
+        }
+
+        .dropdown-item {
+            padding: 6px 16px;
+            font-size: 0.85rem;
+            transition: all 0.2s ease;
+        }
+
+        .dropdown-item:hover {
+            background-color: #f0f8f0;
+            color: #2f6b31;
+            padding-left: 24px;
+        }
+
+        .dropdown-divider {
+            margin: 8px 16px;
+            border-color: #e9ecef;
+        }
     </style>
 </head>
 <body>
@@ -72,7 +324,7 @@
 
         <!-- LOGO -->
         <a class="navbar-brand brand-logo" th:href="@{/}">
-            <img th:src="@{/CSS/logo/logoAgrolink.jpg}" alt="Logo Agrolink">
+            <img th:src="@{/CSS/logo/logoAgro.jpeg}" alt="Logo Agrolink">
             Agrolink
         </a>
 
@@ -84,9 +336,9 @@
 
             <!-- BÚSQUEDA -->
             <div class="mx-auto d-none d-lg-block">
-                <form class="d-flex search-box">
-                    <input type="search" placeholder="Buscar productos...">
-                    <button><i class="bi bi-search"></i></button>
+                <form class="d-flex search-box" th:action="@{/}" method="get">
+                    <input type="search" name="busqueda" th:value="${busquedaActual}" placeholder="Buscar productos...">
+                    <button type="submit"><i class="bi bi-search"></i></button>
                 </form>
             </div>
 
@@ -96,48 +348,33 @@
                     <a class="nav-link me-3" th:href="@{/}">Inicio</a>
                 </li>
 
-                <!-- MEGA MENU CATEGORÍAS -->
-                <li class="nav-item position-static">
-                    <a class="nav-link dropdown-toggle me-3" href="javascript:void(0);">Categorías</a>
+                <!-- MEGA MENU CATEGORÍAS DINÁMICO -->
+                <li class="nav-item dropdown position-static">
+                    <a class="nav-link dropdown-toggle me-3" data-bs-toggle="dropdown" href="javascript:void(0);">Categorías</a>
 
-                    <div class="mega-menu">
-                        <div class="row">
-
-                            <div class="col-md-3">
-                                <h6 class="mega-title">Frutas</h6>
-                                <div class="mega-list">
-                                    <a th:href="@{/productos(categoria='Mango')}">Mango</a>
-                                    <a th:href="@{/productos(categoria='Banano')}">Banano</a>
-                                    <a th:href="@{/productos(categoria='Fresa')}">Fresa</a>
-                                    <a th:href="@{/productos(categoria='Papaya')}">Papaya</a>
+                    <div class="dropdown-menu mega-menu-dropdown">
+                        <div class="container-fluid">
+                            <!-- Verificar si hay categorías disponibles -->
+                            <div th:if="${categorias != null and not #lists.isEmpty(categorias)}">
+                                <div class="row g-2">
+                                    <!-- Mostrar categorías en columnas más compactas -->
+                                    <div th:each="categoria : ${categorias}" class="col-lg-2 col-md-3 col-sm-4 col-6">
+                                        <div class="categoria-item p-2">
+                                            <h6 class="mega-title" th:text="${categoria.nombreCategoria}">Categoría</h6>
+                                            <div class="mega-list">
+                                                <a th:href="@{/(categoria=${categoria.idCategoria})}"
+                                                   th:text="'Ver ' + ${categoria.nombreCategoria}">Ver Categoría</a>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 
-                            <div class="col-md-3">
-                                <h6 class="mega-title">Verduras</h6>
-                                <div class="mega-list">
-                                    <a th:href="@{/productos(categoria='Tomate')}">Tomate</a>
-                                    <a th:href="@{/productos(categoria='Lechuga')}">Lechuga</a>
-                                    <a th:href="@{/productos(categoria='Cebolla')}">Cebolla</a>
-                                    <a th:href="@{/productos(categoria='Zanahoria')}">Zanahoria</a>
-                                </div>
-                            </div>
-
-                            <div class="col-md-3">
-                                <h6 class="mega-title">Cereales</h6>
-                                <div class="mega-list">
-                                    <a th:href="@{/productos(categoria='Maíz')}">Maíz</a>
-                                    <a th:href="@{/productos(categoria='Arroz')}">Arroz</a>
-                                    <a th:href="@{/productos(categoria='Avena')}">Avena</a>
-                                </div>
-                            </div>
-
-                            <div class="col-md-3">
-                                <h6 class="mega-title">Tubérculos</h6>
-                                <div class="mega-list">
-                                    <a th:href="@{/productos(categoria='Papa')}">Papa</a>
-                                    <a th:href="@{/productos(categoria='Yuca')}">Yuca</a>
-                                    <a th:href="@{/productos(categoria='Ñame')}">Ñame</a>
+                            <!-- Mensaje cuando no hay categorías -->
+                            <div th:if="${categorias == null or #lists.isEmpty(categorias)}">
+                                <div class="text-center py-3">
+                                    <i class="bi bi-tags text-muted mb-2" style="font-size: 1.5rem;"></i>
+                                    <p class="text-muted mb-0 small">No hay categorías disponibles</p>
                                 </div>
                             </div>
 
@@ -145,15 +382,40 @@
                     </div>
                 </li>
 
-                <!-- SERVICIOS -->
+                <!-- SERVICIOS DINÁMICOS -->
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle me-3" data-bs-toggle="dropdown">Servicios</a>
                     <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" href="#">Veterinario</a></li>
-                        <li><a class="dropdown-item" href="#">Asesoría agrícola</a></li>
-                        <li><a class="dropdown-item" href="#">Maquinaria</a></li>
-                        <li><hr></li>
-                        <li><a class="dropdown-item" href="#">Ver todos</a></li>
+                        <!-- Verificar si hay categorías de servicios disponibles -->
+                        <th:block th:if="${categoriasServicios != null and not #maps.isEmpty(categoriasServicios)}">
+                            <!-- Iterar sobre las categorías de servicios -->
+                            <th:block th:each="categoria, categoriaStats : ${categoriasServicios}">
+                                <li><h6 class="dropdown-header text-success fw-bold" th:text="${categoria.key}">Categoría</h6></li>
+                                <!-- Mostrar hasta 3 servicios por categoría -->
+                                <th:block th:each="servicio, iterStat : ${categoria.value}" th:if="${iterStat.index < 3}">
+                                    <li><a class="dropdown-item small" href="#"
+                                           th:text="${servicio.descripcion}">Descripción del servicio</a></li>
+                                </th:block>
+                                <!-- Enlace para ver más servicios de esta categoría si hay más de 3 -->
+                                <li th:if="${#lists.size(categoria.value) > 3}">
+                                    <a class="dropdown-item text-muted small fst-italic"
+                                       th:href="@{/servicios(categoria=${categoria.key})}"
+                                       th:text="'Ver todos (' + ${#lists.size(categoria.value)} + ')'">Ver todos</a>
+                                </li>
+                                <li th:unless="${categoriaStats.last}"><hr class="dropdown-divider"></li>
+                            </th:block>
+                        </th:block>
+
+                        <!-- Mensaje cuando no hay servicios -->
+                        <li th:if="${categoriasServicios == null or #maps.isEmpty(categoriasServicios)}">
+                            <span class="dropdown-item-text text-muted small">No hay servicios disponibles</span>
+                        </li>
+
+                        <!-- Enlace para ver todos los servicios -->
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item text-center fw-bold text-success" href="/servicios">
+                            <i class="bi bi-grid me-1"></i>Ver todos los servicios
+                        </a></li>
                     </ul>
                 </li>
 
@@ -173,7 +435,7 @@
                 <!-- PERFIL -->
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle d-flex align-items-center" data-bs-toggle="dropdown">
-                        <img th:src="@{https://i.pravatar.cc/40?img=12}" class="profile-img me-2">
+                        <img th:src="@{https://i.pravatar.cc/40?img=12}" class="profile-img me-2" alt="Perfil">
                         Cuenta
                     </a>
 
@@ -194,22 +456,22 @@
 
 
 <!-- HERO -->
-<section id="heroCarousel" class="carousel slide mt-5" data-bs-ride="carousel" data-bs-interval="3500">
+<section id="productCarousel" class="carousel slide mt-5" data-bs-ride="carousel" data-bs-interval="3500">
     <div class="carousel-inner">
 
         <!-- IMG 1 -->
-        <div class="carousel-item active hero" th:style="|background-image: url('@{/imag/Imagen_carrucel.jpg}');|">
+        <div class="carousel-item active hero" th:style="|background-image: url('@{/CSS/imag/imagenfondo.png}');|">
             <div class="hero-overlay">
                 <div class="hero-text" data-aos="fade-right">
                     <h1>Los mejores productos directos del campo</h1>
-                    <p class="lead">Compra sin intermediarios y apoya al productor colombiano 🌱</p>
+                    <p class="lead">Compra sin intermediarios y apoya al productor colombiano </p>
                     <a th:href="@{/productos}" class="hero-btn">Explorar productos</a>
                 </div>
             </div>
         </div>
 
         <!-- IMG 2 -->
-        <div class="carousel-item hero" th:style="|background-image: url('@{/imag/Carrusel.jpg}');|">
+        <div class="carousel-item hero" th:style="|background-image: url('@{/CSS/imag/Carrusel.jpg}');|">
             <div class="hero-overlay">
                 <div class="hero-text">
                     <h1>Calidad certificada BPA</h1>
@@ -220,7 +482,7 @@
         </div>
 
         <!-- IMG 3 -->
-        <div class="carousel-item hero" th:style="|background-image: url('@{/imag/alimentos-del-campo-OFERTA.webp}');|">
+        <div class="carousel-item hero" th:style="|background-image: url('@{/CSS/imag/alimentos-del-campo-OFERTA.webp}');|">
             <div class="hero-overlay">
                 <div class="hero-text">
                     <h1>Precios justos para todos</h1>
@@ -231,7 +493,7 @@
         </div>
 
         <!-- IMG 4 -->
-        <div class="carousel-item hero" th:style="|background-image: url('@{/imag/carrusel1.jfif}');|">
+        <div class="carousel-item hero" th:style="|background-image: url('@{/CSS/imag/carrusel1.jfif}');|">
             <div class="hero-overlay">
                 <div class="hero-text">
                     <h1>Del campo a tu mesa</h1>
@@ -246,10 +508,30 @@
 
 <!-- LISTA DE PRODUCTOS DESDE BD -->
 <section class="container my-5">
-    <!-- Título de la sección -->
+    <!-- Título de la sección dinámico -->
     <div class="text-center mb-5" data-aos="fade-up">
-        <h2 class="fw-bold" style="color: #2f6b31;">🌱 Productos Frescos del Campo</h2>
-        <p class="lead text-muted">Directamente desde nuestros productores certificados</p>
+        <h2 class="fw-bold" style="color: #2f6b31;" th:text="${tituloSeccion}">Productos Frescos del Campo</h2>
+        <p class="lead text-muted" th:text="${subtituloSeccion}">Directamente desde nuestros productores certificados</p>
+
+        <!-- Mostrar breadcrumb si hay filtro activo -->
+        <div th:if="${categoriaSeleccionada != null or busquedaActual != null}" class="mt-3">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb justify-content-center">
+                    <li class="breadcrumb-item"><a th:href="@{/}" class="text-decoration-none">Todos los productos</a></li>
+                    <li class="breadcrumb-item active" aria-current="page"
+                        th:text="${categoriaSeleccionada != null ? 'Categoría seleccionada' : 'Búsqueda'}">Filtro activo</li>
+                </ol>
+            </nav>
+
+            <!-- Mostrar término de búsqueda si está presente -->
+            <div th:if="${busquedaActual != null}" class="alert alert-info d-inline-block">
+                <i class="bi bi-search me-2"></i>
+                <strong>Búsqueda:</strong> "<span th:text="${busquedaActual}"></span>"
+                <a th:href="@{/}" class="btn btn-sm btn-outline-primary ms-2">
+                    <i class="bi bi-x"></i> Limpiar
+                </a>
+            </div>
+        </div>
     </div>
 
     <div class="row g-4">
@@ -258,7 +540,7 @@
                 <!-- Badge de disponibilidad -->
                 <div class="position-relative">
                     <img class="product-img"
-                         th:src="${#lists.isEmpty(prod.imagenesProducto) ? '/imag/placeholder.jpg' : '/' + prod.imagenesProducto[0].urlImagen}"
+                         th:src="${prod.imagenesProducto != null and not #lists.isEmpty(prod.imagenesProducto) ? '/' + prod.imagenesProducto[0].urlImagen : '/CSS/imag/tomate.jpg'}"
                          alt="Imagen del producto">
                     <div class="position-absolute top-0 end-0 m-2">
                         <span class="badge bg-success" th:if="${prod.stock > 0}"
@@ -268,8 +550,8 @@
                 </div>
 
                 <div class="p-3 d-flex flex-column h-100">
-                    <h5 class="mb-2" th:text="${prod.nombreProducto}">Nombre producto</h5>
-                    <p class="text-muted small mb-2" th:text="${prod.descripcionProducto}">Descripción producto</p>
+                    <h5 class="product-title" th:text="${prod.nombreProducto}">Nombre producto</h5>
+                    <p class="text-muted product-description" th:text="${prod.descripcionProducto}">Descripción producto</p>
 
                     <!-- Información del productor y ubicación -->
                     <div class="mb-2">
@@ -301,9 +583,10 @@
                                        th:text="${'Por ' + (prod.pesoKg != null ? prod.pesoKg : '1') + ' kg'}">Por kg</small>
                             </div>
                             <div>
-                                <a class="btn btn-view" th:href="@{'/productos/' + ${prod.idProducto}}"
-                                   th:classappend="${prod.stock == 0 ? ' disabled' : ''}">
-                                    <i class="bi bi-eye me-1"></i>Ver
+                                <a class="btn btn-outline-success btn-sm"
+                                   th:href="@{/productos/{id}(id=${prod.idProducto})}"
+                                   style="border-radius: 8px;">
+                                    <i class="bi bi-eye me-1"></i>Ver Producto
                                 </a>
                             </div>
                         </div>
@@ -323,13 +606,227 @@
     </div>
 </section>
 
-<!-- Resto del HTML (Filtros, Productos, Destacado, Footer) -->
-<!-- Para cada imagen o enlace usa th:src o th:href igual que en el hero -->
+<!-- FILTROS PREMIUM (OPCIONAL) -->
+<section class="container my-5" data-aos="fade-up">
+    <div class="filters-premium">
+        <div class="filters-header">
+            <i class="bi bi-funnel"></i>
+            <h4>Filtrar productos</h4>
+        </div>
+        <div class="row">
+            <div class="col-md-3">
+                <div class="filter-item">
+                    <button class="filter-toggle">
+                        <i class="bi bi-tag"></i>
+                        Categorías
+                    </button>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="filter-item">
+                    <button class="filter-toggle">
+                        <i class="bi bi-geo-alt"></i>
+                        Ubicación
+                    </button>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="filter-item">
+                    <button class="filter-toggle">
+                        <i class="bi bi-currency-dollar"></i>
+                        Precio
+                    </button>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="filter-item">
+                    <button class="filter-toggle">
+                        <i class="bi bi-star"></i>
+                        Calificación
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
 
+<!-- PRODUCTO DESTACADO -->
+<section class="container my-5" data-aos="fade-up">
+    <div class="featured">
+        <img th:src="@{/CSS/imag/Ofertas_Tomate.jpg}" alt="Producto destacado">
+        <div class="featured-body">
+            <h2 style="color: #2f6b31;"> Tomate Cherry Premium</h2>
+            <p class="lead text-muted">Directo desde las mejores fincas de Boyacá. Cultivado con técnicas orgánicas certificadas.</p>
+            <div class="row mt-4">
+                <div class="col-md-6">
+                    <h5>Características:</h5>
+                    <ul class="list-unstyled">
+                        <li><i class="bi bi-check-circle text-success me-2"></i>100% Orgánico</li>
+                        <li><i class="bi bi-check-circle text-success me-2"></i>Certificación BPA</li>
+                        <li><i class="bi bi-check-circle text-success me-2"></i>Cosecha diaria</li>
+                        <li><i class="bi bi-check-circle text-success me-2"></i>Sin químicos</li>
+                    </ul>
+                </div>
+                <div class="col-md-6">
+                    <h3 class="text-success">$8.500 <small class="text-muted">/ kg</small></h3>
+                    <p class="text-muted">Disponible: 150 kg</p>
+                    <a href="#" class="btn btn-lg" style="background: #2f6b31; color: white; border-radius: 12px;">
+                        <i class="bi bi-cart-plus me-2"></i>Agregar al carrito
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ESTADÍSTICAS -->
+<section class="container my-5" data-aos="fade-up">
+    <div class="row text-center">
+        <div class="col-md-3">
+            <div class="p-4">
+                <i class="bi bi-people display-4 text-success mb-3"></i>
+                <h3 class="fw-bold">1,200+</h3>
+                <p class="text-muted">Productores activos</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="p-4">
+                <i class="bi bi-box-seam display-4 text-success mb-3"></i>
+                <h3 class="fw-bold">5,800+</h3>
+                <p class="text-muted">Productos disponibles</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="p-4">
+                <i class="bi bi-truck display-4 text-success mb-3"></i>
+                <h3 class="fw-bold">98%</h3>
+                <p class="text-muted">Entregas exitosas</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="p-4">
+                <i class="bi bi-star-fill display-4 text-success mb-3"></i>
+                <h3 class="fw-bold">4.9/5</h3>
+                <p class="text-muted">Calificación promedio</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer mt-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-4 mb-4">
+                <h5 class="mb-3 d-flex align-items-center">
+                    <img th:src="@{/CSS/logo/logoAgro.jpeg}" alt="Logo Agrolink" class="footer-logo me-3">
+                    Agrolink
+                </h5>
+                <p>Conectando el campo colombiano con tu mesa. Productos frescos, precios justos, calidad garantizada.</p>
+                <div>
+                    <a href="#" class="text-white me-3"><i class="bi bi-facebook"></i></a>
+                    <a href="#" class="text-white me-3"><i class="bi bi-instagram"></i></a>
+                    <a href="#" class="text-white me-3"><i class="bi bi-twitter"></i></a>
+                    <a href="#" class="text-white"><i class="bi bi-youtube"></i></a>
+                </div>
+            </div>
+            <div class="col-md-2 mb-4">
+                <h6>Productos</h6>
+                <ul class="list-unstyled">
+                    <li><a href="#" class="text-white-50">Frutas</a></li>
+                    <li><a href="#" class="text-white-50">Verduras</a></li>
+                    <li><a href="#" class="text-white-50">Cereales</a></li>
+                    <li><a href="#" class="text-white-50">Tubérculos</a></li>
+                </ul>
+            </div>
+            <div class="col-md-2 mb-4">
+                <h6>Servicios</h6>
+                <ul class="list-unstyled">
+                    <li><a href="#" class="text-white-50">Asesoría</a></li>
+                    <li><a href="#" class="text-white-50">Veterinario</a></li>
+                    <li><a href="#" class="text-white-50">Maquinaria</a></li>
+                    <li><a href="#" class="text-white-50">Transporte</a></li>
+                </ul>
+            </div>
+            <div class="col-md-2 mb-4">
+                <h6>Soporte</h6>
+                <ul class="list-unstyled">
+                    <li><a href="#" class="text-white-50">Ayuda</a></li>
+                    <li><a href="#" class="text-white-50">Contacto</a></li>
+                    <li><a href="#" class="text-white-50">FAQ</a></li>
+                    <li><a href="#" class="text-white-50">Términos</a></li>
+                </ul>
+            </div>
+            <div class="col-md-2 mb-4">
+                <h6>Contacto</h6>
+                <p class="text-white-50 small">
+                    <i class="bi bi-telephone me-2"></i>+57 300 123 4567<br>
+                    <i class="bi bi-envelope me-2"></i>info@agrolink.co<br>
+                    <i class="bi bi-geo-alt me-2"></i>Bogotá, Colombia
+                </p>
+            </div>
+        </div>
+        <hr class="my-4">
+        <div class="row align-items-center">
+            <div class="col-md-6">
+                <p class="mb-0">&copy; 2024 Agrolink. Todos los derechos reservados.</p>
+            </div>
+            <div class="col-md-6 text-md-end">
+                <p class="mb-0">
+                    <a href="#" class="text-white-50 me-3">Privacidad</a>
+                    <a href="#" class="text-white-50 me-3">Términos</a>
+                    <a href="#" class="text-white-50">Cookies</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- SCRIPTS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js"></script>
 <script>
-    AOS.init({ duration: 900, once: true });
+    // Inicialización AOS
+    AOS.init({
+        duration: 800,
+        easing: 'ease-in-out',
+        once: true
+    });
+
+    // Carrusel automático
+    const carousel = new bootstrap.Carousel(document.querySelector('#productCarousel'), {
+        interval: 5000,
+        wrap: true
+    });
+
+    // Funcionalidad de búsqueda
+    function buscarProductos() {
+        const termino = document.getElementById('searchInput').value.trim();
+        if (termino) {
+            window.location.href = `/?busqueda=${encodeURIComponent(termino)}`;
+        }
+    }
+
+    // Evento para búsqueda con Enter
+    const searchInput = document.querySelector('input[name="busqueda"]');
+    if (searchInput) {
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                this.closest('form').submit();
+            }
+        });
+    }
+
+    // Funcionalidad de categorías
+    function filtrarPorCategoria(categoriaId) {
+        const busquedaActual = new URLSearchParams(window.location.search).get('busqueda') || '';
+        let url = `/?categoria=${categoriaId}`;
+        if (busquedaActual) {
+            url += `&busqueda=${encodeURIComponent(busquedaActual)}`;
+        }
+        window.location.href = url;
+    }
 </script>
 
 </body>

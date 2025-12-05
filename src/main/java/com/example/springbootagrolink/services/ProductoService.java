@@ -80,4 +80,65 @@ public class ProductoService  implements Idao <Producto, Integer> {
         return productoRepository.buscarPorUbicacionYCategoria(ubicacion, categoriaId);
     }
 
+    // Método para obtener productos por categoría
+    @Transactional(readOnly = true)
+    public List<Producto> obtenerPorCategoria(Integer categoriaId) {
+        return productoRepository.findByCategoriaIdCategoria(categoriaId);
+    }
+
+    // Método para búsqueda avanzada en múltiples campos
+    @Transactional(readOnly = true)
+    public List<Producto> busquedaAvanzada(String termino) {
+        return productoRepository.busquedaAvanzada(termino);
+    }
+
+    // Método para filtrar productos por ubicación
+    @Transactional(readOnly = true)
+    public List<Producto> filtrarPorUbicacion(String ubicacion) {
+        return productoRepository.filtrarPorUbicacion(ubicacion);
+    }
+
+    // Método para filtrar productos por rango de precio
+    @Transactional(readOnly = true)
+    public List<Producto> filtrarPorRangoPrecio(Double precioMin, Double precioMax) {
+        return productoRepository.filtrarPorRangoPrecio(precioMin, precioMax);
+    }
+
+    // Método para filtrar por múltiples criterios (actualizado)
+    @Transactional(readOnly = true)
+    public List<Producto> filtrarPorMultiplesCriterios(Integer categoriaId, String ubicacion, Double precioMin, Double precioMax, Double calificacionMin) {
+        return productoRepository.filtrarPorMultiplesCriterios(categoriaId, ubicacion, precioMin, precioMax, calificacionMin);
+    }
+
+    // Método para obtener ubicaciones disponibles
+    @Transactional(readOnly = true)
+    public List<String> obtenerUbicacionesDisponibles() {
+        return productoRepository.obtenerUbicacionesDisponibles();
+    }
+
+    // Método para obtener precio mínimo
+    @Transactional(readOnly = true)
+    public Double obtenerPrecioMinimo() {
+        return productoRepository.obtenerPrecioMinimo();
+    }
+
+    // Método para obtener precio máximo
+    @Transactional(readOnly = true)
+    public Double obtenerPrecioMaximo() {
+        return productoRepository.obtenerPrecioMaximo();
+    }
+
+    // Método para filtrar por calificación mínima
+    @Transactional(readOnly = true)
+    public List<Producto> filtrarPorCalificacion(Double calificacionMin) {
+        return productoRepository.filtrarPorCalificacion(calificacionMin);
+    }
+
+    // Método para obtener el producto más vendido (destacado)
+    @Transactional(readOnly = true)
+    public Producto obtenerProductoMasVendido() {
+        List<Producto> productos = productoRepository.obtenerProductoMasVendido();
+        return productos.isEmpty() ? productoRepository.findFirstByOrderByIdProductoDesc() : productos.get(0);
+    }
+
 }
