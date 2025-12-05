@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalle del Producto - Agrolink</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+</head>
+<body>
+    <div class="container mt-4">
+        <div class="row">
+            <!-- Galería de imágenes -->
+            <div class="col-lg-6">
+                <div class="card">
+                    <div class="card-body p-0">
+                        <div id="productCarousel" class="carousel slide" data-bs-ride="false">
+                            <div class="carousel-inner">
+                                <div th:if="${imagenes != null and not #lists.isEmpty(imagenes)}">
+                                    <div class="carousel-item" th:each="imagen, iterStat : ${imagenes}"
+                                         th:classappend="${iterStat.first} ? 'active' : ''">
+                                        <img th:src="@{'/' + ${imagen.urlImagen}}"
+                                             class="d-block w-100"
+                                             style="height: 400px; object-fit: cover;"
+                                             alt="Imagen del producto">
+                                        <div class="position-absolute top-0 end-0 m-3" th:if="${imagen.esPrincipal}">
+                                            <span class="badge bg-success">Principal</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div th:if="${imagenes == null or #lists.isEmpty(imagenes)}" class="carousel-item active">
+                                    <img src="/imag/placeholder.jpg" class="d-block w-100" style="height: 400px; object-fit: cover;" alt="Sin imagen">
+                                </div>
+                            </div>
+
+                            <!-- Controles del carrusel -->
+                            <div th:if="${imagenes != null and #lists.size(imagenes) > 1}">
+                                <button class="carousel-control-prev" type="button" data-bs-target="#productCarousel" data-bs-slide="prev">
+                                    <span class="carousel-control-prev-icon"></span>
+                                </button>
+                                <button class="carousel-control-next" type="button" data-bs-target="#productCarousel" data-bs-slide="next">
+                                    <span class="carousel-control-next-icon"></span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Miniaturas -->
+                <div class="row g-2 mt-2" th:if="${imagenes != null and #lists.size(imagenes) > 1}">
+                    <div class="col-3" th:each="imagen, iterStat : ${imagenes}">
+                        <img th:src="@{'/' + ${imagen.urlImagen}}"
+                             class="img-thumbnail cursor-pointer"
+                             style="height: 80px; width: 100%; object-fit: cover;"
+                             th:onclick="|document.querySelector('#productCarousel .carousel-item:nth-child(' + ${iterStat.count} + ')').click()|"
+                             alt="Miniatura">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Información del producto -->
+            <div class="col-lg-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h1 class="h3 mb-3" th:text="${producto.nombreProducto}">Nombre del Producto</h1>
+
+                        <div class="mb-3">
+                            <span class="h2 text-success" th:text="${'$' + #numbers.formatDecimal(producto.precio, 1, 'POINT', 2, 'POINT')}">$0.00</span>
+                        </div>
+
+                        <div class="mb-3">
+                            <p class="text-muted mb-1">Descripción:</p>
+                            <p th:text="${producto.descripcionProducto ?: 'Sin descripción disponible'}">Descripción del producto</p>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-6">
+                                <p class="mb-1"><strong>Stock:</strong></p>
+                                <span class="badge bg-success fs-6" th:if="${producto.stock > 0}" th:text="${producto.stock + ' unidades'}"></span>
+                                <span class="badge bg-danger fs-6" th:if="${producto.stock == 0}">Sin stock</span>
+                            </div>
+                            <div class="col-6">
+                                <p class="mb-1"><strong>Peso por unidad:</strong></p>
+                                <span th:text="${producto.pesoKg + ' kg'}">1.0 kg</span>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <p class="mb-1"><strong>Categoría:</strong></p>
+                            <span class="badge bg-secondary" th:text="${producto.categoria.nombreCategoria}">Categoría</span>
+                        </div>
+
+                        <!-- Información del productor -->
+                        <div class="card bg-light mb-3">
+                            <div class="card-body">
+                                <h6 class="card-title"><i class="bi bi-person-circle me-2"></i>Información del Productor</h6>
+                                <p class="mb-1">
+                                    <strong th:text="${producto.productor.usuario.nombre + ' ' + producto.productor.usuario.apellido}">Nombre Productor</strong>
+                                </p>
+                                <p class="mb-1 text-muted">
+                                    <i class="bi bi-geo-alt me-1"></i>
+                                    <span th:text="${producto.productor.usuario.ciudad + ', ' + producto.productor.usuario.departamento}">Ciudad, Departamento</span>
+                                </p>
+                                <p class="mb-1 text-muted">
+                                    <i class="bi bi-envelope me-1"></i>
+                                    <span th:text="${producto.productor.usuario.correo}">email@email.com</span>
+                                </p>
+                                <p class="mb-0 text-muted">
+                                    <i class="bi bi-telephone me-1"></i>
+                                    <span th:text="${producto.productor.usuario.telefono}">Teléfono</span>
+                                </p>
+                                <small class="text-muted">
+                                    Tipo de cultivo: <span th:text="${producto.productor.tipoCultivo}">Tipo</span>
+                                </small>
+                            </div>
+                        </div>
+
+                        <!-- Acciones -->
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-between">
+                            <a th:href="@{/productos}" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-left"></i> Volver a la lista
+                            </a>
+                            <div>
+                                <a th:href="@{'/productos/editar/' + ${producto.idProducto}}" class="btn btn-warning me-2">
+                                    <i class="bi bi-pencil"></i> Editar
+                                </a>
+                                <form th:action="@{'/productos/eliminar/' + ${producto.idProducto}}" method="post" style="display: inline;">
+                                    <button type="submit" class="btn btn-danger"
+                                            onclick="return confirm('¿Está seguro de eliminar este producto?')">
+                                        <i class="bi bi-trash"></i> Eliminar
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

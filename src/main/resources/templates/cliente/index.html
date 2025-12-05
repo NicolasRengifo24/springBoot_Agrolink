@@ -198,49 +198,128 @@
     <div class="carousel-inner">
 
         <!-- IMG 1 -->
-        <div class="carousel-item active hero" th:style="'background-image: url(' + @{/CSS/imag/Imagen_carrucel} + ');'">
+        <div class="carousel-item active hero" th:style="|background-image: url('@{/imag/Imagen_carrucel.jpg}');|">
             <div class="hero-overlay">
                 <div class="hero-text" data-aos="fade-right">
                     <h1>Los mejores productos directos del campo</h1>
                     <p class="lead">Compra sin intermediarios y apoya al productor colombiano 🌱</p>
-                    <a th:href="@{/CSS/imag/alimentos-del-campo-OFERTA.webp}" class="hero-btn">Explorar productos</a>
+                    <a th:href="@{/productos}" class="hero-btn">Explorar productos</a>
                 </div>
             </div>
         </div>
 
         <!-- IMG 2 -->
-        <div class="carousel-item hero" th:style="'background-image: url(' + @{/CSS/imag/Carrusel.jpg} + ');'">
+        <div class="carousel-item hero" th:style="|background-image: url('@{/imag/Carrusel.jpg}');|">
             <div class="hero-overlay">
                 <div class="hero-text">
                     <h1>Calidad certificada BPA</h1>
                     <p class="lead">Productos frescos cosechados el mismo día</p>
-                    <a th:href="@{/CSS/imag/carrusel1.jfif}" class="hero-btn">Ver más</a>
+                    <a th:href="@{/productos}" class="hero-btn">Ver más</a>
                 </div>
             </div>
         </div>
 
         <!-- IMG 3 -->
-        <div class="carousel-item hero" th:style="'background-image: url(' + @{/CSS/imag/alimentos-del-campo-OFERTA.webp} + ');'">
+        <div class="carousel-item hero" th:style="|background-image: url('@{/imag/alimentos-del-campo-OFERTA.webp}');|">
             <div class="hero-overlay">
                 <div class="hero-text">
                     <h1>Precios justos para todos</h1>
                     <p class="lead">Transparencia en cada compra</p>
-                    <a th:href="@{/CSS/imag/Carrusel.jpg}" class="hero-btn">Explorar</a>
+                    <a th:href="@{/productos}" class="hero-btn">Explorar</a>
                 </div>
             </div>
         </div>
 
         <!-- IMG 4 -->
-        <div class="carousel-item hero" th:style="'background-image: url(' + @{/CSS/imag/carrusel1.jfif} + ');'">
+        <div class="carousel-item hero" th:style="|background-image: url('@{/imag/carrusel1.jfif}');|">
             <div class="hero-overlay">
                 <div class="hero-text">
                     <h1>Del campo a tu mesa</h1>
                     <p class="lead">Apoyando al productor colombiano</p>
-                    <a th:href="@{/CSS/imag/Ofertas_Huevos.jpg}" class="hero-btn">Comprar ahora</a>
+                    <a th:href="@{/productos}" class="hero-btn">Comprar ahora</a>
                 </div>
             </div>
         </div>
 
+    </div>
+</section>
+
+<!-- LISTA DE PRODUCTOS DESDE BD -->
+<section class="container my-5">
+    <!-- Título de la sección -->
+    <div class="text-center mb-5" data-aos="fade-up">
+        <h2 class="fw-bold" style="color: #2f6b31;">🌱 Productos Frescos del Campo</h2>
+        <p class="lead text-muted">Directamente desde nuestros productores certificados</p>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-3 col-md-4 col-sm-6" th:each="prod : ${productos}">
+            <div class="product-card h-100" data-aos="fade-up" data-aos-delay="100">
+                <!-- Badge de disponibilidad -->
+                <div class="position-relative">
+                    <img class="product-img"
+                         th:src="${#lists.isEmpty(prod.imagenesProducto) ? '/imag/placeholder.jpg' : '/' + prod.imagenesProducto[0].urlImagen}"
+                         alt="Imagen del producto">
+                    <div class="position-absolute top-0 end-0 m-2">
+                        <span class="badge bg-success" th:if="${prod.stock > 0}"
+                              th:text="${prod.stock + ' unidades'}">Stock disponible</span>
+                        <span class="badge bg-danger" th:if="${prod.stock == 0}">Agotado</span>
+                    </div>
+                </div>
+
+                <div class="p-3 d-flex flex-column h-100">
+                    <h5 class="mb-2" th:text="${prod.nombreProducto}">Nombre producto</h5>
+                    <p class="text-muted small mb-2" th:text="${prod.descripcionProducto}">Descripción producto</p>
+
+                    <!-- Información del productor y ubicación -->
+                    <div class="mb-2">
+                        <small class="text-muted">
+                            <i class="bi bi-person me-1"></i>
+                            <span th:text="${prod.productor != null ? prod.productor.usuario.nombre + ' ' + prod.productor.usuario.apellido : 'Productor no disponible'}">Productor</span>
+                        </small>
+                        <br>
+                        <small class="text-muted">
+                            <i class="bi bi-geo-alt me-1"></i>
+                            <span th:text="${prod.productor != null ? prod.productor.usuario.ciudad : 'Ubicación no disponible'}">Ciudad</span>
+                        </small>
+                    </div>
+
+                    <!-- Categoría -->
+                    <div class="mb-3">
+                        <span class="badge bg-light text-dark"
+                              th:text="${prod.categoria != null ? prod.categoria.nombreCategoria : 'Sin categoría'}">Categoría</span>
+                    </div>
+
+                    <!-- Precio y botón (mantener en la parte inferior) -->
+                    <div class="mt-auto">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="fw-bold text-success fs-5"
+                                      th:text="${'$' + #numbers.formatDecimal(prod.precio, 1, 'POINT', 2, 'POINT')}">$0.00</span>
+                                <br>
+                                <small class="text-muted"
+                                       th:text="${'Por ' + (prod.pesoKg != null ? prod.pesoKg : '1') + ' kg'}">Por kg</small>
+                            </div>
+                            <div>
+                                <a class="btn btn-view" th:href="@{'/productos/' + ${prod.idProducto}}"
+                                   th:classappend="${prod.stock == 0 ? ' disabled' : ''}">
+                                    <i class="bi bi-eye me-1"></i>Ver
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mensaje cuando no hay productos -->
+        <div class="col-12" th:if="${productos == null or #lists.isEmpty(productos)}">
+            <div class="alert alert-info text-center py-5">
+                <i class="bi bi-box-seam display-1 text-muted mb-3"></i>
+                <h4>No hay productos disponibles por el momento</h4>
+                <p class="text-muted">Estamos trabajando para traerte los mejores productos del campo colombiano.</p>
+            </div>
+        </div>
     </div>
 </section>
 

@@ -13,7 +13,7 @@ import java.util.List;
 @NoArgsConstructor
 @Getter
 @Setter
-@ToString(exclude = {"productor", "categoria", "calificacion", "productoFincas"})
+@ToString(exclude = {"productor", "categoria", "calificacion", "productoFincas", "imagenesProducto"})
 public class Producto implements Serializable {
 
     @Id
@@ -64,4 +64,8 @@ public class Producto implements Serializable {
     // Relación con ProductoFinca: un Producto puede estar asociado a muchas Fincas
     @OneToMany(mappedBy = "producto", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<ProductoFinca> productoFincas;
+
+    // NUEVA RELACIÓN: Imágenes del producto
+    @OneToMany(mappedBy = "producto", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<ImagenProducto> imagenesProducto;
 }

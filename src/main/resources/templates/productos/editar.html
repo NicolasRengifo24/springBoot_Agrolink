@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editar Producto - Agrolink</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+</head>
+<body>
+    <div class="container mt-4">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="card shadow">
+                    <div class="card-header bg-warning text-dark">
+                        <h4 class="mb-0"><i class="bi bi-pencil me-2"></i>Editar Producto</h4>
+                    </div>
+                    <div class="card-body">
+                        <form th:action="@{'/productos/actualizar/' + ${producto.idProducto}}" th:object="${producto}" method="post" enctype="multipart/form-data">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="nombreProducto" class="form-label">Nombre del Producto *</label>
+                                    <input type="text" class="form-control" id="nombreProducto" th:field="*{nombreProducto}" required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="precio" class="form-label">Precio *</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">$</span>
+                                        <input type="number" class="form-control" id="precio" th:field="*{precio}" step="0.01" min="0" required>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="descripcionProducto" class="form-label">Descripción</label>
+                                <textarea class="form-control" id="descripcionProducto" th:field="*{descripcionProducto}" rows="3"></textarea>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="productorId" class="form-label">Productor *</label>
+                                    <select class="form-select" id="productorId" name="productorId">
+                                        <option th:each="productor : ${productores}"
+                                                th:value="${productor.idProductor}"
+                                                th:text="${productor.usuario.nombre + ' ' + productor.usuario.apellido + ' - ' + productor.usuario.ciudad}"
+                                                th:selected="${productor.idProductor == producto.productor.idProductor}">
+                                        </option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="categoriaId" class="form-label">Categoría *</label>
+                                    <select class="form-select" id="categoriaId" name="categoriaId">
+                                        <option th:each="categoria : ${categorias}"
+                                                th:value="${categoria.idCategoria}"
+                                                th:text="${categoria.nombreCategoria}"
+                                                th:selected="${categoria.idCategoria == producto.categoria.idCategoria}">
+                                        </option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="stock" class="form-label">Stock</label>
+                                    <input type="number" class="form-control" id="stock" th:field="*{stock}" min="0">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="pesoKg" class="form-label">Peso (kg por unidad)</label>
+                                    <input type="number" class="form-control" id="pesoKg" th:field="*{pesoKg}" step="0.01" min="0.01">
+                                </div>
+                            </div>
+
+                            <!-- Imágenes actuales -->
+                            <div class="mb-4" th:if="${imagenes != null and not #lists.isEmpty(imagenes)}">
+                                <div class="form-label fw-bold">Imágenes actuales:</div>
+                                <div class="row g-2">
+                                    <div class="col-md-3" th:each="imagen : ${imagenes}">
+                                        <div class="card">
+                                            <img th:src="@{'/' + ${imagen.urlImagen}}" class="card-img-top" style="height: 120px; object-fit: cover;" alt="Imagen del producto">
+                                            <div class="card-body p-2">
+                                                <div class="d-flex justify-content-between align-items-center">
+                                                    <span class="badge bg-success" th:if="${imagen.esPrincipal}">Principal</span>
+                                                    <button type="button" class="btn btn-outline-danger btn-sm"
+                                                            th:onclick="'eliminarImagen(' + ${imagen.idImagen} + ')'">
+                                                        <i class="bi bi-trash"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Agregar nueva imagen -->
+                            <div class="mb-3">
+                                <label for="imagenFile" class="form-label">Agregar Nueva Imagen</label>
+                                <input type="file" class="form-control" id="imagenFile" name="imagenFile" accept="image/*">
+                                <div class="form-text">Formatos aceptados: JPG, PNG, WEBP (máx. 10MB)</div>
+                            </div>
+
+                            <div class="mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="esPrincipalEdit" name="esPrincipal" value="true">
+                                    <label class="form-check-label" for="esPrincipalEdit">
+                                        Marcar nueva imagen como principal
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Vista previa de nueva imagen -->
+                            <div id="imagePreview" class="mb-3" style="display: none;">
+                                <div class="fw-bold mb-2">Vista previa de nueva imagen:</div>
+                                <div class="border rounded p-2">
+                                    <img id="previewImg" src="" alt="Vista previa" style="max-height: 200px; max-width: 100%;">
+                                </div>
+                            </div>
+
+                            <div class="d-flex justify-content-between">
+                                <a th:href="@{/productos}" class="btn btn-outline-secondary">
+                                    <i class="bi bi-arrow-left"></i> Cancelar
+                                </a>
+                                <button type="submit" class="btn btn-warning">
+                                    <i class="bi bi-check-circle"></i> Actualizar Producto
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Vista previa de imagen
+        document.getElementById('imagenFile').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            const preview = document.getElementById('imagePreview');
+            const previewImg = document.getElementById('previewImg');
+
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    previewImg.src = e.target.result;
+                    preview.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            } else {
+                preview.style.display = 'none';
+            }
+        });
+
+        // Función para eliminar imagen
+        function eliminarImagen(imagenId) {
+            if (confirm('¿Está seguro de eliminar esta imagen?')) {
+                // Crear un formulario temporal para enviar la petición de eliminación
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = '/imagenes-producto/eliminar/' + imagenId;
+                form.style.display = 'none';
+                document.body.appendChild(form);
+                form.submit();
+            }
+        }
+    </script>
+</body>
+</html>

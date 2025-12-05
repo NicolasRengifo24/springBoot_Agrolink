@@ -143,7 +143,7 @@ CREATE TABLE tb_detalles_compra (
     precio_unitario DECIMAL(12,2) NOT NULL,
     subtotal DECIMAL(12,2) DEFAULT 0,
     FOREIGN KEY (id_compra) REFERENCES tb_compras(id_compra) ON DELETE CASCADE,
-    FOREIGN KEY (id_producto) REFERENCES tb_productos(id_producto) ON DELETE RESTRICT
+    FOREIGN KEY (id_producto) REFERENCES tb_productos(id_producto) ON DELETE RESTRICT ON UPDATE CASCADE
 );
 
 CREATE TABLE tb_vehiculos (
