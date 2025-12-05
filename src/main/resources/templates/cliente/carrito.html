@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agrolink – Carrito de Compras</title>
+
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+    <!-- AOS Animaciones -->
+    <link href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: "Inter", sans-serif;
+            background: #eef1e9;
+        }
+
+        /* ------------ NAVBAR ------------ */
+        .navbar-custom {
+            background: white;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+            padding: 10px 0;
+        }
+        .brand-logo img {
+            width: 42px;
+            height: 42px;
+            object-fit: contain;
+            margin-right: 6px;
+        }
+        .search-box {
+            width: 320px;
+            border-radius: 10px;
+            border: 1px solid #d1dfcc;
+            overflow: hidden;
+        }
+        .search-box input {
+            border: none;
+            padding: 10px;
+            width: 100%;
+        }
+        .search-box button {
+            border: none;
+            background: #2f6b31;
+            color: white;
+            padding: 0 18px;
+        }
+        .cart-badge {
+            background: #e63946;
+            color: white;
+            font-size: 0.75rem;
+            padding: 2px 7px;
+            border-radius: 50%;
+            position: absolute;
+            top: -4px;
+            right: -6px;
+        }
+        .profile-img {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        /* ------------ CARRITO ------------ */
+        .cart-title {
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: #2f6b31;
+        }
+        .cart-card {
+            background: white;
+            border-radius: 18px;
+            padding: 20px;
+            display: flex;
+            gap: 18px;
+            align-items: center;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+            transition: .25s ease;
+        }
+        .cart-card:hover {
+            transform: translateY(-4px);
+        }
+        .cart-card img {
+            width: 100px;
+            height: 100px;
+            border-radius: 14px;
+            object-fit: cover;
+        }
+        .qty-btn {
+            width: 34px;
+            height: 34px;
+            border-radius: 10px;
+        }
+        .summary-box {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.10);
+            position: sticky;
+            top: 100px;
+        }
+        .checkout-btn {
+            background: #2f6b31;
+            color: white;
+            padding: 14px;
+            border-radius: 12px;
+            font-size: 17px;
+        }
+
+        /* Carrito vacío */
+        .empty-cart-box {
+            padding: 60px;
+            border-radius: 25px;
+            background: white;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+        }
+        .empty-cart-box i {
+            font-size: 70px;
+            color: #2f6b31;
+        }
+
+        /* Recomendados */
+        .recommended-card {
+            background: white;
+            border-radius: 16px;
+            padding: 15px;
+            box-shadow: 0 5px 12px rgba(0,0,0,0.08);
+            transition: .25s ease;
+        }
+        .recommended-card:hover {
+            transform: translateY(-4px);
+        }
+        .recommended-card img {
+            border-radius: 12px;
+            height: 120px;
+            width: 100%;
+            object-fit: cover;
+        }
+    </style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar navbar-expand-lg navbar-custom fixed-top">
+    <div class="container">
+
+        <a class="navbar-brand brand-logo d-flex align-items-center" href="index.html">
+            <img src="https://imag.es/Agrolink.png" alt="Agrolink Logo">
+            Agrolink
+        </a>
+
+        <button class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navMenu">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navMenu">
+
+            <!-- BUSCADOR -->
+            <div class="mx-auto d-none d-lg-block">
+                <form class="d-flex search-box">
+                    <input type="search" placeholder="Buscar productos...">
+                    <button><i class="bi bi-search"></i></button>
+                </form>
+            </div>
+
+            <!-- RIGHT -->
+            <ul class="navbar-nav ms-auto align-items-center">
+
+                <li class="nav-item">
+                    <a class="nav-link me-3" href="#">Mis pedidos</a>
+                </li>
+
+                <li class="nav-item position-relative me-3">
+                    <a class="nav-link" href="carrito.html">
+                        <i class="bi bi-cart3 fs-5"></i>
+                        <span id="cartBadge" class="cart-badge">0</span>
+                    </a>
+                </li>
+
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" data-bs-toggle="dropdown">
+                        <img src="https://i.pravatar.cc/40?img=12" class="profile-img me-2">
+                        Cuenta
+                    </a>
+
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item">Mi perfil</a></li>
+                        <li><a class="dropdown-item">Configuración</a></li>
+                        <li><hr></li>
+                        <li><a class="dropdown-item text-danger">Cerrar sesión</a></li>
+                    </ul>
+                </li>
+
+            </ul>
+
+        </div>
+
+    </div>
+</nav>
+
+<!-- CONTENIDO PRINCIPAL -->
+<div class="container py-5" style="margin-top: 90px;">
+
+    <h1 class="cart-title text-center mb-5" data-aos="fade-down">🛒 Tu carrito de compras</h1>
+
+    <!-- Carrito vacío -->
+    <div id="emptyCart" class="empty-cart-box d-none">
+        <i class="bi bi-cart-x"></i>
+        <h3 class="fw-bold mt-3">Tu carrito está vacío</h3>
+        <p class="text-muted">Agrega productos y aparecerán aquí</p>
+        <a href="index.html" class="btn btn-success px-4">Volver a comprar</a>
+    </div>
+
+    <!-- Carrito lleno -->
+    <div id="cartContent" class="row g-4 d-none">
+        <div class="col-lg-8">
+            <div id="cartItems"></div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="summary-box" data-aos="fade-left">
+                <h4 class="fw-bold mb-3">Resumen del Pedido</h4>
+
+                <div class="d-flex justify-content-between mb-2">
+                    <span>Subtotal:</span>
+                    <strong id="summarySubtotal">$0</strong>
+                </div>
+
+                <div class="d-flex justify-content-between mb-2">
+                    <span>Envío:</span>
+                    <strong>$7.000</strong>
+                </div>
+
+                <hr>
+
+                <div class="d-flex justify-content-between">
+                    <h5 class="fw-bold">Total:</h5>
+                    <h5 id="summaryTotal" class="fw-bold text-success">$0</h5>
+                </div>
+
+                <button class="checkout-btn w-100 mt-4">Proceder al pago</button>
+            </div>
+        </div>
+    </div>
+
+    <hr class="my-5">
+
+    <!-- ============================
+            RECOMENDADOS INTEGRADOS
+    ============================== -->
+    <h3 class="fw-bold mb-4" data-aos="fade-right">Te podría interesar</h3>
+
+    <div class="row g-4" id="recommendedSection">
+
+        <div class="col-md-3" data-aos="zoom-in">
+            <div class="recommended-card">
+                <img src="imag/frijoles.jpg">
+                <h6 class="mt-2 fw-bold">Frijol Rojo</h6>
+                <p class="text-muted mb-1">Calidad premium</p>
+                <span class="fw-bold text-success">$4.000</span>
+            </div>
+        </div>
+
+        <div class="col-md-3" data-aos="zoom-in">
+            <div class="recommended-card">
+                <img src="imag/platano.png">
+                <h6 class="mt-2 fw-bold">Plátano Hartón</h6>
+                <p class="text-muted mb-1">Agricultura limpia</p>
+                <span class="fw-bold text-success">$3.500</span>
+            </div>
+        </div>
+
+        <div class="col-md-3" data-aos="zoom-in">
+            <div class="recommended-card">
+                <img src="imag/tomate.jpg">
+                <h6 class="mt-2 fw-bold">Tomate Chonto</h6>
+                <p class="text-muted mb-1">Fresco del día</p>
+                <span class="fw-bold text-success">$1.800</span>
+            </div>
+        </div>
+
+        <div class="col-md-3" data-aos="zoom-in">
+            <div class="recommended-card">
+                <img src="imag/queso.jpg">
+                <h6 class="mt-2 fw-bold">Queso Fresco</h6>
+                <p class="text-muted mb-1">Origen artesanal</p>
+                <span class="fw-bold text-success">$18.000</span>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- Bootstrap -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- AOS -->
+<script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js"></script>
+<script>AOS.init({ duration: 900, once: true });</script>
+
+<!-- LÓGICA DEL CARRITO -->
+<script>
+    let cart = JSON.parse(localStorage.getItem("cart")) || [];
+
+    if(cart.length === 0){
+        cart = [
+            { id:101, name:"Queso fresco del Huila", price:18000, qty:2, image:"imag/queso.jpg" },
+            { id:102, name:"Tomate chonto BPA", price:1200, qty:3, image:"imag/tomate.jpg" }
+        ];
+        saveCart();
+    }
+
+    function saveCart(){
+        localStorage.setItem("cart", JSON.stringify(cart));
+    }
+
+    function updateBadge(){
+        document.getElementById("cartBadge").innerText =
+            cart.reduce((acc,i)=>acc+i.qty,0);
+    }
+
+    function renderCartPage(){
+        updateBadge();
+
+        const empty = document.getElementById("emptyCart");
+        const content = document.getElementById("cartContent");
+        const itemsBox = document.getElementById("cartItems");
+
+        if(cart.length === 0){
+            empty.classList.remove("d-none");
+            content.classList.add("d-none");
+            return;
+        }
+
+        empty.classList.add("d-none");
+        content.classList.remove("d-none");
+
+        itemsBox.innerHTML = "";
+        let subtotal = 0;
+
+        cart.forEach(item => {
+            const totalItem = item.qty * item.price;
+            subtotal += totalItem;
+
+            itemsBox.innerHTML += `
+            <div class="cart-card">
+                <img src="${item.image}">
+                <div class="flex-grow-1">
+                    <h5 class="fw-bold">${item.name}</h5>
+                    <p class="text-muted mb-1">${item.price.toLocaleString("es-CO",{style:"currency",currency:"COP"})}</p>
+                    <div class="d-flex gap-2 align-items-center">
+                        <button class="btn btn-outline-success qty-btn" onclick="changeQty(${item.id}, -1)">−</button>
+                        <strong>${item.qty}</strong>
+                        <button class="btn btn-outline-success qty-btn" onclick="changeQty(${item.id}, 1)">+</button>
+                    </div>
+                </div>
+                <div class="text-end">
+                    <h5 class="fw-bold text-success">
+                        ${totalItem.toLocaleString("es-CO",{style:"currency",currency:"COP"})}
+                    </h5>
+                    <button class="btn btn-sm btn-danger mt-2" onclick="removeItem(${item.id})">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </div>
+            </div>
+            <br>
+        `;
+        });
+
+        document.getElementById("summarySubtotal").innerText =
+            subtotal.toLocaleString("es-CO",{style:"currency",currency:"COP"});
+
+        document.getElementById("summaryTotal").innerText =
+            (subtotal + 7000).toLocaleString("es-CO",{style:"currency",currency:"COP"});
+    }
+
+    function changeQty(id, amount){
+        cart = cart.map(i=>{
+            if(i.id === id) i.qty += amount;
+            return i;
+        }).filter(i => i.qty > 0);
+
+        saveCart();
+        renderCartPage();
+    }
+
+    function removeItem(id){
+        cart = cart.filter(i => i.id !== id);
+        saveCart();
+        renderCartPage();
+    }
+
+    renderCartPage();
+</script>
+
+</body>
+</html>

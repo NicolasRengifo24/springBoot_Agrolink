@@ -9,7 +9,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
+import jakarta.servlet.http.HttpSession;
+import java.util.*;
 
 @Controller
 public class ClienteController {
@@ -27,11 +28,52 @@ public class ClienteController {
         return "cliente/index";
     }
 
-    @GetMapping("/clientes/cliente-index")
+    @GetMapping("/inicio")
     public String Cliente(Model model) {
         List<Producto> productos = productoService.obtenerTodos();
         model.addAttribute("productos", productos); // Corregido: usar "productos" no "producto"
         return "cliente/index";
+    }
+
+    // Nuevo: mostrar detalle de producto en cliente
+    @GetMapping("/cliente/producto/{id}")
+    public String verProductoCliente(@PathVariable Integer id, Model model) {
+        Optional<Producto> productoOpt = productoService.obtenerPorId(id);
+        if (productoOpt.isEmpty()) {
+
+        }
+        Producto producto = productoOpt.get();
+        model.addAttribute("producto", producto);
+
+        // productos relacionados: mismos categoria (excepto el actual), limitar a 4
+        List<Producto> relacionados = new ArrayList<>();
+        if (producto.getCategoria() != null) {
+            List<Producto> todos = productoService.obtenerTodos();
+            for (Producto p : todos) {
+                if (!Objects.equals(p.getIdProducto(), producto.getIdProducto()) && p.getCategoria() != null
+                        && Objects.equals(p.getCategoria().getIdCategoria(), producto.getCategoria().getIdCategoria())) {
+                    relacionados.add(p);
+                    if (relacionados.size() >= 4) break;
+                }
+            }
+        }
+        model.addAttribute("relacionados", relacionados);
+        return "cliente/producto";
+    }
+
+    // Manejo sencillo de carrito en sesión (map: idProducto -> cantidad)
+    @PostMapping("/cliente/carrito/agregar")
+    public String agregarAlCarrito(@RequestParam Integer idProducto,
+                                   @RequestParam(defaultValue = "1") Integer cantidad,
+                                   HttpSession session) {
+        @SuppressWarnings("unchecked")
+        Map<Integer, Integer> cart = (Map<Integer, Integer>) session.getAttribute("cart");
+        if (cart == null) {
+            cart = new HashMap<>();
+        }
+        cart.put(idProducto, cart.getOrDefault(idProducto, 0) + cantidad);
+        session.setAttribute("cart", cart);
+        return "redirect:/cliente/producto/" + idProducto;
     }
 
     // GET - Listar todos los clientes
