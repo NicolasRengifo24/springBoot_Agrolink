@@ -336,7 +336,7 @@
 
             <!-- BÚSQUEDA -->
             <div class="mx-auto d-none d-lg-block">
-                <form class="d-flex search-box" th:action="@{/}" method="get">
+                <form class="d-flex search-box" th:action="@{/buscar}" method="get">
                     <input type="search" name="busqueda" th:value="${busquedaActual}" placeholder="Buscar productos...">
                     <button type="submit"><i class="bi bi-search"></i></button>
                 </form>
@@ -513,23 +513,72 @@
         <h2 class="fw-bold" style="color: #2f6b31;" th:text="${tituloSeccion}">Productos Frescos del Campo</h2>
         <p class="lead text-muted" th:text="${subtituloSeccion}">Directamente desde nuestros productores certificados</p>
 
-        <!-- Mostrar breadcrumb si hay filtro activo -->
-        <div th:if="${categoriaSeleccionada != null or busquedaActual != null}" class="mt-3">
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb justify-content-center">
-                    <li class="breadcrumb-item"><a th:href="@{/}" class="text-decoration-none">Todos los productos</a></li>
-                    <li class="breadcrumb-item active" aria-current="page"
-                        th:text="${categoriaSeleccionada != null ? 'Categoría seleccionada' : 'Búsqueda'}">Filtro activo</li>
-                </ol>
-            </nav>
+        <!-- FILTROS ACTIVOS - Mostrar cuando hay filtros aplicados -->
+        <div th:if="${hayFiltrosActivos}" class="mt-4">
+            <div class="alert alert-light border" style="border-radius: 15px;">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <h6 class="mb-0 text-success">
+                        <i class="bi bi-funnel-fill me-2"></i>Filtros aplicados:
+                    </h6>
+                    <a th:href="@{/}" class="btn btn-outline-danger btn-sm">
+                        <i class="bi bi-x-circle me-1"></i>Limpiar todos
+                    </a>
+                </div>
+                <div class="d-flex flex-wrap gap-2">
+                    <!-- Filtro de búsqueda -->
+                    <span th:if="${busquedaActual != null}" class="badge bg-primary fs-6 py-2 px-3">
+                        <i class="bi bi-search me-1"></i>
+                        Búsqueda: "<span th:text="${busquedaActual}"></span>"
+                        <a th:href="@{/(categoria=${categoriaSeleccionada}, ubicacion=${ubicacionActual}, precioMin=${precioMinActual}, precioMax=${precioMaxActual}, soloDisponibles=${soloDisponiblesActual}, organicosBPA=${organicosBPAActual})}"
+                           class="text-white ms-2">×</a>
+                    </span>
 
-            <!-- Mostrar término de búsqueda si está presente -->
-            <div th:if="${busquedaActual != null}" class="alert alert-info d-inline-block">
-                <i class="bi bi-search me-2"></i>
-                <strong>Búsqueda:</strong> "<span th:text="${busquedaActual}"></span>"
-                <a th:href="@{/}" class="btn btn-sm btn-outline-primary ms-2">
-                    <i class="bi bi-x"></i> Limpiar
-                </a>
+                    <!-- Filtro de categoría -->
+                    <span th:if="${categoriaSeleccionada != null}" class="badge bg-success fs-6 py-2 px-3">
+                        <i class="bi bi-tag me-1"></i>
+                        Categoría: <span th:each="cat : ${categorias}" th:if="${cat.idCategoria == categoriaSeleccionada}" th:text="${cat.nombreCategoria}">Categoría</span>
+                        <a th:href="@{/(busqueda=${busquedaActual}, ubicacion=${ubicacionActual}, precioMin=${precioMinActual}, precioMax=${precioMaxActual}, soloDisponibles=${soloDisponiblesActual}, organicosBPA=${organicosBPAActual})}"
+                           class="text-white ms-2">×</a>
+                    </span>
+
+                    <!-- Filtro de ubicación -->
+                    <span th:if="${ubicacionActual != null and !ubicacionActual.isEmpty()}" class="badge bg-info fs-6 py-2 px-3">
+                        <i class="bi bi-geo-alt me-1"></i>
+                        Ubicación: "<span th:text="${ubicacionActual}"></span>"
+                        <a th:href="@{/(busqueda=${busquedaActual}, categoria=${categoriaSeleccionada}, precioMin=${precioMinActual}, precioMax=${precioMaxActual}, soloDisponibles=${soloDisponiblesActual}, organicosBPA=${organicosBPAActual})}"
+                           class="text-white ms-2">×</a>
+                    </span>
+
+                    <!-- Filtro de precio mínimo -->
+                    <span th:if="${precioMinActual != null}" class="badge bg-warning fs-6 py-2 px-3">
+                        <i class="bi bi-currency-dollar me-1"></i>
+                        Precio min: $<span th:text="${#numbers.formatInteger(precioMinActual, 1, 'POINT')}"></span>
+                        <a th:href="@{/(busqueda=${busquedaActual}, categoria=${categoriaSeleccionada}, ubicacion=${ubicacionActual}, precioMax=${precioMaxActual}, soloDisponibles=${soloDisponiblesActual}, organicosBPA=${organicosBPAActual})}"
+                           class="text-white ms-2">×</a>
+                    </span>
+
+                    <!-- Filtro de precio máximo -->
+                    <span th:if="${precioMaxActual != null}" class="badge bg-warning fs-6 py-2 px-3">
+                        <i class="bi bi-currency-dollar me-1"></i>
+                        Precio max: $<span th:text="${#numbers.formatInteger(precioMaxActual, 1, 'POINT')}"></span>
+                        <a th:href="@{/(busqueda=${busquedaActual}, categoria=${categoriaSeleccionada}, ubicacion=${ubicacionActual}, precioMin=${precioMinActual}, soloDisponibles=${soloDisponiblesActual}, organicosBPA=${organicosBPAActual})}"
+                           class="text-white ms-2">×</a>
+                    </span>
+
+                    <!-- Filtro solo disponibles -->
+                    <span th:if="${soloDisponiblesActual}" class="badge bg-secondary fs-6 py-2 px-3">
+                        <i class="bi bi-check-circle me-1"></i>Solo disponibles
+                        <a th:href="@{/(busqueda=${busquedaActual}, categoria=${categoriaSeleccionada}, ubicacion=${ubicacionActual}, precioMin=${precioMinActual}, precioMax=${precioMaxActual}, organicosBPA=${organicosBPAActual})}"
+                           class="text-white ms-2">×</a>
+                    </span>
+
+                    <!-- Filtro orgánicos/BPA -->
+                    <span th:if="${organicosBPAActual}" class="badge bg-dark fs-6 py-2 px-3">
+                        <i class="bi bi-award me-1"></i>Certificación BPA
+                        <a th:href="@{/(busqueda=${busquedaActual}, categoria=${categoriaSeleccionada}, ubicacion=${ubicacionActual}, precioMin=${precioMinActual}, precioMax=${precioMaxActual}, soloDisponibles=${soloDisponiblesActual})}"
+                           class="text-white ms-2">×</a>
+                    </span>
+                </div>
             </div>
         </div>
     </div>
@@ -649,7 +698,7 @@
                         <div class="collapse mt-3" id="ubicacionFilter">
                             <input type="text" name="ubicacion" class="form-control form-control-sm"
                                    placeholder="Ciudad o región..."
-                                   th:value="${param.ubicacion}">
+                                   th:value="${ubicacionActual}">
                             <small class="text-muted">Ej: Boyacá, Cundinamarca</small>
                         </div>
                     </div>
@@ -666,9 +715,9 @@
                         <div class="collapse mt-3" id="precioFilter">
                             <div class="d-flex gap-2">
                                 <input type="number" name="precioMin" class="form-control form-control-sm"
-                                       placeholder="Min" min="0" th:value="${param.precioMin}">
+                                       placeholder="Min" min="0" th:value="${precioMinActual}">
                                 <input type="number" name="precioMax" class="form-control form-control-sm"
-                                       placeholder="Max" min="0" th:value="${param.precioMax}">
+                                       placeholder="Max" min="0" th:value="${precioMaxActual}">
                             </div>
                             <div class="range-values mt-2">
                                 <small>$1.000 - $50.000</small>
@@ -688,14 +737,14 @@
                         <div class="collapse mt-3" id="disponibilidadFilter">
                             <div class="form-check">
                                 <input class="form-check-input" type="checkbox" name="soloDisponibles"
-                                       id="soloDisponibles" th:checked="${param.soloDisponibles}">
+                                       id="soloDisponibles" th:checked="${soloDisponiblesActual}">
                                 <label class="form-check-label small" for="soloDisponibles">
                                     Solo productos disponibles
                                 </label>
                             </div>
                             <div class="form-check">
                                 <input class="form-check-input" type="checkbox" name="organicosBPA"
-                                       id="organicosBPA" th:checked="${param.organicosBPA}">
+                                       id="organicosBPA" th:checked="${organicosBPAActual}">
                                 <label class="form-check-label small" for="organicosBPA">
                                     Certificación BPA
                                 </label>

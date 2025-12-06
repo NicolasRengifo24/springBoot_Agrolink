@@ -35,6 +35,11 @@ public class ClienteController {
     @GetMapping("/")
     public String inicio(@RequestParam(value = "categoria", required = false) Integer categoriaId,
                         @RequestParam(value = "busqueda", required = false) String busqueda,
+                        @RequestParam(value = "ubicacion", required = false) String ubicacion,
+                        @RequestParam(value = "precioMin", required = false) Double precioMin,
+                        @RequestParam(value = "precioMax", required = false) Double precioMax,
+                        @RequestParam(value = "soloDisponibles", required = false) Boolean soloDisponibles,
+                        @RequestParam(value = "organicosBPA", required = false) Boolean organicosBPA,
                         Model model) {
         List<Producto> productos = productoService.obtenerTodos(); // Inicializar por defecto
         List<CategoriaProducto> categorias = categoriaProductoService.obtenerTodos();
@@ -43,34 +48,19 @@ public class ClienteController {
         String tituloSeccion = "Productos Frescos del Campo";
         String subtituloSeccion = "Directamente desde nuestros productores certificados";
 
-        // Determinar qué tipo de filtro aplicar
-        boolean hayFiltros = categoriaId != null || (busqueda != null && !busqueda.trim().isEmpty());
+        // Determinar si hay filtros aplicados
+        boolean hayFiltros = categoriaId != null ||
+                           (busqueda != null && !busqueda.trim().isEmpty()) ||
+                           (ubicacion != null && !ubicacion.trim().isEmpty()) ||
+                           precioMin != null || precioMax != null ||
+                           Boolean.TRUE.equals(soloDisponibles) ||
+                           Boolean.TRUE.equals(organicosBPA);
 
         if (hayFiltros) {
-            // Usar filtros múltiples si hay más de uno activo
-            if ((categoriaId != null ? 1 : 0) +
-                (busqueda != null && !busqueda.trim().isEmpty() ? 1 : 0) > 1) {
-
-                productos = productoService.buscarPorUbicacionYCategoria(busqueda, categoriaId);
-                tituloSeccion = "Productos Filtrados";
-                subtituloSeccion = "Resultados según los filtros aplicados";
-
-            } else {
-                // Aplicar filtro individual
-                if (categoriaId != null) {
-                    productos = productoService.obtenerPorCategoria(categoriaId);
-                    CategoriaProducto categoria = categoriaProductoService.obtenerPorId(categoriaId).orElse(null);
-                    if (categoria != null) {
-                        tituloSeccion = categoria.getNombreCategoria();
-                        subtituloSeccion = "Productos frescos de la categoría " + categoria.getNombreCategoria().toLowerCase();
-                    }
-                } else if (busqueda != null && !busqueda.trim().isEmpty()) {
-                    String terminoBusqueda = busqueda.trim();
-                    productos = productoService.busquedaAvanzada(terminoBusqueda);
-                    tituloSeccion = "Resultados de búsqueda";
-                    subtituloSeccion = "Se encontraron " + productos.size() + " productos para: \"" + terminoBusqueda + "\"";
-                }
-            }
+            // Aplicar filtros combinados
+            productos = aplicarFiltrosCombinados(busqueda, categoriaId, ubicacion, precioMin, precioMax, soloDisponibles, organicosBPA);
+            tituloSeccion = "Productos Filtrados";
+            subtituloSeccion = "Se encontraron " + productos.size() + " productos según los filtros aplicados";
         } else {
             // Mostrar todos los productos por defecto
             productos = productoService.obtenerTodos();
@@ -83,6 +73,14 @@ public class ClienteController {
         model.addAttribute("subtituloSeccion", subtituloSeccion);
         model.addAttribute("categoriaSeleccionada", categoriaId);
         model.addAttribute("busquedaActual", busqueda);
+
+        // Agregar todos los parámetros de filtros al modelo para mantenerlos en la vista
+        model.addAttribute("ubicacionActual", ubicacion);
+        model.addAttribute("precioMinActual", precioMin);
+        model.addAttribute("precioMaxActual", precioMax);
+        model.addAttribute("soloDisponiblesActual", soloDisponibles);
+        model.addAttribute("organicosBPAActual", organicosBPA);
+        model.addAttribute("hayFiltrosActivos", hayFiltros);
 
         return "cliente/index";
     }
@@ -100,6 +98,57 @@ public class ClienteController {
         model.addAttribute("tituloSeccion", "Productos Frescos del Campo");
         model.addAttribute("subtituloSeccion", "Directamente desde nuestros productores certificados");
         return "cliente/index";
+    }
+
+    /**
+     * Ruta específica para búsquedas del navbar con normalización de texto
+     */
+    @GetMapping("/buscar")
+    public String buscarDesdeNavbar(@RequestParam(value = "busqueda", required = false) String busqueda,
+                                   Model model) {
+        System.out.println("=== MÉTODO /buscar EJECUTADO ===");
+        System.out.println("Parámetro recibido: '" + busqueda + "'");
+
+        try {
+            List<CategoriaProducto> categorias = categoriaProductoService.obtenerTodos();
+            List<Servicio> servicios = servicioService.obtenerTodosLosServicios();
+            Map<String, List<Servicio>> categoriasServicios = categorizarServicios(servicios);
+
+            List<Producto> productos;
+            String tituloSeccion = "Productos Frescos del Campo";
+            String subtituloSeccion = "Directamente desde nuestros productores certificados";
+
+            if (busqueda != null && !busqueda.trim().isEmpty()) {
+                System.out.println("Ejecutando búsqueda para: " + busqueda.trim());
+                // Aplicar búsqueda mejorada con normalización de texto
+                productos = busquedaAvanzadaConNormalizacion(busqueda.trim());
+                tituloSeccion = "Resultados de búsqueda";
+                subtituloSeccion = "Se encontraron " + productos.size() + " productos para: \"" + busqueda.trim() + "\"";
+                System.out.println("Productos encontrados: " + productos.size());
+            } else {
+                System.out.println("Búsqueda vacía, mostrando todos los productos");
+                productos = productoService.obtenerTodos();
+            }
+
+            // Agregar atributos necesarios para el navbar
+            model.addAttribute("productos", productos);
+            model.addAttribute("categorias", categorias);
+            model.addAttribute("categoriasServicios", categoriasServicios);
+            model.addAttribute("tituloSeccion", tituloSeccion);
+            model.addAttribute("subtituloSeccion", subtituloSeccion);
+            model.addAttribute("busquedaActual", busqueda);
+            model.addAttribute("categoriaSeleccionada", null);
+            model.addAttribute("ubicacionActual", null);
+            model.addAttribute("hayFiltrosActivos", busqueda != null && !busqueda.trim().isEmpty());
+
+            System.out.println("Modelo configurado correctamente, retornando vista");
+            return "cliente/index";
+
+        } catch (Exception e) {
+            System.err.println("Error en búsqueda: " + e.getMessage());
+            e.printStackTrace();
+            return "redirect:/";
+        }
     }
 
     // GET - Listar todos los clientes
@@ -270,5 +319,223 @@ public class ClienteController {
         model.addAttribute("carritoItems", new ArrayList<>());
         model.addAttribute("total", 0.0);
         return "cliente/carrito";
+    }
+
+    /**
+     * Método para aplicar filtros combinados de productos
+     */
+    private List<Producto> aplicarFiltrosCombinados(String busqueda, Integer categoriaId, String ubicacion,
+                                                   Double precioMin, Double precioMax, Boolean soloDisponibles, Boolean organicosBPA) {
+        // Comenzar with todos los productos
+        List<Producto> productos = productoService.obtenerTodos();
+
+        // DEBUG: Verificar si hay productos de Medellín
+        long productosMedellin = productos.stream()
+            .filter(p -> p.getProductor() != null &&
+                       p.getProductor().getUsuario() != null &&
+                       p.getProductor().getUsuario().getCiudad() != null &&
+                       normalizarTexto(p.getProductor().getUsuario().getCiudad()).contains("medellin"))
+            .count();
+        System.out.println("=== Productos de Medellín en BD: " + productosMedellin);
+
+        // Aplicar filtro de búsqueda (nombre o descripción)
+        if (busqueda != null && !busqueda.trim().isEmpty()) {
+            String terminoBusqueda = busqueda.trim().toLowerCase();
+            productos = productos.stream()
+                .filter(p -> (p.getNombreProducto() != null && p.getNombreProducto().toLowerCase().contains(terminoBusqueda)) ||
+                           (p.getDescripcionProducto() != null && p.getDescripcionProducto().toLowerCase().contains(terminoBusqueda)))
+                .toList();
+        }
+
+        // Aplicar filtro por categoría
+        if (categoriaId != null) {
+            productos = productos.stream()
+                .filter(p -> p.getCategoria() != null && p.getCategoria().getIdCategoria().equals(categoriaId))
+                .toList();
+        }
+
+        // Aplicar filtro por ubicación (ciudad del productor) - Mejorado para acentos y variaciones
+        if (ubicacion != null && !ubicacion.trim().isEmpty()) {
+            String ubicacionBusqueda = normalizarTexto(ubicacion.trim());
+
+            // Debug: Imprimir ciudades disponibles (temporal)
+            System.out.println("=== DEBUG: Buscando ubicación: " + ubicacion + " (normalizado: " + ubicacionBusqueda + ")");
+            System.out.println("Ciudades disponibles en la BD:");
+            productos.stream()
+                .filter(p -> p.getProductor() != null &&
+                           p.getProductor().getUsuario() != null &&
+                           p.getProductor().getUsuario().getCiudad() != null)
+                .map(p -> p.getProductor().getUsuario().getCiudad())
+                .distinct()
+                .forEach(ciudad -> System.out.println("- " + ciudad));
+
+            productos = productos.stream()
+                .filter(p -> {
+                    if (p.getProductor() == null ||
+                        p.getProductor().getUsuario() == null ||
+                        p.getProductor().getUsuario().getCiudad() == null) {
+                        return false;
+                    }
+
+                    String ciudadProductor = normalizarTexto(p.getProductor().getUsuario().getCiudad());
+                    boolean coincide = ciudadProductor.contains(ubicacionBusqueda);
+
+                    // También buscar en departamento/estado si existe
+                    if (!coincide && p.getProductor().getUsuario().getDepartamento() != null) {
+                        String departamentoProductor = normalizarTexto(p.getProductor().getUsuario().getDepartamento());
+                        coincide = departamentoProductor.contains(ubicacionBusqueda);
+                    }
+
+                    return coincide;
+                })
+                .toList();
+
+            System.out.println("Productos encontrados después del filtro de ubicación: " + productos.size());
+        }
+
+        // Aplicar filtro por precio mínimo
+        if (precioMin != null) {
+            productos = productos.stream()
+                .filter(p -> p.getPrecio() != null && p.getPrecio().doubleValue() >= precioMin)
+                .toList();
+        }
+
+        // Aplicar filtro por precio máximo
+        if (precioMax != null) {
+            productos = productos.stream()
+                .filter(p -> p.getPrecio() != null && p.getPrecio().doubleValue() <= precioMax)
+                .toList();
+        }
+
+        // Aplicar filtro solo productos disponibles
+        if (Boolean.TRUE.equals(soloDisponibles)) {
+            productos = productos.stream()
+                .filter(p -> p.getStock() != null && p.getStock() > 0)
+                .toList();
+        }
+
+        // Aplicar filtro orgánicos/BPA (simulado por ahora)
+        if (Boolean.TRUE.equals(organicosBPA)) {
+            productos = productos.stream()
+                .filter(p -> p.getDescripcionProducto() != null &&
+                           (p.getDescripcionProducto().toLowerCase().contains("orgánico") ||
+                            p.getDescripcionProducto().toLowerCase().contains("bpa") ||
+                            p.getDescripcionProducto().toLowerCase().contains("certificado")))
+                .toList();
+        }
+
+        return productos;
+    }
+
+    /**
+     * Método de búsqueda avanzada con normalización de texto
+     */
+    private List<Producto> busquedaAvanzadaConNormalizacion(String terminoBusqueda) {
+        System.out.println("=== INICIANDO BÚSQUEDA AVANZADA ===");
+
+        List<Producto> todosProductos = productoService.obtenerTodos();
+        System.out.println("Total de productos en BD: " + todosProductos.size());
+
+        String terminoNormalizado = normalizarTexto(terminoBusqueda);
+        System.out.println("Término de búsqueda: '" + terminoBusqueda + "' → normalizado: '" + terminoNormalizado + "'");
+
+        // DEBUG: Mostrar algunos productos disponibles
+        System.out.println("=== PRIMEROS 5 PRODUCTOS EN BD ===");
+        todosProductos.stream().limit(5).forEach(p -> {
+            String ciudad = (p.getProductor() != null && p.getProductor().getUsuario() != null)
+                ? p.getProductor().getUsuario().getCiudad() : "Sin ciudad";
+            String productor = (p.getProductor() != null && p.getProductor().getUsuario() != null)
+                ? p.getProductor().getUsuario().getNombre() : "Sin productor";
+            System.out.println("- " + p.getNombreProducto() + " | Ciudad: " + ciudad + " | Productor: " + productor);
+        });
+
+        List<Producto> productosEncontrados = new ArrayList<>();
+
+        for (Producto producto : todosProductos) {
+            boolean encontrado = false;
+            String razonEncontrado = "";
+
+            try {
+                // Buscar en nombre del producto
+                if (producto.getNombreProducto() != null) {
+                    String nombreNormalizado = normalizarTexto(producto.getNombreProducto());
+                    if (nombreNormalizado.contains(terminoNormalizado)) {
+                        encontrado = true;
+                        razonEncontrado = "nombre: " + producto.getNombreProducto();
+                    }
+                }
+
+                // Buscar en descripción del producto
+                if (!encontrado && producto.getDescripcionProducto() != null) {
+                    String descripcionNormalizada = normalizarTexto(producto.getDescripcionProducto());
+                    if (descripcionNormalizada.contains(terminoNormalizado)) {
+                        encontrado = true;
+                        razonEncontrado = "descripción: " + producto.getDescripcionProducto();
+                    }
+                }
+
+                // Buscar en ciudad del productor
+                if (!encontrado && producto.getProductor() != null &&
+                    producto.getProductor().getUsuario() != null &&
+                    producto.getProductor().getUsuario().getCiudad() != null) {
+                    String ciudadNormalizada = normalizarTexto(producto.getProductor().getUsuario().getCiudad());
+                    if (ciudadNormalizada.contains(terminoNormalizado)) {
+                        encontrado = true;
+                        razonEncontrado = "ciudad: " + producto.getProductor().getUsuario().getCiudad();
+                    }
+                }
+
+                // Buscar en nombre del productor
+                if (!encontrado && producto.getProductor() != null &&
+                    producto.getProductor().getUsuario() != null &&
+                    producto.getProductor().getUsuario().getNombre() != null) {
+                    String nombreProductorNormalizado = normalizarTexto(producto.getProductor().getUsuario().getNombre());
+                    if (nombreProductorNormalizado.contains(terminoNormalizado)) {
+                        encontrado = true;
+                        razonEncontrado = "productor: " + producto.getProductor().getUsuario().getNombre();
+                    }
+                }
+
+                // Buscar en categoría
+                if (!encontrado && producto.getCategoria() != null) {
+                    String categoriaNormalizada = normalizarTexto(producto.getCategoria().getNombreCategoria());
+                    if (categoriaNormalizada.contains(terminoNormalizado)) {
+                        encontrado = true;
+                        razonEncontrado = "categoría: " + producto.getCategoria().getNombreCategoria();
+                    }
+                }
+
+                if (encontrado) {
+                    productosEncontrados.add(producto);
+                    System.out.println("✓ Producto encontrado: " + producto.getNombreProducto() + " (" + razonEncontrado + ")");
+                }
+
+            } catch (Exception e) {
+                System.err.println("Error procesando producto ID " + producto.getIdProducto() + ": " + e.getMessage());
+            }
+        }
+
+        System.out.println("=== RESULTADO BÚSQUEDA: " + productosEncontrados.size() + " productos encontrados ===");
+
+        return productosEncontrados;
+    }
+
+    /**
+     * Método auxiliar para normalizar texto eliminando acentos y convirtiendo a minúsculas
+     */
+    private String normalizarTexto(String texto) {
+        if (texto == null) {
+            return "";
+        }
+
+        // Convertir a minúsculas y eliminar acentos comunes
+        return texto.toLowerCase()
+                   .replace("á", "a").replace("à", "a").replace("ä", "a")
+                   .replace("é", "e").replace("è", "e").replace("ë", "e")
+                   .replace("í", "i").replace("ì", "i").replace("ï", "i")
+                   .replace("ó", "o").replace("ò", "o").replace("ö", "o")
+                   .replace("ú", "u").replace("ù", "u").replace("ü", "u")
+                   .replace("ñ", "n")
+                   .trim();
     }
 }
