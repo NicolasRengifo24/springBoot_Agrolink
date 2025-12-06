@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
 import java.util.Map;
@@ -186,5 +187,88 @@ public class ClienteController {
         categoriasServicios.entrySet().removeIf(entry -> entry.getValue().isEmpty());
 
         return categoriasServicios;
+    }
+
+    // NUEVA FUNCIONALIDAD PARA VISTAS DE CLIENTE
+
+    /**
+     * Mostrar vista individual de producto para clientes
+     */
+    @GetMapping("/cliente/producto/{id}")
+    public String verProductoCliente(@PathVariable Integer id, Model model) {
+        // Obtener el producto por ID
+        Producto producto = productoService.obtenerPorId(id).orElse(null);
+        if (producto == null) {
+            return "cliente/producto-no-encontrado";
+        }
+
+        // Obtener productos relacionados (misma categoría, excluyendo el actual)
+        List<Producto> productosRelacionados = new ArrayList<>();
+        if (producto.getCategoria() != null) {
+            List<Producto> todosDeLaCategoria = productoService.obtenerPorCategoria(producto.getCategoria().getIdCategoria());
+            productosRelacionados = todosDeLaCategoria.stream()
+                .filter(p -> !p.getIdProducto().equals(id))
+                .limit(4)
+                .toList();
+        }
+
+        // AGREGAR DATOS NECESARIOS PARA EL NAVBAR (igual que en el index)
+        List<CategoriaProducto> categorias = categoriaProductoService.obtenerTodos();
+        List<Servicio> servicios = servicioService.obtenerTodosLosServicios();
+        Map<String, List<Servicio>> categoriasServicios = categorizarServicios(servicios);
+
+        // Agregar al modelo
+        model.addAttribute("producto", producto);
+        model.addAttribute("relacionados", productosRelacionados);
+        model.addAttribute("categorias", categorias);
+        model.addAttribute("categoriasServicios", categoriasServicios);
+
+        return "cliente/producto";
+    }
+
+    /**
+     * Agregar producto al carrito
+     */
+    @PostMapping("/cliente/carrito/agregar")
+    public String agregarAlCarrito(@RequestParam Integer idProducto,
+                                   @RequestParam Integer cantidad,
+                                   RedirectAttributes redirectAttributes) {
+        try {
+            // Verificar que el producto existe
+            Producto producto = productoService.obtenerPorId(idProducto).orElse(null);
+            if (producto == null) {
+                redirectAttributes.addFlashAttribute("error", "Producto no encontrado");
+                return "redirect:/";
+            }
+
+            // Verificar stock disponible
+            if (cantidad > producto.getStock()) {
+                redirectAttributes.addFlashAttribute("error",
+                    "Cantidad solicitada (" + cantidad + ") supera el stock disponible (" + producto.getStock() + ")");
+                return "redirect:/cliente/producto/" + idProducto;
+            }
+
+            // Por ahora, solo mostrar mensaje de éxito (implementación básica)
+            // En el futuro aquí se integrará con el sistema de sesiones/usuarios
+            redirectAttributes.addFlashAttribute("success",
+                cantidad + " unidad(es) de " + producto.getNombreProducto() + " agregadas al carrito");
+
+            return "redirect:/cliente/producto/" + idProducto;
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Error al agregar producto al carrito");
+            return "redirect:/cliente/producto/" + idProducto;
+        }
+    }
+
+    /**
+     * Ver carrito de compras
+     */
+    @GetMapping("/cliente/carrito")
+    public String verCarrito(Model model) {
+        // Por ahora retornar vista básica del carrito
+        // En el futuro aquí se obtendrán los productos del carrito desde la sesión/base de datos
+        model.addAttribute("carritoItems", new ArrayList<>());
+        model.addAttribute("total", 0.0);
+        return "cliente/carrito";
     }
 }

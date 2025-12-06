@@ -15,29 +15,338 @@
     <link href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css" rel="stylesheet">
 
     <style>
-        body { background: #f6f8f4; font-family: "Inter", sans-serif; }
-        .product-gallery { background: #fff; border-radius: 18px; padding: 20px; box-shadow: 0 5px 20px rgba(0,0,0,0.06);}
-        .product-gallery img { border-radius: 12px; width: 100%; object-fit: cover; }
-        .thumbs img { cursor: pointer; opacity: 0.7; transition: .2s; }
-        .thumbs img:hover { opacity: 1; }
-        .product-info { background: #fff; padding: 25px; border-radius: 18px; box-shadow: 0 5px 20px rgba(0,0,0,0.06); }
-        .product-title { font-size: 2rem; font-weight: 700; }
-        .product-price { font-size: 2rem; color: #2f6b31; font-weight: 700; }
-        .btn-buy { background: #2f6b31; color: white; padding: 14px 22px; border-radius: 12px; width: 100%; }
-        .btn-buy:hover { background: #1d4820; color: #fff; }
-        .details-box { background: #fff; padding: 25px; border-radius: 18px; box-shadow: 0 5px 20px rgba(0,0,0,0.06); }
-        .product-card { border-radius: 16px; overflow: hidden; background: white; transition: .2s; box-shadow: 0 5px 12px rgba(0,0,0,0.05); }
-        .product-card:hover{ transform: translateY(-4px); }
-        .product-img{ height: 200px; width: 100%; object-fit: cover; }
+        body {
+            background: #f6f8f4;
+            font-family: "Inter", sans-serif;
+        }
+        a { text-decoration: none !important; }
+
+        /* -------- NAVBAR PREMIUM -------- */
+        .navbar-custom {
+            background: white;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+            padding: 10px 0;
+        }
+        .brand-logo {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-family: "Nunito", sans-serif;
+            font-size: 2.4rem;
+            font-weight: 700;
+            color: #2f6b31;
+            transition: all 0.3s ease;
+            margin-left: -10px;
+        }
+        .brand-logo img {
+            width: 70px;
+            height: 70px;
+            object-fit: cover;
+            border-radius: 50%;
+            border: 3px solid transparent;
+            background: white;
+            padding: 2px;
+            position: relative;
+            transition: all 0.4s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .brand-logo:hover img {
+            transform: scale(1.15);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .brand-logo:hover {
+            transform: translateY(-3px);
+        }
+
+        /* Search Box */
+        .search-box {
+            width: 320px;
+            border-radius: 10px;
+            border: 1px solid #d1dfcc;
+            overflow: hidden;
+        }
+        .search-box input {
+            border: none;
+            padding: 10px;
+            width: 100%;
+            outline: none;
+        }
+        .search-box button {
+            border: none;
+            background: #2f6b31;
+            color: white;
+            padding: 10px 12px;
+        }
+
+        /* Mega Menu */
+        .mega-menu-dropdown {
+            width: 100vw;
+            left: 0 !important;
+            transform: none !important;
+            margin-top: 0;
+            border: none;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+
+        .mega-title {
+            color: #2f6b31;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .mega-list a {
+            color: #666;
+            font-size: 0.9rem;
+            padding: 4px 0;
+            display: block;
+            transition: color 0.2s;
+        }
+
+        .mega-list a:hover {
+            color: #2f6b31;
+        }
+
+        /* Profile */
+        .profile-img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        /* Cart Badge */
+        .cart-badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #dc3545;
+            color: white;
+            font-size: 0.7rem;
+            padding: 2px 6px;
+            border-radius: 50%;
+            min-width: 18px;
+            text-align: center;
+        }
+
+        /* Breadcrumb */
+        .breadcrumb-custom {
+            margin: 20px 0;
+            font-size: 0.9rem;
+        }
+        .breadcrumb-custom a {
+            color: #2f6b31;
+            text-decoration: none;
+        }
+        .breadcrumb-custom a:hover {
+            text-decoration: underline;
+        }
+
+        /* Product Styles */
+        .product-gallery {
+            background: #fff;
+            border-radius: 18px;
+            padding: 20px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.06);
+        }
+        .product-gallery img {
+            border-radius: 12px;
+            width: 100%;
+            object-fit: cover;
+        }
+        .thumbs img {
+            cursor: pointer;
+            opacity: 0.7;
+            transition: .2s;
+        }
+        .thumbs img:hover {
+            opacity: 1;
+        }
+        .product-info {
+            background: #fff;
+            padding: 25px;
+            border-radius: 18px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.06);
+        }
+        .product-title {
+            font-size: 2rem;
+            font-weight: 700;
+        }
+        .product-price {
+            font-size: 2rem;
+            color: #2f6b31;
+            font-weight: 700;
+        }
+        .btn-buy {
+            background: #2f6b31;
+            color: white;
+            padding: 14px 22px;
+            border-radius: 12px;
+            width: 100%;
+            border: none;
+        }
+        .btn-buy:hover {
+            background: #1d4820;
+            color: #fff;
+        }
+        .details-box {
+            background: #fff;
+            padding: 25px;
+            border-radius: 18px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.06);
+        }
+        .product-card {
+            border-radius: 16px;
+            overflow: hidden;
+            background: white;
+            transition: .2s;
+            box-shadow: 0 5px 12px rgba(0,0,0,0.05);
+        }
+        .product-card:hover {
+            transform: translateY(-4px);
+        }
+        .product-img {
+            height: 200px;
+            width: 100%;
+            object-fit: cover;
+        }
     </style>
 </head>
 <body>
 
-<nav class="navbar navbar-expand-lg navbar-light bg-white fixed-top shadow-sm">
+<!-- NAVBAR PREMIUM -->
+<nav class="navbar navbar-expand-lg navbar-custom fixed-top">
     <div class="container">
-        <a class="navbar-brand fw-bold text-success" th:href="@{/}">
-            <i class="bi bi-shop fs-3 me-1"></i> Agrolink
+
+        <!-- LOGO -->
+        <a class="navbar-brand brand-logo" th:href="@{/}">
+            <img th:src="@{/CSS/logo/logoAgro.jpeg}" alt="Logo Agrolink">
+            Agrolink
         </a>
+
+        <button class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navMenu">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navMenu">
+
+            <!-- BÚSQUEDA -->
+            <div class="mx-auto d-none d-lg-block">
+                <form class="d-flex search-box" th:action="@{/}" method="get">
+                    <input type="search" name="busqueda" placeholder="Buscar productos...">
+                    <button type="submit"><i class="bi bi-search"></i></button>
+                </form>
+            </div>
+
+            <ul class="navbar-nav ms-auto align-items-center">
+
+                <li class="nav-item">
+                    <a class="nav-link me-3" th:href="@{/}">Inicio</a>
+                </li>
+
+                <!-- MEGA MENU CATEGORÍAS DINÁMICO -->
+                <li class="nav-item dropdown position-static">
+                    <a class="nav-link dropdown-toggle me-3" data-bs-toggle="dropdown" href="javascript:void(0);">Categorías</a>
+
+                    <div class="dropdown-menu mega-menu-dropdown">
+                        <div class="container-fluid">
+                            <!-- Verificar si hay categorías disponibles -->
+                            <div th:if="${categorias != null and not #lists.isEmpty(categorias)}">
+                                <div class="row g-2">
+                                    <!-- Mostrar categorías en columnas más compactas -->
+                                    <div th:each="categoria : ${categorias}" class="col-lg-2 col-md-3 col-sm-4 col-6">
+                                        <div class="categoria-item p-2">
+                                            <h6 class="mega-title" th:text="${categoria.nombreCategoria}">Categoría</h6>
+                                            <div class="mega-list">
+                                                <a th:href="@{/(categoria=${categoria.idCategoria})}"
+                                                   th:text="'Ver ' + ${categoria.nombreCategoria}">Ver Categoría</a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Mensaje cuando no hay categorías -->
+                            <div th:if="${categorias == null or #lists.isEmpty(categorias)}">
+                                <div class="text-center py-3">
+                                    <i class="bi bi-tags text-muted mb-2" style="font-size: 1.5rem;"></i>
+                                    <p class="text-muted mb-0 small">No hay categorías disponibles</p>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </li>
+
+                <!-- SERVICIOS DINÁMICOS -->
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle me-3" data-bs-toggle="dropdown">Servicios</a>
+                    <ul class="dropdown-menu">
+                        <!-- Verificar si hay categorías de servicios disponibles -->
+                        <th:block th:if="${categoriasServicios != null and not #maps.isEmpty(categoriasServicios)}">
+                            <!-- Iterar sobre las categorías de servicios -->
+                            <th:block th:each="categoria, categoriaStats : ${categoriasServicios}">
+                                <li><h6 class="dropdown-header text-success fw-bold" th:text="${categoria.key}">Categoría</h6></li>
+                                <!-- Mostrar hasta 3 servicios por categoría -->
+                                <th:block th:each="servicio, iterStat : ${categoria.value}" th:if="${iterStat.index < 3}">
+                                    <li><a class="dropdown-item small" href="#"
+                                           th:text="${servicio.descripcion}">Descripción del servicio</a></li>
+                                </th:block>
+                                <!-- Enlace para ver más servicios de esta categoría si hay más de 3 -->
+                                <li th:if="${#lists.size(categoria.value) > 3}">
+                                    <a class="dropdown-item text-muted small fst-italic"
+                                       th:href="@{/servicios(categoria=${categoria.key})}"
+                                       th:text="'Ver todos (' + ${#lists.size(categoria.value)} + ')'">Ver todos</a>
+                                </li>
+                                <li th:unless="${categoriaStats.last}"><hr class="dropdown-divider"></li>
+                            </th:block>
+                        </th:block>
+
+                        <!-- Mensaje cuando no hay servicios -->
+                        <li th:if="${categoriasServicios == null or #maps.isEmpty(categoriasServicios)}">
+                            <span class="dropdown-item-text text-muted small">No hay servicios disponibles</span>
+                        </li>
+
+                        <!-- Enlace para ver todos los servicios -->
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item text-center fw-bold text-success" href="/servicios">
+                            <i class="bi bi-grid me-1"></i>Ver todos los servicios
+                        </a></li>
+                    </ul>
+                </li>
+
+                <!-- MIS PRODUCTOS -->
+                <li class="nav-item">
+                    <a class="nav-link me-3">Mis pedidos</a>
+                </li>
+
+                <!-- CARRITO -->
+                <li class="nav-item position-relative me-3">
+                    <a class="nav-link" th:href="@{/cliente/carrito}">
+                        <i class="bi bi-cart3 fs-5"></i>
+                        <span class="cart-badge">3</span>
+                    </a>
+                </li>
+
+                <!-- PERFIL -->
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle d-flex align-items-center" data-bs-toggle="dropdown">
+                        <img th:src="@{https://i.pravatar.cc/40?img=12}" class="profile-img me-2" alt="Perfil">
+                        Cuenta
+                    </a>
+
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" th:href="@{/perfilcliente.html}">Mi perfil</a></li>
+                        <li><a class="dropdown-item" href="#">Configuración</a></li>
+                        <li><hr></li>
+                        <li><a class="dropdown-item text-danger">Cerrar sesión</a></li>
+                    </ul>
+                </li>
+
+            </ul>
+
+        </div>
     </div>
 </nav>
 
@@ -50,10 +359,10 @@
     <div class="row g-4 mt-4">
         <div class="col-md-6" data-aos="fade-right">
             <div class="product-gallery">
-                <img id="main-img" th:src="${#lists.isEmpty(producto.imagenesProducto) ? '/imag/placeholder.jpg' : '/' + producto.imagenesProducto[0].urlImagen}" alt="Imagen principal">
+                <img id="main-img" th:src="${producto.imagenesProducto != null and !#lists.isEmpty(producto.imagenesProducto) ? '/' + producto.imagenesProducto[0].urlImagen : '/imag/placeholder.jpg'}" alt="Imagen principal">
                 <div class="row mt-3 thumbs g-2">
-                    <div class="col-3" th:each="img : ${producto.imagenesProducto}">
-                        <img th:src="${'/' + img.urlImagen}" class="img-fluid rounded" onclick="changeImg(this)" />
+                    <div class="col-3" th:each="img : ${producto.imagenesProducto}" th:if="${producto.imagenesProducto != null}">
+                        <img th:src="${'/' + img.urlImagen}" class="img-fluid rounded" onclick="changeImg(this)" alt="Miniatura del producto" />
                     </div>
                 </div>
             </div>
@@ -76,15 +385,17 @@
 
                 <p class="text-muted" th:text="${producto.descripcionProducto}">Descripción</p>
 
-                <h6 class="mt-4">Selecciona cantidad</h6>
                 <form th:action="@{/cliente/carrito/agregar}" method="post">
                     <input type="hidden" name="idProducto" th:value="${producto.idProducto}" />
-                    <div class="d-flex align-items-center gap-3">
-                        <input type="number" name="cantidad" class="form-control w-25" min="1" th:max="${producto.stock}" value="1" />
-                        <div>
-                            <button class="btn-buy" type="submit">
-                                <i class="bi bi-cart-plus me-2"></i> Agregar al carrito
-                            </button>
+                    <div class="mt-4">
+                        <label for="cantidad" class="form-label fw-semibold">Selecciona cantidad:</label>
+                        <div class="d-flex align-items-center gap-3">
+                            <input type="number" id="cantidad" name="cantidad" class="form-control w-25" min="1" th:max="${producto.stock}" value="1" />
+                            <div>
+                                <button class="btn-buy" type="submit">
+                                    <i class="bi bi-cart-plus me-2"></i> Agregar al carrito
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </form>
@@ -103,26 +414,70 @@
         <h4 class="fw-bold">Descripción del producto</h4>
         <p class="mt-2" th:text="${producto.descripcionProducto}"></p>
 
-        <h5 class="fw-bold mt-4">Características</h5>
-        <ul>
-            <li th:if="${producto.categoria != null}">✔ <span th:text="${producto.categoria.nombreCategoria}"></span></li>
-            <li>✔ Sin conservantes ni químicos</li>
-            <li>✔ Directo del productor al consumidor</li>
-        </ul>
+        <h5 class="fw-bold mt-4">Presentación del producto</h5>
+        <div class="d-flex align-items-center gap-3 mt-3">
+            <div class="bg-light rounded p-3 text-center flex-fill">
+                <i class="bi bi-box-seam text-success fs-4"></i>
+                <div class="mt-2">
+                    <strong th:text="${producto.pesoKg != null ? producto.pesoKg + ' kg' : '1.00 kg'}">1.00 kg</strong>
+                    <br><small class="text-muted">Peso por unidad</small>
+                </div>
+            </div>
+            <div class="bg-light rounded p-3 text-center flex-fill" th:if="${producto.categoria != null}">
+                <i class="bi bi-tag text-success fs-4"></i>
+                <div class="mt-2">
+                    <strong th:text="${producto.categoria.nombreCategoria}">Categoría</strong>
+                    <br><small class="text-muted">Categoría</small>
+                </div>
+            </div>
+            <div class="bg-light rounded p-3 text-center flex-fill">
+                <i class="bi bi-shield-check text-success fs-4"></i>
+                <div class="mt-2">
+                    <strong>Fresco</strong>
+                    <br><small class="text-muted">Calidad garantizada</small>
+                </div>
+            </div>
+        </div>
 
         <h5 class="fw-bold mt-4">Información del productor</h5>
-        <p th:text="${producto.productor != null ? (producto.productor.usuario.nombre + ' — ' + producto.productor.usuario.ciudad) : 'Productor no disponible'}">Finca "La Esperanza" — Huila</p>
+        <div class="row g-3 mt-2" th:if="${producto.productor != null}">
+            <div class="col-md-6">
+                <div class="d-flex align-items-center mb-2">
+                    <i class="bi bi-person-circle text-success me-2"></i>
+                    <strong th:text="${producto.productor?.usuario?.nombre ?: 'Productor no disponible'}">Nombre del productor</strong>
+                </div>
+                <div class="d-flex align-items-center mb-2">
+                    <i class="bi bi-geo-alt text-success me-2"></i>
+                    <span th:text="${producto.productor?.usuario?.ciudad ?: 'Ciudad no disponible'}">Ciudad</span>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="d-flex align-items-center mb-2">
+                    <i class="bi bi-house text-success me-2"></i>
+                    <span>Finca:
+                        <strong th:text="${producto.productoFincas != null and !#lists.isEmpty(producto.productoFincas) ? producto.productoFincas[0].finca.nombreFinca : 'No especificada'}">No especificada</strong>
+                    </span>
+                </div>
+                <div class="d-flex align-items-center mb-2">
+                    <i class="bi bi-map text-success me-2"></i>
+                    <small class="text-muted" th:text="${producto.productoFincas != null and !#lists.isEmpty(producto.productoFincas) ? producto.productoFincas[0].finca.direccionFinca : 'Dirección no disponible'}">Dirección no disponible</small>
+                </div>
+            </div>
+        </div>
+        <div class="text-muted mt-2" th:unless="${producto.productor != null}">
+            <p>Información del productor no disponible</p>
+        </div>
     </div>
 
     <h3 class="fw-bold mt-5 mb-3" data-aos="fade-up">Productos relacionados</h3>
     <div class="row g-4">
         <div class="col-md-3" th:each="rel : ${relacionados}" data-aos="zoom-in">
             <div class="product-card">
-                <img th:src="${#lists.isEmpty(rel.imagenesProducto) ? '/imag/placeholder.jpg' : '/' + rel.imagenesProducto[0].urlImagen}" class="product-img">
+                <img th:src="${rel.imagenesProducto != null and !#lists.isEmpty(rel.imagenesProducto) ? '/' + rel.imagenesProducto[0].urlImagen : '/imag/placeholder.jpg'}" class="product-img" alt="Producto relacionado">
                 <div class="p-3">
-                    <h5 th:text="${rel.nombreProducto}">Nombre</h5>
-                    <p class="text-muted" th:text="${rel.descripcionProducto}">Descripción</p>
-                    <a th:href="@{'/cliente/producto/' + ${rel.idProducto}}" class="btn btn-success w-100">Ver producto</a>
+                    <h5 th:text="${rel.nombreProducto ?: 'Producto'}">Nombre</h5>
+                    <p class="text-muted" th:text="${rel.descripcionProducto ?: 'Sin descripción'}">Descripción</p>
+                    <a th:href="@{/cliente/producto/{id}(id=${rel.idProducto})}" class="btn btn-success w-100">Ver producto</a>
                 </div>
             </div>
         </div>
