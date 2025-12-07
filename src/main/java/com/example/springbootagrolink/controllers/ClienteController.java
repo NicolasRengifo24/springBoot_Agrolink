@@ -14,10 +14,9 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.util.List;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.ArrayList;
+import jakarta.servlet.http.HttpSession;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Controller
 public class ClienteController {
@@ -30,6 +29,22 @@ public class ClienteController {
     private CategoriaProductoService categoriaProductoService;
     @Autowired
     private ServicioService servicioService;
+
+    /**
+     * Método que agrega el contador del carrito a todas las vistas automáticamente
+     * El carrito es un Map<Integer, Integer> donde la clave es el ID del producto y el valor es la cantidad
+     */
+    @ModelAttribute("cartCount")
+    public Integer getCartCount(HttpSession session) {
+        @SuppressWarnings("unchecked")
+        Map<Integer, Integer> carrito = (Map<Integer, Integer>) session.getAttribute("carrito");
+        if (carrito == null || carrito.isEmpty()) {
+            return 0;
+        }
+        return carrito.values().stream()
+            .mapToInt(Integer::intValue)
+            .sum();
+    }
 
     // Ruta principal para mostrar productos en el index
     @GetMapping("/")
@@ -277,10 +292,12 @@ public class ClienteController {
 
     /**
      * Agregar producto al carrito
+     * El carrito es un Map<Integer, Integer> donde la clave es el ID del producto y el valor es la cantidad
      */
     @PostMapping("/cliente/carrito/agregar")
     public String agregarAlCarrito(@RequestParam Integer idProducto,
                                    @RequestParam Integer cantidad,
+                                   HttpSession session,
                                    RedirectAttributes redirectAttributes) {
         try {
             // Verificar que el producto existe
@@ -290,21 +307,38 @@ public class ClienteController {
                 return "redirect:/";
             }
 
+            // Obtener o crear el carrito en sesión (Map<IdProducto, Cantidad>)
+            @SuppressWarnings("unchecked")
+            Map<Integer, Integer> carrito = (Map<Integer, Integer>) session.getAttribute("carrito");
+            if (carrito == null) {
+                carrito = new HashMap<>();
+            }
+
+            // Calcular la nueva cantidad
+            int cantidadActual = carrito.getOrDefault(idProducto, 0);
+            int nuevaCantidad = cantidadActual + cantidad;
+
             // Verificar stock disponible
-            if (cantidad > producto.getStock()) {
+            if (nuevaCantidad > producto.getStock()) {
                 redirectAttributes.addFlashAttribute("error",
-                    "Cantidad solicitada (" + cantidad + ") supera el stock disponible (" + producto.getStock() + ")");
+                    "No hay suficiente stock disponible. Stock actual: " + producto.getStock() +
+                    ", en carrito: " + cantidadActual);
                 return "redirect:/cliente/producto/" + idProducto;
             }
 
-            // Por ahora, solo mostrar mensaje de éxito (implementación básica)
-            // En el futuro aquí se integrará con el sistema de sesiones/usuarios
+            // Agregar o actualizar el producto en el carrito
+            carrito.put(idProducto, nuevaCantidad);
+
+            // Guardar el carrito en la sesión
+            session.setAttribute("carrito", carrito);
+
             redirectAttributes.addFlashAttribute("success",
                 cantidad + " unidad(es) de " + producto.getNombreProducto() + " agregadas al carrito");
 
             return "redirect:/cliente/producto/" + idProducto;
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("error", "Error al agregar producto al carrito");
+            e.printStackTrace();
+            redirectAttributes.addFlashAttribute("error", "Error al agregar producto al carrito: " + e.getMessage());
             return "redirect:/cliente/producto/" + idProducto;
         }
     }
@@ -313,12 +347,148 @@ public class ClienteController {
      * Ver carrito de compras
      */
     @GetMapping("/cliente/carrito")
-    public String verCarrito(Model model) {
-        // Por ahora retornar vista básica del carrito
-        // En el futuro aquí se obtendrán los productos del carrito desde la sesión/base de datos
-        model.addAttribute("carritoItems", new ArrayList<>());
-        model.addAttribute("total", 0.0);
+    public String verCarrito(HttpSession session, Model model) {
+        // Obtener el carrito desde la sesión (Map<IdProducto, Cantidad>)
+        @SuppressWarnings("unchecked")
+        Map<Integer, Integer> carrito = (Map<Integer, Integer>) session.getAttribute("carrito");
+
+        if (carrito == null || carrito.isEmpty()) {
+            model.addAttribute("cartItems", new ArrayList<>());
+            model.addAttribute("subtotal", 0.0);
+            model.addAttribute("envio", 0.0);
+            model.addAttribute("total", 0.0);
+            model.addAttribute("cartCount", 0);
+            return "cliente/carrito";
+        }
+
+        // Convertir el Map a una lista de objetos para la vista
+        List<Map<String, Object>> cartItems = new ArrayList<>();
+        double subtotal = 0.0;
+
+        for (Map.Entry<Integer, Integer> entry : carrito.entrySet()) {
+            Integer idProducto = entry.getKey();
+            Integer cantidad = entry.getValue();
+
+            // Obtener el producto desde la base de datos
+            Producto producto = productoService.obtenerPorId(idProducto).orElse(null);
+            if (producto != null) {
+                // Obtener URL de la imagen
+                String imagenUrl = "/imag/placeholder.jpg";
+                if (producto.getImagenesProducto() != null && !producto.getImagenesProducto().isEmpty()) {
+                    imagenUrl = "/" + producto.getImagenesProducto().get(0).getUrlImagen();
+                }
+
+                // Calcular subtotal del item
+                double precioProducto = producto.getPrecio().doubleValue();
+                double subtotalItem = precioProducto * cantidad;
+                subtotal += subtotalItem;
+
+                // Crear objeto para la vista
+                Map<String, Object> item = new HashMap<>();
+                item.put("id", producto.getIdProducto());
+                item.put("nombre", producto.getNombreProducto());
+                item.put("descripcion", producto.getDescripcionProducto());
+                item.put("precio", precioProducto);
+                item.put("cantidad", cantidad);
+                item.put("subtotal", subtotalItem);
+                item.put("imagenUrl", imagenUrl);
+
+                cartItems.add(item);
+            }
+        }
+
+        // Calcular envío
+        double envio = cartItems.isEmpty() ? 0.0 : 7000.0;
+
+        // Calcular total
+        double total = subtotal + envio;
+
+        // Calcular cantidad total de items
+        int cartCount = carrito.values().stream().mapToInt(Integer::intValue).sum();
+
+        // Agregar atributos al modelo
+        model.addAttribute("cartItems", cartItems);
+        model.addAttribute("subtotal", subtotal);
+        model.addAttribute("envio", envio);
+        model.addAttribute("total", total);
+        model.addAttribute("cartCount", cartCount);
+
         return "cliente/carrito";
+    }
+
+    /**
+     * Actualizar cantidad de un producto en el carrito
+     */
+    @PostMapping("/cliente/carrito/actualizar")
+    public String actualizarCarrito(@RequestParam Integer idProducto,
+                                   @RequestParam Integer cantidad,
+                                   HttpSession session,
+                                   RedirectAttributes redirectAttributes) {
+        try {
+            @SuppressWarnings("unchecked")
+            Map<Integer, Integer> carrito = (Map<Integer, Integer>) session.getAttribute("carrito");
+
+            if (carrito == null || !carrito.containsKey(idProducto)) {
+                redirectAttributes.addFlashAttribute("error", "Producto no encontrado en el carrito");
+                return "redirect:/cliente/carrito";
+            }
+
+            // Verificar stock disponible
+            Producto producto = productoService.obtenerPorId(idProducto).orElse(null);
+            if (producto != null && cantidad > producto.getStock()) {
+                redirectAttributes.addFlashAttribute("error",
+                    "Stock insuficiente. Disponible: " + producto.getStock());
+                return "redirect:/cliente/carrito";
+            }
+
+            // Actualizar cantidad
+            carrito.put(idProducto, cantidad);
+            session.setAttribute("carrito", carrito);
+
+            redirectAttributes.addFlashAttribute("success", "Cantidad actualizada correctamente");
+            return "redirect:/cliente/carrito";
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Error al actualizar el carrito");
+            return "redirect:/cliente/carrito";
+        }
+    }
+
+    /**
+     * Quitar producto del carrito
+     */
+    @PostMapping("/cliente/carrito/quitar")
+    public String quitarDelCarrito(@RequestParam Integer idProducto,
+                                   HttpSession session,
+                                   RedirectAttributes redirectAttributes) {
+        try {
+            @SuppressWarnings("unchecked")
+            Map<Integer, Integer> carrito = (Map<Integer, Integer>) session.getAttribute("carrito");
+
+            if (carrito == null) {
+                redirectAttributes.addFlashAttribute("error", "El carrito está vacío");
+                return "redirect:/cliente/carrito";
+            }
+
+            // Eliminar el producto del carrito
+            carrito.remove(idProducto);
+            session.setAttribute("carrito", carrito);
+
+            redirectAttributes.addFlashAttribute("success", "Producto eliminado del carrito");
+            return "redirect:/cliente/carrito";
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Error al eliminar producto del carrito");
+            return "redirect:/cliente/carrito";
+        }
+    }
+
+    /**
+     * Vaciar carrito completamente
+     */
+    @PostMapping("/cliente/carrito/vaciar")
+    public String vaciarCarrito(HttpSession session, RedirectAttributes redirectAttributes) {
+        session.removeAttribute("carrito");
+        redirectAttributes.addFlashAttribute("success", "Carrito vaciado correctamente");
+        return "redirect:/cliente/carrito";
     }
 
     /**
