@@ -428,7 +428,7 @@
                 <li class="nav-item position-relative me-3">
                     <a class="nav-link" th:href="@{/cliente/carrito}">
                         <i class="bi bi-cart3 fs-5"></i>
-                        <span class="cart-badge">3</span>
+                        <span class="cart-badge" th:text="${cartCount}">0</span>
                     </a>
                 </li>
 
@@ -589,7 +589,7 @@
                 <!-- Badge de disponibilidad -->
                 <div class="position-relative">
                     <img class="product-img"
-                         th:src="${prod.imagenesProducto != null and not #lists.isEmpty(prod.imagenesProducto) ? '/' + prod.imagenesProducto[0].urlImagen : '/CSS/imag/tomate.jpg'}"
+                         th:src="@{${prod.imagenesProducto != null and not #lists.isEmpty(prod.imagenesProducto) ? prod.imagenesProducto[0].urlImagen : '/CSS/imag/tomate.jpg'}}"
                          alt="Imagen del producto">
                     <div class="position-absolute top-0 end-0 m-2">
                         <span class="badge bg-success" th:if="${prod.stock > 0}"

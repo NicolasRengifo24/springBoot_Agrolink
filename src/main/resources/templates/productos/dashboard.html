@@ -1,0 +1,554 @@
+<!doctype html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Dashboard Productor — Agrolink Premium</title>
+
+  <!-- Bootstrap -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet"/>
+
+  <!-- Google Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet"/>
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    :root{
+      --green: #2f6b31;
+      --green-light: #3f8a41;
+      --muted: #7e8b7e;
+      --glass: rgba(255,255,255,0.75);
+    }
+
+    body{
+      font-family: "Inter", sans-serif;
+      background: linear-gradient(180deg,#f8faf7,#f1f4ef);
+      color:#222;
+    }
+
+    /* GRID LAYOUT */
+    .app{
+      display:grid;
+      grid-template-columns:260px 1fr;
+      gap:30px;
+      max-width:1450px;
+      margin:40px auto;
+      padding:0 20px;
+    }
+
+    /* SIDEBAR */
+    .sidebar{
+      background:var(--glass);
+      backdrop-filter:blur(12px);
+      border-radius:20px;
+      border:1px solid rgba(0,0,0,0.05);
+      height:calc(100vh - 80px);
+      padding:20px;
+      position:sticky;
+      top:40px;
+      transition:.25s;
+    }
+
+    .sidebar.collapsed{
+      width:76px;
+      padding:20px 12px;
+    }
+
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      margin-bottom:22px;
+    }
+
+    .brand img{
+      width:42px;
+      height:42px;
+      border-radius:50%;
+      object-fit:cover;
+      border:2px solid var(--green);
+    }
+
+    .brand-title{
+      font-weight:800;
+      color:var(--green);
+      font-size:1.3rem;
+    }
+
+    .nav-item{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      padding:12px;
+      margin-bottom:6px;
+      border-radius:12px;
+      font-weight:600;
+      cursor:pointer;
+      transition:.2s;
+    }
+
+    .nav-item:hover{
+      background:rgba(47,107,49,0.07);
+      transform:translateX(4px);
+    }
+
+    .nav-item.active{
+      background:var(--green);
+      color:white;
+      box-shadow:0 8px 18px rgba(47,107,49,0.25);
+    }
+
+    .nav-item .bi{
+      font-size:1.1rem;
+      color:var(--green);
+    }
+
+    .nav-item.active .bi{
+      color:white;
+    }
+
+    .sidebar.collapsed .nav-label{
+      display:none;
+    }
+
+    /* TOPBAR */
+    .topbar{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      margin-bottom:20px;
+      gap:10px;
+    }
+
+    .searchbar{
+      flex:1;
+      display:flex;
+      align-items:center;
+      gap:10px;
+      padding:12px 18px;
+      border-radius:16px;
+      background:white;
+      border:1px solid #e3e9e2;
+      box-shadow:0 4px 14px rgba(0,0,0,0.05);
+    }
+
+    /* CARD GLASS */
+    .card-glass{
+      background:white;
+      border-radius:20px;
+      padding:22px;
+      border:1px solid rgba(0,0,0,0.05);
+      box-shadow:0 12px 26px rgba(0,0,0,0.06);
+      margin-bottom:20px;
+    }
+
+    /* KPIs */
+    .kpi{
+      padding:20px;
+      border-radius:16px;
+      background:white;
+      box-shadow:0 8px 18px rgba(0,0,0,0.05);
+      border:1px solid #edf2ec;
+      transition:.2s;
+    }
+    .kpi:hover{
+      transform:translateY(-4px);
+      box-shadow:0 12px 26px rgba(0,0,0,0.09);
+    }
+
+    .kpi-icon{
+      font-size:2rem;
+      color:var(--green);
+    }
+
+    .kpi-number{
+      font-size:1.9rem;
+      font-weight:700;
+    }
+
+    .kpi-label{
+      color:var(--muted);
+      font-size:.9rem;
+    }
+
+    /* TABLE */
+    table img.thumb{
+      width:58px;
+      height:58px;
+      border-radius:10px;
+      object-fit:cover;
+      border:1px solid #eee;
+    }
+
+
+    /* FAB */
+    .fab{
+      position:fixed;
+      right:40px;
+      bottom:40px;
+      width:70px;
+      height:70px;
+      border-radius:50%;
+      background:linear-gradient(135deg,var(--green),var(--green-light));
+      border:none;
+      color:white;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:1.7rem;
+      box-shadow:0 12px 30px rgba(47,107,49,0.28);
+      cursor:pointer;
+      transition:.2s;
+    }
+    .fab:hover{
+      transform:translateY(-7px) scale(1.03);
+    }
+
+    /* ANIMATIONS */
+    .fade{
+      animation:fadeUp .4s ease both;
+    }
+    @keyframes fadeUp{
+      from{opacity:0;transform:translateY(14px);}
+      to{opacity:1;transform:translateY(0);}
+    }
+
+    .alert-custom {
+      border-radius: 12px;
+      border: none;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="app">
+
+    <!-- SIDEBAR -->
+    <aside id="sidebar" class="sidebar">
+
+      <div class="d-flex justify-content-between align-items-center">
+        <div class="brand">
+          <img th:src="@{/CSS/logo/logoAgro.jpeg}" alt="Logo Agrolink">
+          <div>
+            <div class="brand-title">Agrolink</div>
+            <div class="small text-muted">Productor</div>
+          </div>
+        </div>
+
+        <button id="btnToggle" class="btn btn-light btn-sm">
+          <i class="bi bi-list"></i>
+        </button>
+      </div>
+
+      <nav>
+        <div class="nav-item active"><i class="bi bi-box-seam"></i><span class="nav-label"> Productos</span></div>
+        <div class="nav-item"><i class="bi bi-receipt"></i><span class="nav-label"> Pedidos</span></div>
+        <div class="nav-item"><i class="bi bi-speedometer2"></i><span class="nav-label"> Estadísticas</span></div>
+      </nav>
+
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main>
+
+      <!-- TOPBAR -->
+      <div class="topbar">
+
+        <div class="searchbar">
+          <i class="bi bi-search fs-5 text-muted"></i>
+          <label for="searchBox" class="visually-hidden">Buscar producto</label>
+          <input id="searchBox" class="form-control border-0" placeholder="Buscar producto..."/>
+        </div>
+
+        <div class="d-flex gap-2">
+          <button class="btn btn-outline-secondary"><i class="bi bi-bell"></i></button>
+          <img src="https://i.pravatar.cc/40?img=12" alt="Perfil de usuario" class="rounded-circle" width="40">
+        </div>
+
+      </div>
+
+      <!-- ALERTAS -->
+      <div th:if="${success}" class="alert alert-success alert-custom alert-dismissible fade show" role="alert">
+        <i class="bi bi-check-circle-fill me-2"></i>
+        <!-- Evitar ${} anidados: evaluar ternaria dentro de una sola expresión -->
+        <span th:text="${
+            success == 'created' ? 'Producto creado exitosamente' :
+            (success == 'updated' ? 'Producto actualizado exitosamente' :
+            (success == 'deleted' ? 'Producto eliminado exitosamente' : success))
+        }"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+
+      <div th:if="${error}" class="alert alert-danger alert-custom alert-dismissible fade show" role="alert">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+        <!-- Evitar ${} anidados: evaluar ternaria dentro de una sola expresión -->
+        <span th:text="${
+            error == 'delete_failed' ? 'Error al eliminar el producto' :
+            (error == 'update_failed' ? 'Error al actualizar el producto' :
+            (error == 'has_orders' ? 'No se puede eliminar: el producto tiene pedidos asociados' : error))
+        }"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+
+      <!-- KPIs -->
+      <div class="row g-3 mb-4 fade">
+
+        <div class="col-md-3">
+          <div class="kpi">
+            <div class="d-flex justify-content-between">
+              <div>
+                <div class="kpi-number" th:text="${productos.size()}">0</div>
+                <div class="kpi-label">Productos</div>
+              </div>
+              <div class="kpi-icon"><i class="bi bi-box-seam-fill"></i></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-3">
+          <div class="kpi">
+            <div class="d-flex justify-content-between">
+              <div>
+                <div class="kpi-number">382</div>
+                <div class="kpi-label">Pedidos (mes)</div>
+              </div>
+              <div class="kpi-icon"><i class="bi bi-cart-check-fill"></i></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-3">
+          <div class="kpi">
+            <div class="d-flex justify-content-between">
+              <div>
+                <div class="kpi-number">$4.2M</div>
+                <div class="kpi-label">Ingresos</div>
+              </div>
+              <div class="kpi-icon"><i class="bi bi-currency-dollar"></i></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-3">
+          <div class="kpi">
+            <div class="d-flex justify-content-between">
+              <div>
+                <div class="kpi-number">98%</div>
+                <div class="kpi-label">Satisfacción</div>
+              </div>
+              <div class="kpi-icon"><i class="bi bi-heart-fill"></i></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- CHART -->
+      <div class="card-glass fade">
+        <h5 class="mb-3">Ventas últimos 6 meses</h5>
+        <canvas id="chartSales" style="max-height:300px;"></canvas>
+      </div>
+
+      <!-- PRODUCTOS -->
+      <div class="card-glass fade">
+        <div class="d-flex justify-content-between">
+          <h5>Mis Productos</h5>
+          <!-- Enlace a la página de creación separada -->
+          <a th:href="@{/productos/crear}" href="/productos/crear" class="btn btn-success" onclick="window.location.href='/productos/crear'">
+            <i class="bi bi-plus-lg"></i> Crear producto
+          </a>
+        </div>
+
+        <div class="table-responsive mt-3">
+          <table class="table align-middle">
+            <thead>
+              <tr>
+                <th>Imagen</th>
+                <th>Producto</th>
+                <th>Categoría</th>
+                <th>Stock</th>
+                <th>Precio</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr th:each="producto : ${productos}">
+                <td>
+                  <!-- Mostrar imagen principal si existe, o placeholder si no -->
+                  <img class="thumb"
+                       th:alt="${producto.nombreProducto}"
+                       th:src="@{${producto.imagenesProducto != null and !#lists.isEmpty(producto.imagenesProducto) ? producto.imagenesProducto[0].urlImagen : '/imag/placeholder.jpg'}}"
+                       onerror="this.src='/imag/placeholder.jpg'" />
+                </td>
+                <td>
+                  <strong th:text="${producto.nombreProducto}">Nombre</strong><br>
+                  <!-- Concatenación corregida: usar una única expresión Thymeleaf -->
+                  <small class="text-muted" th:text="${'ID: ' + producto.idProducto}">ID: 1</small>
+                </td>
+                <td th:text="${producto.categoria != null ? producto.categoria.nombreCategoria : 'Sin categoría'}">Categoría</td>
+                <td th:text="${producto.stock}">0</td>
+                <td>
+                  <strong th:text="${#numbers.formatCurrency(producto.precio)}">$0</strong>
+                </td>
+                <td class="text-end">
+                  <!-- Enlace único para editar en la página separada -->
+                  <a th:href="@{/productos/editar/{id}(id=${producto.idProducto})}" class="btn btn-sm btn-outline-primary me-1" title="Editar">
+                    <i class="bi bi-pencil"></i>
+                  </a>
+                   <form th:action="@{/productos/eliminar/{id}(id=${producto.idProducto})}"
+                         method="post"
+                         style="display:inline;"
+                         onsubmit="return confirm('¿Está seguro de eliminar este producto?');">
+                     <button type="submit" class="btn btn-sm btn-outline-danger">
+                       <i class="bi bi-trash"></i>
+                     </button>
+                   </form>
+                 </td>
+              </tr>
+
+              <tr th:if="${productos == null || productos.isEmpty()}">
+                <td colspan="6" class="text-center text-muted py-4">
+                  <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                  No hay productos registrados. Crea tu primer producto.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- FAB: enlace a crear producto -->
+  <a th:href="@{/productos/crear}" href="/productos/crear" class="fab" role="button" onclick="window.location.href='/productos/crear'"><i class="bi bi-plus-lg"></i></a>
+
+  <!-- SCRIPTS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+  <script th:inline="javascript">
+    /* ============================ */
+    /*        SIDEBAR              */
+    /* ============================ */
+    document.getElementById("btnToggle").addEventListener("click",()=>{
+      document.getElementById("sidebar").classList.toggle("collapsed");
+    });
+
+    /* ============================ */
+    /*    BÚSQUEDA EN TIEMPO REAL   */
+    /* ============================ */
+    const searchBox = document.getElementById('searchBox');
+    const tableRows = document.querySelectorAll('tbody tr');
+
+    searchBox?.addEventListener('input', function() {
+      const searchTerm = this.value.toLowerCase();
+
+      tableRows.forEach(row => {
+        const productName = row.querySelector('td:nth-child(2) strong')?.textContent.toLowerCase() || '';
+        const category = row.querySelector('td:nth-child(3)')?.textContent.toLowerCase() || '';
+
+        if (productName.includes(searchTerm) || category.includes(searchTerm)) {
+          row.style.display = '';
+        } else {
+          row.style.display = 'none';
+        }
+      });
+    });
+
+
+    /* ============================ */
+    /*        CHART SALES           */
+    /* ============================ */
+    // Cargar datos reales de ventas
+    fetch('/productos/ventas-mensuales')
+      .then(response => response.json())
+      .then(data => {
+        new Chart(document.getElementById("chartSales"),{
+          type:"line",
+          data:{
+            labels: data.meses,
+            datasets:[{
+              label:"Ventas COP",
+              data: data.ventas,
+              borderColor:"#2f6b31",
+              backgroundColor:"rgba(47,107,49,0.15)",
+              borderWidth:3,
+              pointRadius:5,
+              tension: 0.3
+            }]
+          },
+          options:{
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins:{
+              legend:{display:true, position: 'top'},
+              tooltip: {
+                callbacks: {
+                  label: function(context) {
+                    let label = context.dataset.label || '';
+                    if (label) {
+                      label += ': ';
+                    }
+                    if (context.parsed.y !== null) {
+                      label += new Intl.NumberFormat('es-CO', {
+                        style: 'currency',
+                        currency: 'COP',
+                        minimumFractionDigits: 0
+                      }).format(context.parsed.y);
+                    }
+                    return label;
+                  }
+                }
+              }
+            },
+            scales:{
+              y:{
+                beginAtZero:true,
+                ticks: {
+                  callback: function(value) {
+                    return new Intl.NumberFormat('es-CO', {
+                      style: 'currency',
+                      currency: 'COP',
+                      minimumFractionDigits: 0,
+                      maximumFractionDigits: 0
+                    }).format(value);
+                  }
+                }
+              }
+            }
+          }
+        });
+      })
+      .catch(error => {
+        console.error('Error al cargar datos de ventas:', error);
+        // Cargar datos por defecto si falla
+        new Chart(document.getElementById("chartSales"),{
+          type:"line",
+          data:{
+            labels:["Jun","Jul","Ago","Sep","Oct","Nov"],
+            datasets:[{
+              label:"Ventas COP",
+              data:[12000,22000,18000,26000,30000,42000],
+              borderColor:"#2f6b31",
+              backgroundColor:"rgba(47,107,49,0.15)",
+              borderWidth:3,
+              pointRadius:5
+            }]
+          },
+          options:{
+            plugins:{legend:{display:false}},
+            scales:{
+              y:{beginAtZero:true}
+            }
+          }
+        });
+      });
+  </script>
+
+</body>
+</html>

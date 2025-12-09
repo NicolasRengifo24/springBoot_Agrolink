@@ -12,7 +12,8 @@ import java.util.List;
 @Repository
 public interface ProductoRepository extends JpaRepository<Producto, Integer>, JpaSpecificationExecutor<Producto> {
 
-    @Query("SELECT p FROM Producto p " +
+    @Query("SELECT DISTINCT p FROM Producto p " +
+            "LEFT JOIN FETCH p.imagenesProducto " +
             "JOIN p.productor prod " +
             "JOIN prod.usuario u " +
             "LEFT JOIN p.categoria c " +
@@ -22,15 +23,20 @@ public interface ProductoRepository extends JpaRepository<Producto, Integer>, Jp
                                                 @Param("categoriaId") Integer categoriaId);
 
     // Buscar productos por categoría
-    @Query("SELECT p FROM Producto p WHERE p.categoria.idCategoria = :categoriaId")
+    @Query("SELECT DISTINCT p FROM Producto p LEFT JOIN FETCH p.imagenesProducto WHERE p.categoria.idCategoria = :categoriaId")
     List<Producto> findByCategoriaIdCategoria(@Param("categoriaId") Integer categoriaId);
 
     // Buscar productos por nombre (búsqueda básica)
-    @Query("SELECT p FROM Producto p WHERE LOWER(p.nombreProducto) LIKE LOWER(CONCAT('%', :nombre, '%'))")
+    @Query("SELECT DISTINCT p FROM Producto p LEFT JOIN FETCH p.imagenesProducto WHERE LOWER(p.nombreProducto) LIKE LOWER(CONCAT('%', :nombre, '%'))")
     List<Producto> findByNombreProductoContainingIgnoreCase(@Param("nombre") String nombre);
+
+    // Obtener todos los productos con sus imágenes (JOIN FETCH para evitar N+1)
+    @Query("SELECT DISTINCT p FROM Producto p LEFT JOIN FETCH p.imagenesProducto")
+    List<Producto> findAllWithImages();
 
     // Búsqueda avanzada en múltiples campos
     @Query("SELECT DISTINCT p FROM Producto p " +
+           "LEFT JOIN FETCH p.imagenesProducto " +
            "LEFT JOIN p.categoria c " +
            "LEFT JOIN p.productor prod " +
            "LEFT JOIN prod.usuario u " +
@@ -44,19 +50,21 @@ public interface ProductoRepository extends JpaRepository<Producto, Integer>, Jp
 
     // Filtrar productos por ubicación
     @Query("SELECT DISTINCT p FROM Producto p " +
+           "LEFT JOIN FETCH p.imagenesProducto " +
            "LEFT JOIN p.productor prod " +
            "LEFT JOIN prod.usuario u " +
            "WHERE LOWER(u.ciudad) LIKE LOWER(CONCAT('%', :ubicacion, '%'))")
     List<Producto> filtrarPorUbicacion(@Param("ubicacion") String ubicacion);
 
     // Filtrar productos por rango de precio
-    @Query("SELECT p FROM Producto p WHERE " +
+    @Query("SELECT DISTINCT p FROM Producto p LEFT JOIN FETCH p.imagenesProducto WHERE " +
            "(:precioMin IS NULL OR p.precio >= :precioMin) AND " +
            "(:precioMax IS NULL OR p.precio <= :precioMax)")
     List<Producto> filtrarPorRangoPrecio(@Param("precioMin") Double precioMin, @Param("precioMax") Double precioMax);
 
     // Filtrar por múltiples criterios (versión simplificada)
     @Query("SELECT DISTINCT p FROM Producto p " +
+           "LEFT JOIN FETCH p.imagenesProducto " +
            "LEFT JOIN p.categoria c " +
            "LEFT JOIN p.productor prod " +
            "LEFT JOIN prod.usuario u " +

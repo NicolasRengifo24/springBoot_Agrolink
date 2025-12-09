@@ -1,133 +1,275 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Crear Producto - Agrolink</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>Crear Producto — Agrolink Premium</title>
+
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet"/>
+
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet"/>
+
+    <style>
+
+        /* ================================
+           PALETA PREMIUM VERDE + DORADO
+        ================================= */
+        :root{
+            --green: #2f6b31;
+            --gold: #c9a248;
+            --light-bg: #f8faf7;
+            --border-soft: rgba(0,0,0,0.05);
+        }
+
+        body{
+            font-family: "Inter", sans-serif;
+            background: linear-gradient(180deg, var(--light-bg), #eef2ec);
+            color:#222;
+        }
+
+        .container-main{
+            max-width:1100px;
+            margin:40px auto;
+            padding:20px;
+        }
+
+        /* CARD PREMIUM */
+        .card-glass{
+            background:white;
+            border-radius:16px;
+            padding:25px;
+            border:1px solid var(--border-soft);
+            box-shadow:0 12px 25px rgba(0,0,0,0.06);
+            transition:.25s;
+        }
+
+        .card-glass:hover{
+            box-shadow:0 18px 35px rgba(0,0,0,0.08);
+        }
+
+        /* TÍTULOS PREMIUM */
+        h3{
+            font-weight:700;
+            color:var(--green);
+        }
+
+        label{
+            font-weight:600;
+            color:#333;
+        }
+
+        /* BOTÓN PRINCIPAL */
+        .btn-success{
+            background:var(--green) !important;
+            border:none;
+            box-shadow:0 5px 15px rgba(47,107,49,0.25);
+        }
+
+        /* BOTÓN SECUNDARIO */
+        .btn-outline-secondary{
+            border-color:var(--gold);
+            color:var(--gold);
+            font-weight:600;
+        }
+        .btn-outline-secondary:hover{
+            background:var(--gold);
+            color:white;
+        }
+
+        /* SWITCH PREMIUM */
+        .form-check-input:checked {
+            background-color: var(--green);
+            border-color: var(--green);
+            box-shadow: 0 0 8px rgba(31, 94, 46, 0.4);
+        }
+
+        /* ================================
+           VISTA PREVIA DE IMAGEN PREMIUM
+        ================================= */
+        .preview-box{
+            width: 100%;
+            height: 220px;
+            border: 2px dashed var(--green);
+            border-radius: 12px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            background: #f4f7f3;
+            transition: .3s;
+        }
+
+        .preview-box:hover{
+            border-color: var(--gold);
+            background: #faf8f0;
+        }
+
+        .preview-box img{
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .preview-text{
+            color: var(--green);
+            font-weight: 600;
+            opacity: .7;
+        }
+
+    </style>
 </head>
+
 <body>
-    <div class="container mt-4">
-        <div class="row justify-content-center">
-            <div class="col-lg-8">
-                <div class="card shadow">
-                    <div class="card-header bg-success text-white">
-                        <h4 class="mb-0"><i class="bi bi-plus-circle me-2"></i>Crear Nuevo Producto</h4>
-                    </div>
-                    <div class="card-body">
-                        <form th:action="@{/productos/guardar}" th:object="${producto}" method="post" enctype="multipart/form-data">
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label for="nombreProducto" class="form-label">Nombre del Producto *</label>
-                                    <input type="text" class="form-control" id="nombreProducto" th:field="*{nombreProducto}" required>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label for="precio" class="form-label">Precio *</label>
-                                    <div class="input-group">
-                                        <span class="input-group-text">$</span>
-                                        <input type="number" class="form-control" id="precio" th:field="*{precio}" step="0.01" min="0" required>
-                                    </div>
-                                </div>
-                            </div>
 
-                            <div class="mb-3">
-                                <label for="descripcionProducto" class="form-label">Descripción</label>
-                                <textarea class="form-control" id="descripcionProducto" th:field="*{descripcionProducto}" rows="3"></textarea>
-                            </div>
+<div class="container-main">
 
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label for="productorId" class="form-label">Productor *</label>
-                                    <select class="form-select" id="productorId" name="productorId" required>
-                                        <option value="">Seleccione un productor</option>
-                                        <option th:each="productor : ${productores}"
-                                                th:value="${productor.idProductor}"
-                                                th:text="${productor.usuario.nombre + ' ' + productor.usuario.apellido + ' - ' + productor.usuario.ciudad}">
-                                        </option>
-                                    </select>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label for="categoriaId" class="form-label">Categoría *</label>
-                                    <select class="form-select" id="categoriaId" name="categoriaId" required>
-                                        <option value="">Seleccione una categoría</option>
-                                        <option th:each="categoria : ${categorias}"
-                                                th:value="${categoria.idCategoria}"
-                                                th:text="${categoria.nombreCategoria}">
-                                        </option>
-                                    </select>
-                                </div>
-                            </div>
+    <!-- ENCABEZADO -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h3 class="mb-0">Crear producto</h3>
+            <div class="small text-muted">Agrolink — Productor</div>
+        </div>
 
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label for="stock" class="form-label">Stock</label>
-                                    <input type="number" class="form-control" id="stock" th:field="*{stock}" min="0" value="0">
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label for="pesoKg" class="form-label">Peso (kg por unidad)</label>
-                                    <input type="number" class="form-control" id="pesoKg" th:field="*{pesoKg}" step="0.01" min="0.01" value="1.00">
-                                </div>
-                            </div>
-
-                            <!-- Upload de imagen -->
-                            <div class="mb-3">
-                                <label for="imagenFile" class="form-label">Imagen del Producto</label>
-                                <input type="file" class="form-control" id="imagenFile" name="imagenFile" accept="image/*">
-                                <div class="form-text">Formatos aceptados: JPG, PNG, WEBP (máx. 10MB)</div>
-                            </div>
-
-                            <div class="mb-3">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="esPrincipal" name="esPrincipal" value="true">
-                                    <label class="form-check-label" for="esPrincipal">
-                                        Marcar como imagen principal
-                                    </label>
-                                </div>
-                            </div>
-
-                            <!-- Vista previa de imagen -->
-                            <div id="imagePreview" class="mb-3" style="display: none;">
-                                <label class="form-label">Vista previa:</label>
-                                <div class="border rounded p-2">
-                                    <img id="previewImg" src="" alt="Vista previa" style="max-height: 200px; max-width: 100%;">
-                                </div>
-                            </div>
-
-                            <div class="d-flex justify-content-between">
-                                <a th:href="@{/productos}" class="btn btn-outline-secondary">
-                                    <i class="bi bi-arrow-left"></i> Cancelar
-                                </a>
-                                <button type="submit" class="btn btn-success">
-                                    <i class="bi bi-check-circle"></i> Guardar Producto
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
+        <div>
+            <a th:href="@{/productos}" href="/productos" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Volver
+            </a>
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        // Vista previa de imagen
-        document.getElementById('imagenFile').addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            const preview = document.getElementById('imagePreview');
-            const previewImg = document.getElementById('previewImg');
+    <!-- CARD -->
+    <div class="card-glass">
 
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    previewImg.src = e.target.result;
-                    preview.style.display = 'block';
-                };
-                reader.readAsDataURL(file);
-            } else {
-                preview.style.display = 'none';
-            }
-        });
-    </script>
+        <form th:action="@{/productos/guardar}" method="post" enctype="multipart/form-data">
+
+            <div class="row g-3">
+
+                <!-- Nombre -->
+                <div class="col-md-6">
+                    <label for="nombreProducto" class="form-label">Nombre del Producto *</label>
+                    <input id="nombreProducto" name="nombreProducto" type="text" class="form-control"
+                           placeholder="Ej: Tomate Cherry"
+                           th:value="${producto != null ? producto.nombreProducto : ''}"
+                           required />
+                </div>
+
+                <!-- Categoria -->
+                <div class="col-md-6">
+                    <label for="categoriaId" class="form-label">Categoría *</label>
+                    <select id="categoriaId" name="categoriaId" class="form-select" required>
+                        <option value="">Seleccione una categoría</option>
+                        <option th:each="categoria : ${categorias}"
+                                th:value="${categoria.idCategoria}"
+                                th:text="${categoria.nombreCategoria}">Categoría</option>
+                    </select>
+                </div>
+
+                <!-- Productor - Campo requerido por el controlador -->
+                <div class="col-md-12">
+                    <label for="productorId" class="form-label">Productor *</label>
+                    <select id="productorId" name="productorId" class="form-select" required>
+                        <option value="">Seleccione un productor</option>
+                        <option th:each="productor : ${productores}"
+                                th:value="${productor.idProductor}"
+                                th:text="${productor.usuario != null ? productor.usuario.nombreUsuario : 'Productor ID: ' + productor.idProductor}">Productor</option>
+                    </select>
+                </div>
+
+                <!-- Descripción -->
+                <div class="col-12">
+                    <label for="descripcionProducto" class="form-label">Descripción</label>
+                    <textarea id="descripcionProducto" name="descripcionProducto" class="form-control"
+                              rows="3"
+                              placeholder="Descripción del producto..."
+                              th:text="${producto != null ? producto.descripcionProducto : ''}"></textarea>
+                </div>
+
+                <!-- Stock -->
+                <div class="col-md-4">
+                    <label for="stock" class="form-label">Stock (Unidades) *</label>
+                    <input id="stock" name="stock" type="number" class="form-control"
+                           th:value="${producto != null and producto.stock != null ? producto.stock : 1}"
+                           min="0" required />
+                </div>
+
+                <!-- Precio -->
+                <div class="col-md-4">
+                    <label for="precio" class="form-label">Precio (COP) *</label>
+                    <input id="precio" name="precio" type="number" class="form-control"
+                           th:value="${producto != null and producto.precio != null ? producto.precio : 1000}"
+                           min="0" step="0.01" required />
+                </div>
+
+                <!-- Peso -->
+                <div class="col-md-4">
+                    <label for="pesoKg" class="form-label">Peso (Kg)</label>
+                    <input id="pesoKg" name="pesoKg" type="number" class="form-control"
+                           th:value="${producto != null and producto.pesoKg != null ? producto.pesoKg : 1.0}"
+                           min="0" step="0.01" />
+                </div>
+
+                <!-- Imagen + Switch principal -->
+                <div class="col-md-12">
+                    <label for="imagenFile" class="form-label">Imagen del Producto</label>
+                    <input id="imagenFile" name="imagenFile" type="file" class="form-control" accept="image/*" />
+
+                    <!-- PREVIEW -->
+                    <div class="preview-box mt-2" id="preview">
+                        <span class="preview-text">Vista previa de la imagen</span>
+                    </div>
+
+                    <div class="form-check form-switch mt-3">
+                        <input class="form-check-input" type="checkbox" id="esPrincipal" name="esPrincipal" value="true" checked>
+                        <label class="form-check-label" for="esPrincipal">
+                            Marcar como imagen principal
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Botones -->
+                <div class="col-12 text-end mt-3">
+                    <a th:href="@{/productos}" href="/productos" class="btn btn-outline-secondary me-2">
+                        <i class="bi bi-x-circle"></i> Cancelar
+                    </a>
+
+                    <button type="submit" class="btn btn-success">
+                        <i class="bi bi-check-circle"></i> Guardar Producto
+                    </button>
+                </div>
+
+            </div>
+        </form>
+
+    </div>
+
+</div>
+
+<!-- SCRIPT PARA PREVIEW -->
+<script>
+    const inputFile = document.getElementById("imagenFile");
+    const preview = document.getElementById("preview");
+
+    inputFile.addEventListener("change", () => {
+        const file = inputFile.files[0];
+
+        if (file) {
+            const reader = new FileReader();
+
+            reader.onload = e => {
+                preview.innerHTML = `<img src="${e.target.result}" alt="Vista previa">`;
+            };
+
+            reader.readAsDataURL(file);
+        } else {
+            preview.innerHTML = `<span class="preview-text">Vista previa de la imagen</span>`;
+        }
+    });
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
 </body>
 </html>

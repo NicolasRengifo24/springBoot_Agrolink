@@ -20,7 +20,7 @@ public class ProductoService  implements Idao <Producto, Integer> {
     @Override
     @Transactional(readOnly = true)
     public List<Producto> obtenerTodos() {
-        return productoRepository.findAll();
+        return productoRepository.findAllWithImages();
     }
 
     @Override

@@ -325,7 +325,7 @@
                 <li class="nav-item position-relative me-3">
                     <a class="nav-link" th:href="@{/cliente/carrito}">
                         <i class="bi bi-cart3 fs-5"></i>
-                        <span class="cart-badge">3</span>
+                        <span class="cart-badge" th:text="${cartCount}">0</span>
                     </a>
                 </li>
 
@@ -359,10 +359,10 @@
     <div class="row g-4 mt-4">
         <div class="col-md-6" data-aos="fade-right">
             <div class="product-gallery">
-                <img id="main-img" th:src="${producto.imagenesProducto != null and !#lists.isEmpty(producto.imagenesProducto) ? '/' + producto.imagenesProducto[0].urlImagen : '/imag/placeholder.jpg'}" alt="Imagen principal">
+                <img id="main-img" th:src="@{${producto.imagenesProducto != null and !#lists.isEmpty(producto.imagenesProducto) ? producto.imagenesProducto[0].urlImagen : '/imag/placeholder.jpg'}}" alt="Imagen principal">
                 <div class="row mt-3 thumbs g-2">
                     <div class="col-3" th:each="img : ${producto.imagenesProducto}" th:if="${producto.imagenesProducto != null}">
-                        <img th:src="${'/' + img.urlImagen}" class="img-fluid rounded" onclick="changeImg(this)" alt="Miniatura del producto" />
+                        <img th:src="@{${img.urlImagen}}" class="img-fluid rounded" onclick="changeImg(this)" alt="Miniatura del producto" />
                     </div>
                 </div>
             </div>
@@ -473,7 +473,7 @@
     <div class="row g-4">
         <div class="col-md-3" th:each="rel : ${relacionados}" data-aos="zoom-in">
             <div class="product-card">
-                <img th:src="${rel.imagenesProducto != null and !#lists.isEmpty(rel.imagenesProducto) ? '/' + rel.imagenesProducto[0].urlImagen : '/imag/placeholder.jpg'}" class="product-img" alt="Producto relacionado">
+                <img th:src="@{${rel.imagenesProducto != null and !#lists.isEmpty(rel.imagenesProducto) ? rel.imagenesProducto[0].urlImagen : '/imag/placeholder.jpg'}}" class="product-img" alt="Producto relacionado">
                 <div class="p-3">
                     <h5 th:text="${rel.nombreProducto ?: 'Producto'}">Nombre</h5>
                     <p class="text-muted" th:text="${rel.descripcionProducto ?: 'Sin descripción'}">Descripción</p>

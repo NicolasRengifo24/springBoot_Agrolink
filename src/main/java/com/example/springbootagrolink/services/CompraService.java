@@ -122,4 +122,12 @@ public class CompraService {
     public Page<Compra> buscarCompras(Specification<Compra> spec, Pageable pageable) {
         return compraRepository.findAll(spec, pageable);
     }
+
+    public List<Compra> obtenerTodas() {
+        return compraRepository.findAll();
+    }
+
+    public Optional<Compra> obtenerPorId(Integer id) {
+        return compraRepository.findById(id);
+    }
 }

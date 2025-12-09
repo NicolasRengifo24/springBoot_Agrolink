@@ -107,6 +107,8 @@
                             <artifactId>lombok</artifactId>
                         </exclude>
                     </excludes>
+                    <!-- Configuración de memoria para evitar errores de OutOfMemory -->
+                    <jvmArguments>-Xmx512m -Xms256m</jvmArguments>
                 </configuration>
             </plugin>
         </plugins>
