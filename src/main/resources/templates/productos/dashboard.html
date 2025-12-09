@@ -382,7 +382,8 @@
                   <!-- Mostrar imagen principal si existe, o placeholder si no -->
                   <img class="thumb"
                        th:alt="${producto.nombreProducto}"
-                       th:src="@{${producto.imagenesProducto != null and !#lists.isEmpty(producto.imagenesProducto) ? producto.imagenesProducto[0].urlImagen : '/imag/placeholder.jpg'}}" />
+                       th:src="@{${producto.imagenesProducto != null and !#lists.isEmpty(producto.imagenesProducto) ? producto.imagenesProducto[0].urlImagen : '/imag/placeholder.jpg'}}"
+                       onerror="this.src='/imag/placeholder.jpg'" />
                 </td>
                 <td>
                   <strong th:text="${producto.nombreProducto}">Nombre</strong><br>
