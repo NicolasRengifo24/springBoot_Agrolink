@@ -23,10 +23,10 @@ public class Usuario implements Serializable {
     @Column(nullable = false, length = 50)
     private String nombre;
 
-    @Column(name = "nombre_usuario", nullable = false, length = 100)
+    @Column(name = "nombre_usuario", nullable = false, length = 100, unique = true)
     private String nombreUsuario;
 
-    @Column(name = "contrasena_usuario", nullable = false, length = 100)
+    @Column(name = "contrasena_usuario", nullable = false, length = 200)
     private String contrasenaUsuario;
 
     @Column(nullable = false, length = 50)
@@ -50,6 +50,11 @@ public class Usuario implements Serializable {
     @Column(length = 15)
     private String telefono = "0000000000";
 
+    // ================== ROL DEL USUARIO ==================
+    @Enumerated(EnumType.STRING)
+    @Column(name = "rol", length = 50)
+    private Rol rol = Rol.ROLE_CLIENTE;
+
     // ========== COORDENADAS GPS PARA GEOLOCALIZACIÓN ==========
 
     @Column(name = "latitud")
@@ -58,4 +63,3 @@ public class Usuario implements Serializable {
     @Column(name = "longitud")
     private Double longitud;
 }
-
