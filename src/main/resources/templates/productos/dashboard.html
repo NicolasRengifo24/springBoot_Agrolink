@@ -359,7 +359,7 @@
         <div class="d-flex justify-content-between">
           <h5>Mis Productos</h5>
           <!-- Enlace a la página de creación separada -->
-          <a th:href="@{/productos/crear}" href="/productos/crear" class="btn btn-success" onclick="window.location.href='/productos/crear'">
+          <a th:href="@{/productos/crear}" class="btn btn-success">
             <i class="bi bi-plus-lg"></i> Crear producto
           </a>
         </div>
@@ -426,7 +426,9 @@
   </div>
 
   <!-- FAB: enlace a crear producto -->
-  <a th:href="@{/productos/crear}" href="/productos/crear" class="fab" role="button" onclick="window.location.href='/productos/crear'"><i class="bi bi-plus-lg"></i></a>
+  <a th:href="@{/productos/crear}" class="fab" role="button" title="Crear nuevo producto">
+    <i class="bi bi-plus-lg"></i>
+  </a>
 
   <!-- SCRIPTS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>

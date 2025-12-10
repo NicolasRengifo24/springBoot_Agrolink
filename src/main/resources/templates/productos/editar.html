@@ -39,7 +39,7 @@
           <div class="col-md-6">
             <label class="form-label" for="categoriaId">Categoría *</label>
             <select id="categoriaId" th:field="*{categoria.idCategoria}" class="form-select" required>
-              <option th:value="" th:text="'Seleccione una categoría'">Seleccione una categoría</option>
+              <option value="">Seleccione una categoría</option>
               <option th:each="categoria : ${categorias}"
                       th:value="${categoria.idCategoria}"
                       th:text="${categoria.nombreCategoria}">Categoría</option>
@@ -68,11 +68,11 @@
 
           <div class="col-md-6">
             <label class="form-label" for="productorId">Productor *</label>
-            <select id="productorId" th:field="*{productor.idUsuario}" class="form-select" required>
-              <option th:value="" th:text="'Seleccione un productor'">Seleccione un productor</option>
+            <select id="productorId" th:field="*{productor.idProductor}" class="form-select" required>
+              <option value="">Seleccione un productor</option>
               <option th:each="productor : ${productores}"
-                      th:value="${productor.idUsuario}"
-                      th:text="${productor.nombreUsuario}">Productor</option>
+                      th:value="${productor.idProductor}"
+                      th:text="${productor.usuario != null ? productor.usuario.nombreUsuario : 'Productor ID: ' + productor.idProductor}">Productor</option>
             </select>
           </div>
 
