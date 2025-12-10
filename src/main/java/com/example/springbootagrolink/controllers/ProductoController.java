@@ -381,4 +381,30 @@ public class ProductoController {
 
         return "productos/editar";
     }
+
+    /**
+     * Mostrar lista de pedidos/compras dirigidas al productor
+     */
+    @GetMapping("/pedidos")
+    public String listarPedidos(Model model) {
+        List<Compra> compras = compraService.obtenerTodas();
+        model.addAttribute("compras", compras);
+        model.addAttribute("page", "pedidos");
+        return "productos/pedidos";
+    }
+
+    /**
+     * Endpoint JSON para cargar pedidos vía AJAX (usado en el dashboard interactivo)
+     */
+    @GetMapping("/pedidos/json")
+    @ResponseBody
+    public ResponseEntity<List<Compra>> obtenerPedidosJson() {
+        try {
+            List<Compra> compras = compraService.obtenerTodas();
+            return ResponseEntity.ok(compras);
+        } catch (Exception e) {
+            log.error("Error al obtener pedidos: {}", e.getMessage(), e);
+            return ResponseEntity.status(500).body(new ArrayList<>());
+        }
+    }
 }
