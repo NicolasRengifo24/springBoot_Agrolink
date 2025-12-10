@@ -50,5 +50,12 @@ public class Usuario implements Serializable {
     @Column(length = 15)
     private String telefono = "0000000000";
 
-   }
+    // ========== COORDENADAS GPS PARA GEOLOCALIZACIÓN ==========
+
+    @Column(name = "latitud")
+    private Double latitud;
+
+    @Column(name = "longitud")
+    private Double longitud;
+}
 

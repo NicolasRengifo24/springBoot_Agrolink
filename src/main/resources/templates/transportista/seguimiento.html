@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seguimiento de Envíos - Agrolink Transportista</title>
+
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Leaflet Maps -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: "Inter", sans-serif;
+            background: #f8faf7;
+        }
+
+        /* SIDEBAR */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            width: 280px;
+            background: linear-gradient(180deg, #2f6b31 0%, #1d4820 100%);
+            padding: 20px 0;
+            z-index: 1000;
+            box-shadow: 4px 0 15px rgba(0,0,0,0.1);
+        }
+
+        .sidebar-brand {
+            padding: 0 25px 25px 25px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            margin-bottom: 20px;
+        }
+
+        .sidebar-brand img {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            margin-right: 12px;
+            border: 2px solid #fff;
+        }
+
+        .sidebar-brand h4 {
+            color: white;
+            font-weight: 700;
+            margin: 0;
+            font-size: 1.5rem;
+        }
+
+        .sidebar-menu {
+            list-style: none;
+            padding: 0;
+        }
+
+        .sidebar-menu li {
+            margin: 5px 15px;
+        }
+
+        .sidebar-menu a {
+            display: flex;
+            align-items: center;
+            padding: 14px 18px;
+            color: rgba(255,255,255,0.85);
+            text-decoration: none;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            font-size: 0.95rem;
+        }
+
+        .sidebar-menu a:hover,
+        .sidebar-menu a.active {
+            background: rgba(255,255,255,0.15);
+            color: white;
+            transform: translateX(5px);
+        }
+
+        .sidebar-menu a i {
+            font-size: 1.3rem;
+            margin-right: 15px;
+            width: 25px;
+        }
+
+        .sidebar-footer {
+            position: absolute;
+            bottom: 20px;
+            left: 0;
+            right: 0;
+            padding: 0 15px;
+        }
+
+        /* MAIN CONTENT */
+        .main-content {
+            margin-left: 280px;
+            padding: 25px 30px;
+            min-height: 100vh;
+        }
+
+        /* TOPBAR */
+        .topbar {
+            background: white;
+            padding: 20px 30px;
+            border-radius: 16px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+            margin-bottom: 30px;
+        }
+
+        .topbar h2 {
+            color: #2f6b31;
+            font-weight: 700;
+            margin: 0;
+            font-size: 1.8rem;
+        }
+
+        /* MAP SECTION */
+        .map-container {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+            margin-bottom: 30px;
+        }
+
+        #map {
+            height: 500px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        /* ACTIVE SHIPMENTS */
+        .shipments-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+        }
+
+        .shipment-card {
+            background: white;
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .shipment-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(180deg, #2f6b31, #1d4820);
+        }
+
+        .shipment-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+        }
+
+        .shipment-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f8f0;
+        }
+
+        .shipment-id {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #2f6b31;
+        }
+
+        .progress-badge {
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            background: #cce5ff;
+            color: #004085;
+        }
+
+        .route-timeline {
+            position: relative;
+            padding-left: 30px;
+            margin-bottom: 20px;
+        }
+
+        .timeline-line {
+            position: absolute;
+            left: 11px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: #e0e7db;
+        }
+
+        .timeline-item {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .timeline-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .timeline-dot {
+            position: absolute;
+            left: -30px;
+            top: 5px;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: white;
+            border: 3px solid #2f6b31;
+            z-index: 1;
+        }
+
+        .timeline-dot.completed {
+            background: #2f6b31;
+        }
+
+        .timeline-dot.active {
+            background: #ffc107;
+            border-color: #ffc107;
+            box-shadow: 0 0 0 4px rgba(255, 193, 7, 0.2);
+        }
+
+        .timeline-content {
+            background: #f8faf7;
+            padding: 12px;
+            border-radius: 8px;
+        }
+
+        .timeline-title {
+            font-weight: 600;
+            color: #2f6b31;
+            margin-bottom: 4px;
+        }
+
+        .timeline-time {
+            font-size: 0.85rem;
+            color: #6c757d;
+        }
+
+        .shipment-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .info-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            background: #f8faf7;
+            border-radius: 8px;
+        }
+
+        .info-item i {
+            font-size: 1.2rem;
+            color: #2f6b31;
+        }
+
+        .info-label {
+            font-size: 0.75rem;
+            color: #6c757d;
+            display: block;
+        }
+
+        .info-value {
+            font-weight: 600;
+            color: #2f6b31;
+        }
+
+        .progress-bar-container {
+            background: #e0e7db;
+            height: 8px;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 8px;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #2f6b31, #1d4820);
+            border-radius: 10px;
+            transition: width 0.5s ease;
+        }
+
+        .progress-text {
+            font-size: 0.85rem;
+            color: #6c757d;
+            text-align: right;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #f0f0f0;
+        }
+
+        .btn-action {
+            flex: 1;
+            padding: 10px;
+            border-radius: 8px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .btn-update {
+            background: #2f6b31;
+            color: white;
+        }
+
+        .btn-update:hover {
+            background: #1d4820;
+            transform: translateY(-2px);
+        }
+
+        .btn-contact {
+            background: #f0f8f0;
+            color: #2f6b31;
+        }
+
+        .btn-contact:hover {
+            background: #2f6b31;
+            color: white;
+        }
+
+        /* STATS CARDS */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+            text-align: center;
+        }
+
+        .stat-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin: 0 auto 15px;
+            color: white;
+        }
+
+        .icon-green { background: linear-gradient(135deg, #2f6b31, #1d4820); }
+        .icon-blue { background: linear-gradient(135deg, #3498db, #2980b9); }
+        .icon-orange { background: linear-gradient(135deg, #f39c12, #e67e22); }
+
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: #2f6b31;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+    <div class="sidebar-brand d-flex align-items-center">
+        <img th:src="@{/CSS/logo/logoAgro.jpeg}" alt="Logo Agrolink">
+        <div>
+            <h4>Agrolink</h4>
+            <small style="color: rgba(255,255,255,0.7);">Transportista</small>
+        </div>
+    </div>
+
+    <ul class="sidebar-menu">
+        <li>
+            <a th:href="@{/transportista/dashboard}">
+                <i class="bi bi-speedometer2"></i>
+                <span>Dashboard</span>
+            </a>
+        </li>
+        <li>
+            <a th:href="@{/transportista/envios}">
+                <i class="bi bi-box-seam"></i>
+                <span>Envíos Disponibles</span>
+            </a>
+        </li>
+        <li>
+            <a th:href="@{/transportista/mis-envios}">
+                <i class="bi bi-truck"></i>
+                <span>Mis Envíos</span>
+            </a>
+        </li>
+        <li>
+            <a th:href="@{/transportista/vehiculos}">
+                <i class="bi bi-car-front"></i>
+                <span>Mis Vehículos</span>
+            </a>
+        </li>
+        <li>
+            <a href="#" class="active">
+                <i class="bi bi-geo-alt"></i>
+                <span>Seguimiento</span>
+            </a>
+        </li>
+        <li>
+            <a th:href="@{/transportista/rentabilidad}">
+                <i class="bi bi-graph-up"></i>
+                <span>Rentabilidad</span>
+            </a>
+        </li>
+        <li>
+            <a th:href="@{/transportista/perfil}">
+                <i class="bi bi-person-circle"></i>
+                <span>Mi Perfil</span>
+            </a>
+        </li>
+    </ul>
+
+    <div class="sidebar-footer">
+        <a href="#" style="color: rgba(255,255,255,0.85); text-decoration: none; display: flex; align-items: center; padding: 14px 18px; border-radius: 12px; transition: all 0.3s ease;">
+            <i class="bi bi-box-arrow-left" style="font-size: 1.3rem; margin-right: 15px;"></i>
+            <span>Cerrar Sesión</span>
+        </a>
+    </div>
+</aside>
+
+<!-- MAIN CONTENT -->
+<main class="main-content">
+
+    <!-- TOPBAR -->
+    <div class="topbar">
+        <h2><i class="bi bi-geo-alt me-3"></i>Seguimiento en Tiempo Real</h2>
+        <p class="text-muted mb-0">Monitorea todos tus envíos activos</p>
+    </div>
+
+    <!-- STATS -->
+    <div class="stats-row">
+        <div class="stat-card">
+            <div class="stat-icon icon-green">
+                <i class="bi bi-truck"></i>
+            </div>
+            <div class="stat-value">5</div>
+            <div class="stat-label">En Tránsito</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon icon-blue">
+                <i class="bi bi-geo-alt"></i>
+            </div>
+            <div class="stat-value">2</div>
+            <div class="stat-label">Por Entregar Hoy</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon icon-orange">
+                <i class="bi bi-clock-history"></i>
+            </div>
+            <div class="stat-value">1,240</div>
+            <div class="stat-label">KM Recorridos Hoy</div>
+        </div>
+    </div>
+
+    <!-- MAP -->
+    <div class="map-container">
+        <h5 class="mb-3" style="color: #2f6b31; font-weight: 700;">
+            <i class="bi bi-map me-2"></i>Mapa de Rutas Activas
+        </h5>
+        <div id="map"></div>
+    </div>
+
+    <!-- ACTIVE SHIPMENTS -->
+    <div class="mb-4">
+        <h5 style="color: #2f6b31; font-weight: 700; margin-bottom: 20px;">
+            <i class="bi bi-box-seam me-2"></i>Envíos Activos
+        </h5>
+    </div>
+
+    <div class="shipments-grid">
+
+        <!-- Shipment 1 -->
+        <div class="shipment-card">
+            <div class="shipment-header">
+                <div class="shipment-id">#ENV-1024</div>
+                <span class="progress-badge">En Tránsito</span>
+            </div>
+
+            <div class="route-timeline">
+                <div class="timeline-line"></div>
+
+                <div class="timeline-item">
+                    <div class="timeline-dot completed"></div>
+                    <div class="timeline-content">
+                        <div class="timeline-title">Bogotá - Recogido</div>
+                        <div class="timeline-time">Hoy, 8:30 AM</div>
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-dot active"></div>
+                    <div class="timeline-content">
+                        <div class="timeline-title">En Camino</div>
+                        <div class="timeline-time">Ubicación actual: Km 245</div>
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <div class="timeline-title">Medellín - Entrega</div>
+                        <div class="timeline-time">Est: Hoy, 6:00 PM</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="shipment-info">
+                <div class="info-item">
+                    <i class="bi bi-person"></i>
+                    <div>
+                        <span class="info-label">Cliente</span>
+                        <div class="info-value">María González</div>
+                    </div>
+                </div>
+                <div class="info-item">
+                    <i class="bi bi-box"></i>
+                    <div>
+                        <span class="info-label">Peso</span>
+                        <div class="info-value">850 kg</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="progress-bar-container">
+                <div class="progress-bar-fill" style="width: 58%;"></div>
+            </div>
+            <div class="progress-text">58% completado - 245 de 420 km</div>
+
+            <div class="action-buttons">
+                <button class="btn-action btn-update">
+                    <i class="bi bi-arrow-repeat me-1"></i>Actualizar Estado
+                </button>
+                <button class="btn-action btn-contact">
+                    <i class="bi bi-telephone me-1"></i>Contactar
+                </button>
+            </div>
+        </div>
+
+        <!-- Shipment 2 -->
+        <div class="shipment-card">
+            <div class="shipment-header">
+                <div class="shipment-id">#ENV-1020</div>
+                <span class="progress-badge">En Tránsito</span>
+            </div>
+
+            <div class="route-timeline">
+                <div class="timeline-line"></div>
+
+                <div class="timeline-item">
+                    <div class="timeline-dot completed"></div>
+                    <div class="timeline-content">
+                        <div class="timeline-title">Manizales - Recogido</div>
+                        <div class="timeline-time">Hoy, 6:00 AM</div>
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-dot active"></div>
+                    <div class="timeline-content">
+                        <div class="timeline-title">En Camino</div>
+                        <div class="timeline-time">Ubicación actual: Km 180</div>
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <div class="timeline-title">Bogotá - Entrega</div>
+                        <div class="timeline-time">Est: Hoy, 2:00 PM</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="shipment-info">
+                <div class="info-item">
+                    <i class="bi bi-person"></i>
+                    <div>
+                        <span class="info-label">Cliente</span>
+                        <div class="info-value">Laura Sánchez</div>
+                    </div>
+                </div>
+                <div class="info-item">
+                    <i class="bi bi-box"></i>
+                    <div>
+                        <span class="info-label">Peso</span>
+                        <div class="info-value">520 kg</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="progress-bar-container">
+                <div class="progress-bar-fill" style="width: 72%;"></div>
+            </div>
+            <div class="progress-text">72% completado - 180 de 250 km</div>
+
+            <div class="action-buttons">
+                <button class="btn-action btn-update">
+                    <i class="bi bi-arrow-repeat me-1"></i>Actualizar Estado
+                </button>
+                <button class="btn-action btn-contact">
+                    <i class="bi bi-telephone me-1"></i>Contactar
+                </button>
+            </div>
+        </div>
+
+        <!-- Shipment 3 -->
+        <div class="shipment-card">
+            <div class="shipment-header">
+                <div class="shipment-id">#ENV-1018</div>
+                <span class="progress-badge">En Tránsito</span>
+            </div>
+
+            <div class="route-timeline">
+                <div class="timeline-line"></div>
+
+                <div class="timeline-item">
+                    <div class="timeline-dot completed"></div>
+                    <div class="timeline-content">
+                        <div class="timeline-title">Cali - Recogido</div>
+                        <div class="timeline-time">Ayer, 4:00 PM</div>
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-dot active"></div>
+                    <div class="timeline-content">
+                        <div class="timeline-title">En Camino</div>
+                        <div class="timeline-time">Ubicación actual: Km 320</div>
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <div class="timeline-title">Bogotá - Entrega</div>
+                        <div class="timeline-time">Est: Hoy, 11:00 AM</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="shipment-info">
+                <div class="info-item">
+                    <i class="bi bi-person"></i>
+                    <div>
+                        <span class="info-label">Cliente</span>
+                        <div class="info-value">Carlos Ramírez</div>
+                    </div>
+                </div>
+                <div class="info-item">
+                    <i class="bi bi-box"></i>
+                    <div>
+                        <span class="info-label">Peso</span>
+                        <div class="info-value">1,200 kg</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="progress-bar-container">
+                <div class="progress-bar-fill" style="width: 67%;"></div>
+            </div>
+            <div class="progress-text">67% completado - 320 de 480 km</div>
+
+            <div class="action-buttons">
+                <button class="btn-action btn-update">
+                    <i class="bi bi-arrow-repeat me-1"></i>Actualizar Estado
+                </button>
+                <button class="btn-action btn-contact">
+                    <i class="bi bi-telephone me-1"></i>Contactar
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+</main>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Map Initialization -->
+<script>
+    // Initialize map centered on Colombia
+    const map = L.map('map').setView([4.5709, -74.2973], 6);
+
+    // Add OpenStreetMap tiles
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+
+    // Define custom icon
+    const truckIcon = L.icon({
+        iconUrl: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMiIgaGVpZ2h0PSIzMiIgdmlld0JveD0iMCAwIDMyIDMyIj48cGF0aCBmaWxsPSIjMmY2YjMxIiBkPSJNMjggMTZoLTN2LTZoLTR2LTJoLTJ2LTJoLTEydjEyaDJ2MmgydjJoMnYtMmgydi0yaDJ2MmgydjJoMnYtMmgydi0yaDJ2LTJ6TTkgMThoLTJ2LTJoMnYyeiIvPjwvc3ZnPg==',
+        iconSize: [32, 32],
+        iconAnchor: [16, 32],
+        popupAnchor: [0, -32]
+    });
+
+    // Add markers for active shipments
+    const shipments = [
+        {lat: 4.7110, lng: -74.0721, title: '#ENV-1024', route: 'Bogotá → Medellín'},
+        {lat: 5.0689, lng: -75.5174, title: '#ENV-1020', route: 'Manizales → Bogotá'},
+        {lat: 3.4516, lng: -76.5320, title: '#ENV-1018', route: 'Cali → Bogotá'}
+    ];
+
+    shipments.forEach(shipment => {
+        L.marker([shipment.lat, shipment.lng], {icon: truckIcon})
+            .addTo(map)
+            .bindPopup(`<strong>${shipment.title}</strong><br>${shipment.route}`);
+    });
+
+    // Draw route lines
+    const routes = [
+        [[4.7110, -74.0721], [6.2476, -75.5658]], // Bogotá to Medellín
+        [[5.0689, -75.5174], [4.7110, -74.0721]], // Manizales to Bogotá
+        [[3.4516, -76.5320], [4.7110, -74.0721]]  // Cali to Bogotá
+    ];
+
+    routes.forEach(route => {
+        L.polyline(route, {
+            color: '#2f6b31',
+            weight: 3,
+            opacity: 0.6
+        }).addTo(map);
+    });
+</script>
+
+<!-- Mobile Menu Script -->
+<script>
+    const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+    const mobileOverlay = document.getElementById('mobileOverlay');
+    const sidebar = document.querySelector('.sidebar');
+
+    function toggleMobileMenu() {
+        sidebar.classList.toggle('mobile-open');
+        mobileOverlay.classList.toggle('active');
+        const icon = mobileMenuBtn.querySelector('i');
+        icon.classList.toggle('bi-list');
+        icon.classList.toggle('bi-x');
+    }
+
+    mobileMenuBtn.addEventListener('click', toggleMobileMenu);
+    mobileOverlay.addEventListener('click', toggleMobileMenu);
+
+    document.querySelectorAll('.sidebar-menu a').forEach(link => {
+        link.addEventListener('click', () => {
+            if (window.innerWidth <= 768) {
+                toggleMobileMenu();
+            }
+        });
+    });
+</script>
+
+</body>
+</html>
+

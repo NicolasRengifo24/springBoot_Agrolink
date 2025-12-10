@@ -153,8 +153,9 @@
 <nav class="navbar navbar-expand-lg navbar-custom fixed-top">
     <div class="container">
 
-        <a class="navbar-brand brand-logo d-flex align-items-center" th:href="@{/}">
-            <img th:src="@{/CSS/logo/logoAgrolink.jpg}" alt="Agrolink Logo">
+        <!-- LOGO -->
+        <a class="navbar-brand brand-logo" th:href="@{/}">
+            <img th:src="@{/CSS/logo/logoAgro.jpeg}" alt="Logo Agrolink">
             Agrolink
         </a>
 
@@ -164,39 +165,116 @@
 
         <div class="collapse navbar-collapse" id="navMenu">
 
-            <!-- BUSCADOR -->
+            <!-- BÚSQUEDA -->
             <div class="mx-auto d-none d-lg-block">
                 <form class="d-flex search-box" th:action="@{/buscar}" method="get">
-                    <input type="search" name="busqueda" placeholder="Buscar productos...">
+                    <input type="search" name="busqueda" th:value="${busquedaActual}" placeholder="Buscar productos...">
                     <button type="submit"><i class="bi bi-search"></i></button>
                 </form>
             </div>
 
-            <!-- RIGHT -->
             <ul class="navbar-nav ms-auto align-items-center">
 
                 <li class="nav-item">
-                    <a class="nav-link me-3" th:href="@{/compras}">Mis pedidos</a>
+                    <a class="nav-link me-3" th:href="@{/}">Inicio</a>
                 </li>
 
+                <!-- MEGA MENU CATEGORÍAS DINÁMICO -->
+                <li class="nav-item dropdown position-static">
+                    <a class="nav-link dropdown-toggle me-3" data-bs-toggle="dropdown" href="javascript:void(0);">Categorías</a>
+
+                    <div class="dropdown-menu mega-menu-dropdown">
+                        <div class="container-fluid">
+                            <!-- Verificar si hay categorías disponibles -->
+                            <div th:if="${categorias != null and not #lists.isEmpty(categorias)}">
+                                <div class="row g-2">
+                                    <!-- Mostrar categorías en columnas más compactas -->
+                                    <div th:each="categoria : ${categorias}" class="col-lg-2 col-md-3 col-sm-4 col-6">
+                                        <div class="categoria-item p-2">
+                                            <h6 class="mega-title" th:text="${categoria.nombreCategoria}">Categoría</h6>
+                                            <div class="mega-list">
+                                                <a th:href="@{/(categoria=${categoria.idCategoria})}"
+                                                   th:text="'Ver ' + ${categoria.nombreCategoria}">Ver Categoría</a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Mensaje cuando no hay categorías -->
+                            <div th:if="${categorias == null or #lists.isEmpty(categorias)}">
+                                <div class="text-center py-3">
+                                    <i class="bi bi-tags text-muted mb-2" style="font-size: 1.5rem;"></i>
+                                    <p class="text-muted mb-0 small">No hay categorías disponibles</p>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </li>
+
+                <!-- SERVICIOS DINÁMICOS -->
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle me-3" data-bs-toggle="dropdown">Servicios</a>
+                    <ul class="dropdown-menu">
+                        <!-- Verificar si hay categorías de servicios disponibles -->
+                        <th:block th:if="${categoriasServicios != null and not #maps.isEmpty(categoriasServicios)}">
+                            <!-- Iterar sobre las categorías de servicios -->
+                            <th:block th:each="categoria, categoriaStats : ${categoriasServicios}">
+                                <li><h6 class="dropdown-header text-success fw-bold" th:text="${categoria.key}">Categoría</h6></li>
+                                <!-- Mostrar hasta 3 servicios por categoría -->
+                                <th:block th:each="servicio, iterStat : ${categoria.value}" th:if="${iterStat.index < 3}">
+                                    <li><a class="dropdown-item small" href="#"
+                                           th:text="${servicio.descripcion}">Descripción del servicio</a></li>
+                                </th:block>
+                                <!-- Enlace para ver más servicios de esta categoría si hay más de 3 -->
+                                <li th:if="${#lists.size(categoria.value) > 3}">
+                                    <a class="dropdown-item text-muted small fst-italic"
+                                       th:href="@{/servicios(categoria=${categoria.key})}"
+                                       th:text="'Ver todos (' + ${#lists.size(categoria.value)} + ')'">Ver todos</a>
+                                </li>
+                                <li th:unless="${categoriaStats.last}"><hr class="dropdown-divider"></li>
+                            </th:block>
+                        </th:block>
+
+                        <!-- Mensaje cuando no hay servicios -->
+                        <li th:if="${categoriasServicios == null or #maps.isEmpty(categoriasServicios)}">
+                            <span class="dropdown-item-text text-muted small">No hay servicios disponibles</span>
+                        </li>
+
+                        <!-- Enlace para ver todos los servicios -->
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item text-center fw-bold text-success" href="/servicios">
+                            <i class="bi bi-grid me-1"></i>Ver todos los servicios
+                        </a></li>
+                    </ul>
+                </li>
+
+                <!-- MIS PEDIDOS -->
+                <li class="nav-item">
+                    <a class="nav-link me-3">Mis pedidos</a>
+                </li>
+
+                <!-- CARRITO -->
                 <li class="nav-item position-relative me-3">
                     <a class="nav-link" th:href="@{/cliente/carrito}">
                         <i class="bi bi-cart3 fs-5"></i>
-                        <span id="cartBadge" class="cart-badge" th:text="${cartCount}">0</span>
+                        <span class="cart-badge" th:text="${cartCount}">0</span>
                     </a>
                 </li>
 
+                <!-- PERFIL -->
                 <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" data-bs-toggle="dropdown">
-                        <img src="https://i.pravatar.cc/40?img=12" class="profile-img me-2">
+                    <a class="nav-link dropdown-toggle d-flex align-items-center" data-bs-toggle="dropdown">
+                        <img th:src="@{https://i.pravatar.cc/40?img=12}" class="profile-img me-2" alt="Perfil">
                         Cuenta
                     </a>
 
                     <ul class="dropdown-menu dropdown-menu-end">
-                        <li><a class="dropdown-item">Mi perfil</a></li>
-                        <li><a class="dropdown-item">Configuración</a></li>
+                        <li><a class="dropdown-item" th:href="@{/cliente/perfil}"><i class="bi bi-person me-2"></i>Mi perfil</a></li>
+                        <li><a class="dropdown-item" href="#"><i class="bi bi-gear me-2"></i>Configuración</a></li>
                         <li><hr></li>
-                        <li><a class="dropdown-item text-danger">Cerrar sesión</a></li>
+                        <li><a class="dropdown-item text-danger" href="#"><i class="bi bi-box-arrow-right me-2"></i>Cerrar sesión</a></li>
                     </ul>
                 </li>
 

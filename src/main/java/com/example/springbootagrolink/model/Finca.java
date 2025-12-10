@@ -48,6 +48,21 @@ public class Finca implements Serializable {
     @Column(name = "registro_ICA", length = 200)
     private String registroICA = "Sin Certificado";
 
+    // ========== COORDENADAS GPS DE LA FINCA ==========
+    // Estas coordenadas se usan para calcular la distancia y costo de envío
+
+    @Column(name = "latitud")
+    private Double latitud;
+
+    @Column(name = "longitud")
+    private Double longitud;
+
+    @Column(name = "ciudad", length = 100)
+    private String ciudad;
+
+    @Column(name = "departamento", length = 100)
+    private String departamento;
+
     // Relación con ProductoFinca: una Finca puede tener muchas asociaciones ProductoFinca
     @OneToMany(mappedBy = "finca", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<ProductoFinca> productoFincas;
