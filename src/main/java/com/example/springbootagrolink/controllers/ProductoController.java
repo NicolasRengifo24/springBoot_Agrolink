@@ -115,7 +115,9 @@ public class ProductoController {
 
             // Agrupar ventas por mes
             for (Compra compra : todasLasCompras) {
-                if (compra.getFechaHoraCompra().isAfter(ahora.minusMonths(6))) {
+                // Validar que fechaHoraCompra no sea NULL
+                if (compra.getFechaHoraCompra() != null &&
+                    compra.getFechaHoraCompra().isAfter(ahora.minusMonths(6))) {
                     String mes = compra.getFechaHoraCompra().getMonth()
                             .getDisplayName(TextStyle.SHORT, localeES);
                     ventasPorMes.merge(mes, compra.getTotal(), BigDecimal::add);
