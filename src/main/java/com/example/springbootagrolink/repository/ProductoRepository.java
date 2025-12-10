@@ -30,6 +30,10 @@ public interface ProductoRepository extends JpaRepository<Producto, Integer>, Jp
     @Query("SELECT DISTINCT p FROM Producto p LEFT JOIN FETCH p.imagenesProducto WHERE LOWER(p.nombreProducto) LIKE LOWER(CONCAT('%', :nombre, '%'))")
     List<Producto> findByNombreProductoContainingIgnoreCase(@Param("nombre") String nombre);
 
+    // Contar productos disponibles (con stock mayor a 0)
+    @Query("SELECT COUNT(p) FROM Producto p WHERE p.stock > 0")
+    Long countProductosDisponibles();
+
     // Obtener todos los productos con sus imágenes (JOIN FETCH para evitar N+1)
     @Query("SELECT DISTINCT p FROM Producto p LEFT JOIN FETCH p.imagenesProducto")
     List<Producto> findAllWithImages();
@@ -98,7 +102,16 @@ public interface ProductoRepository extends JpaRepository<Producto, Integer>, Jp
     @Query("SELECT p FROM Producto p")
     List<Producto> filtrarPorCalificacion(@Param("calificacionMin") Double calificacionMin);
 
-    // Obtener el producto más vendido (versión simplificada)
+    // Obtener el producto más vendido usando consulta nativa SQL
+    @Query(value = "SELECT p.* FROM tb_productos p " +
+                   "LEFT JOIN tb_detalles_compra dc ON dc.id_producto = p.id_producto " +
+                   "GROUP BY p.id_producto " +
+                   "ORDER BY COALESCE(SUM(dc.cantidad), 0) DESC " +
+                   "LIMIT 1",
+           nativeQuery = true)
+    Producto obtenerProductoMasVendidoNativo();
+
+    // Método que devuelve lista para mantener compatibilidad
     @Query("SELECT p FROM Producto p ORDER BY p.idProducto DESC")
     List<Producto> obtenerProductoMasVendido();
 

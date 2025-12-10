@@ -26,6 +26,7 @@ public interface CalificacionRepository extends JpaRepository<Calificacion, Inte
             @Param("promedioMax") BigDecimal promedioMax
     );
 
-
-
+    // Calcular el promedio general de todas las calificaciones
+    @Query("SELECT AVG(c.promedio) FROM Calificacion c")
+    Double calcularPromedioGeneral();
 }

@@ -8,6 +8,10 @@ import com.example.springbootagrolink.services.ClienteService;
 import com.example.springbootagrolink.services.ProductoService;
 import com.example.springbootagrolink.services.CategoriaProductoService;
 import com.example.springbootagrolink.services.ServicioService;
+import com.example.springbootagrolink.repository.UsuarioRepository;
+import com.example.springbootagrolink.repository.ProductoRepository;
+import com.example.springbootagrolink.repository.EnvioRepository;
+import com.example.springbootagrolink.repository.CalificacionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -16,7 +20,6 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import jakarta.servlet.http.HttpSession;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Controller
 public class ClienteController {
@@ -29,6 +32,14 @@ public class ClienteController {
     private CategoriaProductoService categoriaProductoService;
     @Autowired
     private ServicioService servicioService;
+    @Autowired
+    private UsuarioRepository usuarioRepository;
+    @Autowired
+    private ProductoRepository productoRepository;
+    @Autowired
+    private EnvioRepository envioRepository;
+    @Autowired
+    private CalificacionRepository calificacionRepository;
 
     /**
      * Método que agrega el contador del carrito a todas las vistas automáticamente
@@ -56,7 +67,7 @@ public class ClienteController {
                         @RequestParam(value = "soloDisponibles", required = false) Boolean soloDisponibles,
                         @RequestParam(value = "organicosBPA", required = false) Boolean organicosBPA,
                         Model model) {
-        List<Producto> productos = productoService.obtenerTodos(); // Inicializar por defecto
+        List<Producto> productos;
         List<CategoriaProducto> categorias = categoriaProductoService.obtenerTodos();
         List<Servicio> servicios = servicioService.obtenerTodosLosServicios();
         Map<String, List<Servicio>> categoriasServicios = categorizarServicios(servicios);
@@ -96,6 +107,55 @@ public class ClienteController {
         model.addAttribute("soloDisponiblesActual", soloDisponibles);
         model.addAttribute("organicosBPAActual", organicosBPA);
         model.addAttribute("hayFiltrosActivos", hayFiltros);
+
+        // --- NUEVO: obtener producto destacado por compras ---
+        try {
+            Producto productoDestacado = productoService.obtenerProductoMasVendido();
+            model.addAttribute("productoDestacado", productoDestacado);
+        } catch (Exception e) {
+            // En caso de error, agregar atributo nulo para que la vista muestre fallback
+            model.addAttribute("productoDestacado", null);
+            // Log sencillo para debugging en consola
+            System.err.println("Error obteniendo producto destacado: " + e.getMessage());
+            e.printStackTrace();
+        }
+        // --- FIN producto destacado ---
+
+        // --- NUEVO: Estadísticas dinámicas ---
+        try {
+            // 1. Total de usuarios registrados
+            Long totalUsuarios = usuarioRepository.count();
+            model.addAttribute("totalUsuarios", totalUsuarios);
+
+            // 2. Productos disponibles (con stock > 0)
+            Long productosDisponibles = productoRepository.countProductosDisponibles();
+            model.addAttribute("productosDisponibles", productosDisponibles);
+
+            // 3. Porcentaje de entregas exitosas
+            Long totalEnvios = envioRepository.count();
+            Long enviosFinalizados = envioRepository.countEnviosFinalizados();
+            double porcentajeEntregas = 0.0;
+            if (totalEnvios > 0) {
+                porcentajeEntregas = (enviosFinalizados * 100.0) / totalEnvios;
+            }
+            model.addAttribute("porcentajeEntregas", porcentajeEntregas);
+
+            // 4. Calificación promedio general
+            Double promedioCalificaciones = calificacionRepository.calcularPromedioGeneral();
+            if (promedioCalificaciones == null) {
+                promedioCalificaciones = 0.0;
+            }
+            model.addAttribute("promedioCalificaciones", promedioCalificaciones);
+
+        } catch (Exception e) {
+            // En caso de error, poner valores por defecto
+            model.addAttribute("totalUsuarios", 0L);
+            model.addAttribute("productosDisponibles", 0L);
+            model.addAttribute("porcentajeEntregas", 0.0);
+            model.addAttribute("promedioCalificaciones", 0.0);
+            System.err.println("Error calculando estadísticas: " + e.getMessage());
+        }
+        // --- FIN estadísticas ---
 
         return "cliente/index";
     }
@@ -414,6 +474,25 @@ public class ClienteController {
         model.addAttribute("cartCount", cartCount);
 
         return "cliente/carrito";
+    }
+
+    /**
+     * Ver perfil del cliente
+     */
+    @GetMapping("/cliente/perfil")
+    public String verPerfil(HttpSession session, Model model) {
+        // Aquí puedes agregar la lógica para obtener los datos del cliente de la sesión
+        // Por ejemplo:
+        // Cliente cliente = (Cliente) session.getAttribute("clienteLogueado");
+        // model.addAttribute("cliente", cliente);
+
+        // Obtener el carrito para el contador
+        @SuppressWarnings("unchecked")
+        Map<Integer, Integer> carrito = (Map<Integer, Integer>) session.getAttribute("carrito");
+        int cartCount = (carrito != null) ? carrito.values().stream().mapToInt(Integer::intValue).sum() : 0;
+        model.addAttribute("cartCount", cartCount);
+
+        return "cliente/perfil";
     }
 
     /**

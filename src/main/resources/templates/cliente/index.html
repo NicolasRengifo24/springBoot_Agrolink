@@ -440,10 +440,10 @@
                     </a>
 
                     <ul class="dropdown-menu dropdown-menu-end">
-                        <li><a class="dropdown-item" th:href="@{/perfilcliente.html}">Mi perfil</a></li>
-                        <li><a class="dropdown-item" href="#">Configuración</a></li>
+                        <li><a class="dropdown-item" th:href="@{/cliente/perfil}"><i class="bi bi-person me-2"></i>Mi perfil</a></li>
+                        <li><a class="dropdown-item" href="#"><i class="bi bi-gear me-2"></i>Configuración</a></li>
                         <li><hr></li>
-                        <li><a class="dropdown-item text-danger">Cerrar sesión</a></li>
+                        <li><a class="dropdown-item text-danger" href="#"><i class="bi bi-box-arrow-right me-2"></i>Cerrar sesión</a></li>
                     </ul>
                 </li>
 
@@ -589,7 +589,7 @@
                 <!-- Badge de disponibilidad -->
                 <div class="position-relative">
                     <img class="product-img"
-                         th:src="@{${prod.imagenesProducto != null and not #lists.isEmpty(prod.imagenesProducto) ? prod.imagenesProducto[0].urlImagen : '/CSS/imag/tomate.jpg'}}"
+                         th:src="${prod.imagenesProducto != null and not #lists.isEmpty(prod.imagenesProducto) ? prod.imagenesProducto[0].urlImagen : '/CSS/imag/tomate.jpg'}"
                          alt="Imagen del producto">
                     <div class="position-absolute top-0 end-0 m-2">
                         <span class="badge bg-success" th:if="${prod.stock > 0}"
@@ -771,7 +771,55 @@
 
 <!-- PRODUCTO DESTACADO -->
 <section class="container my-5" data-aos="fade-up">
-    <div class="featured">
+    <!-- Si existe un producto destacado, mostrar sus datos -->
+    <div th:if="${productoDestacado != null}" class="featured">
+        <!-- Imagen: si tiene imágenes, usar la primera; si no, fallback -->
+        <img th:if="${productoDestacado.imagenesProducto != null and !#lists.isEmpty(productoDestacado.imagenesProducto)}"
+             th:src="${productoDestacado.imagenesProducto[0].urlImagen}"
+             alt="Producto destacado">
+
+        <img th:unless="${productoDestacado.imagenesProducto != null and !#lists.isEmpty(productoDestacado.imagenesProducto)}"
+             th:src="@{/CSS/imag/Ofertas_Tomate.jpg}"
+             alt="Producto destacado">
+
+        <div class="featured-body">
+            <h2 style="color: #2f6b31;" th:text="${productoDestacado.nombreProducto}">Producto destacado</h2>
+            <p class="lead text-muted" th:text="${productoDestacado.descripcionProducto}">Descripción del producto</p>
+            <div class="row mt-4">
+                <div class="col-md-6">
+                    <h5>Características:</h5>
+                    <ul class="list-unstyled">
+                        <li><i class="bi bi-check-circle text-success me-2"></i>
+                            <span>Producto más vendido</span>
+                        </li>
+                        <li th:if="${productoDestacado.categoria != null}">
+                            <i class="bi bi-check-circle text-success me-2"></i>
+                            <span>Categoría: </span><span th:text="${productoDestacado.categoria.nombreCategoria}">Categoría</span>
+                        </li>
+                        <li th:if="${productoDestacado.productoFincas != null and !#lists.isEmpty(productoDestacado.productoFincas)}">
+                            <i class="bi bi-check-circle text-success me-2"></i>
+                            <span>Finca: </span><span th:text="${productoDestacado.productoFincas[0].finca.nombreFinca}">Finca</span>
+                        </li>
+                        <li th:if="${productoDestacado.pesoKg != null}">
+                            <i class="bi bi-check-circle text-success me-2"></i>
+                            <span>Peso: </span><span th:text="${productoDestacado.pesoKg + ' kg'}">1 kg</span>
+                        </li>
+                        <li><i class="bi bi-check-circle text-success me-2"></i>Calidad garantizada</li>
+                    </ul>
+                </div>
+                <div class="col-md-6">
+                    <h3 class="text-success" th:text="${productoDestacado.precio != null ? '$' + #numbers.formatDecimal(productoDestacado.precio, 1, 'POINT', 2, 'POINT') : '$0.00'}">$0.00</h3>
+                    <p class="text-muted" th:text="${'Disponible: ' + (productoDestacado.stock != null ? productoDestacado.stock : 0) + ' unidades'}">Disponible: 0</p>
+                    <a th:href="@{/cliente/producto/{id}(id=${productoDestacado.idProducto})}" class="btn btn-lg" style="background: #2f6b31; color: white; border-radius: 12px;">
+                        <i class="bi bi-eye me-2"></i>Ver producto
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Si no hay producto destacado, mostrar fallback estático -->
+    <div th:unless="${productoDestacado != null}" class="featured">
         <img th:src="@{/CSS/imag/Ofertas_Tomate.jpg}" alt="Producto destacado">
         <div class="featured-body">
             <h2 style="color: #2f6b31;"> Tomate Cherry Premium</h2>
@@ -804,28 +852,28 @@
         <div class="col-md-3">
             <div class="p-4">
                 <i class="bi bi-people display-4 text-success mb-3"></i>
-                <h3 class="fw-bold">1,200+</h3>
-                <p class="text-muted">Productores activos</p>
+                <h3 class="fw-bold" th:text="${totalUsuarios != null ? totalUsuarios + '+' : '0+'}">0+</h3>
+                <p class="text-muted">Usuarios registrados</p>
             </div>
         </div>
         <div class="col-md-3">
             <div class="p-4">
                 <i class="bi bi-box-seam display-4 text-success mb-3"></i>
-                <h3 class="fw-bold">5,800+</h3>
+                <h3 class="fw-bold" th:text="${productosDisponibles != null ? productosDisponibles + '+' : '0+'}">0+</h3>
                 <p class="text-muted">Productos disponibles</p>
             </div>
         </div>
         <div class="col-md-3">
             <div class="p-4">
                 <i class="bi bi-truck display-4 text-success mb-3"></i>
-                <h3 class="fw-bold">98%</h3>
+                <h3 class="fw-bold" th:text="${porcentajeEntregas != null ? #numbers.formatDecimal(porcentajeEntregas, 1, 0) + '%' : '0%'}">0%</h3>
                 <p class="text-muted">Entregas exitosas</p>
             </div>
         </div>
         <div class="col-md-3">
             <div class="p-4">
                 <i class="bi bi-star-fill display-4 text-success mb-3"></i>
-                <h3 class="fw-bold">4.9/5</h3>
+                <h3 class="fw-bold" th:text="${promedioCalificaciones != null ? #numbers.formatDecimal(promedioCalificaciones, 1, 1) + '/5' : '0.0/5'}">0.0/5</h3>
                 <p class="text-muted">Calificación promedio</p>
             </div>
         </div>
@@ -835,39 +883,19 @@
 <!-- FOOTER -->
 <footer class="footer mt-5">
     <div class="container">
-        <div class="row">
-            <div class="col-md-4 mb-4">
-                <h5 class="mb-3 d-flex align-items-center">
-                    <img th:src="@{/CSS/logo/logoAgro.jpeg}" alt="Logo Agrolink" class="footer-logo me-3">
-                    Agrolink
-                </h5>
+        <div class="row justify-content-between">
+            <div class="col-md-5 mb-4 text-center">
+                <img th:src="@{/CSS/logo/logoAgro.jpeg}" alt="Logo Agrolink" class="footer-logo mb-3">
+                <h5 class="mb-3">Agrolink</h5>
                 <p>Conectando el campo colombiano con tu mesa. Productos frescos, precios justos, calidad garantizada.</p>
-                <div>
+                <div class="mt-3">
                     <a href="#" class="text-white me-3"><i class="bi bi-facebook"></i></a>
                     <a href="#" class="text-white me-3"><i class="bi bi-instagram"></i></a>
                     <a href="#" class="text-white me-3"><i class="bi bi-twitter"></i></a>
                     <a href="#" class="text-white"><i class="bi bi-youtube"></i></a>
                 </div>
             </div>
-            <div class="col-md-2 mb-4">
-                <h6>Productos</h6>
-                <ul class="list-unstyled">
-                    <li><a href="#" class="text-white-50">Frutas</a></li>
-                    <li><a href="#" class="text-white-50">Verduras</a></li>
-                    <li><a href="#" class="text-white-50">Cereales</a></li>
-                    <li><a href="#" class="text-white-50">Tubérculos</a></li>
-                </ul>
-            </div>
-            <div class="col-md-2 mb-4">
-                <h6>Servicios</h6>
-                <ul class="list-unstyled">
-                    <li><a href="#" class="text-white-50">Asesoría</a></li>
-                    <li><a href="#" class="text-white-50">Veterinario</a></li>
-                    <li><a href="#" class="text-white-50">Maquinaria</a></li>
-                    <li><a href="#" class="text-white-50">Transporte</a></li>
-                </ul>
-            </div>
-            <div class="col-md-2 mb-4">
+            <div class="col-md-3 mb-4">
                 <h6>Soporte</h6>
                 <ul class="list-unstyled">
                     <li><a href="#" class="text-white-50">Ayuda</a></li>
@@ -876,7 +904,7 @@
                     <li><a href="#" class="text-white-50">Términos</a></li>
                 </ul>
             </div>
-            <div class="col-md-2 mb-4">
+            <div class="col-md-3 mb-4">
                 <h6>Contacto</h6>
                 <p class="text-white-50 small">
                     <i class="bi bi-telephone me-2"></i>+57 300 123 4567<br>

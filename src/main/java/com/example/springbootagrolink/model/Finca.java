@@ -23,7 +23,7 @@ public class Finca implements Serializable {
     // Finca se asocia a Productor a través de la columna id_usuario (PK de tb_productores)
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(
-        name = "id_productor",
+        name = "id_usuario",
         referencedColumnName = "id_usuario",
         nullable = false,
         foreignKey = @ForeignKey(name = "fk_fincas_productor")

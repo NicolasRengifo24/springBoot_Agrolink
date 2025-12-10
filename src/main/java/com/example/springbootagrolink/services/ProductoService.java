@@ -137,8 +137,13 @@ public class ProductoService  implements Idao <Producto, Integer> {
     // Método para obtener el producto más vendido (destacado)
     @Transactional(readOnly = true)
     public Producto obtenerProductoMasVendido() {
-        List<Producto> productos = productoRepository.obtenerProductoMasVendido();
-        return productos.isEmpty() ? productoRepository.findFirstByOrderByIdProductoDesc() : productos.get(0);
+        try {
+            Producto producto = productoRepository.obtenerProductoMasVendidoNativo();
+            return producto != null ? producto : productoRepository.findFirstByOrderByIdProductoDesc();
+        } catch (Exception e) {
+            // Si hay error, devolver el producto más reciente
+            return productoRepository.findFirstByOrderByIdProductoDesc();
+        }
     }
 
 }
