@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Servicios - AgroMercado</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" />
+    <link href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css" rel="stylesheet" />
+
+    <style>
+        body {
+            font-family: "Inter", sans-serif;
+            background: #f6f8f4;
+            margin: 0;
+            padding: 0;
+        }
+        a { text-decoration: none !important; }
+
+        /* -------- NAVBAR PREMIUM -------- */
+        .navbar-custom {
+            background: white;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+            padding: 10px 0;
+        }
+        .brand-logo {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-family: "Nunito", sans-serif;
+            font-size: 2.4rem;
+            font-weight: 700;
+            color: #2f6b31;
+            transition: all 0.3s ease;
+            margin-left: -10px;
+        }
+        .brand-logo img{
+            width: 70px;
+            height: 70px;
+            object-fit: cover;
+            border-radius: 50%;
+            border: 3px solid transparent;
+            background: white;
+            padding: 2px;
+            position: relative;
+            transition: all 0.4s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Borde degradado elegante */
+        .brand-logo img::before {
+            content: '';
+            position: absolute;
+            top: -3px;
+            left: -3px;
+            right: -3px;
+            bottom: -3px;
+            background: linear-gradient(135deg, #ff6b6b, #feca57, #48dbfb, #ff9ff3, #54a0ff);
+            border-radius: 50%;
+            z-index: -1;
+            animation: rotateBorder 3s linear infinite;
+        }
+
+        @keyframes rotateBorder {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .brand-logo:hover img {
+            transform: scale(1.15);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .brand-logo:hover {
+            transform: translateY(-3px);
+        }
+
+        .brand-logo:hover img::before {
+            animation-duration: 1s;
+        }
+
+        .search-box{
+            width: 350px;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid #cfd8cd;
+            display: flex !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+        .search-box input{
+            border: none;
+            padding: 10px 12px;
+            flex: 1;
+            outline: none;
+            background: white;
+            margin: 0;
+        }
+        .search-box button{
+            border: none;
+            background: #2f6b31;
+            color: white;
+            padding: 0 18px;
+            margin: 0;
+            outline: none;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+        .search-box button:hover {
+            background: #1d4820;
+        }
+        .cart-badge{
+            background: #e63946;
+            color: white;
+            font-size: 0.75rem;
+            padding: 2px 6px;
+            border-radius: 50%;
+            position: absolute;
+            top: -4px;
+            right: -6px;
+        }
+        .profile-img{
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        /* -------- ESTILOS ESPECÍFICOS DE SERVICIOS -------- */
+        .hero {
+            height:48vh;
+            background: center/cover no-repeat;
+            border-bottom-left-radius: 40px;
+            border-bottom-right-radius: 40px;
+            position: relative;
+            margin-top: 80px;
+        }
+        .hero-overlay{
+            background: linear-gradient(180deg, rgba(0,0,0,0.25), rgba(0,0,0,0.35));
+            height:100%;
+            display:flex;
+            align-items:center;
+            border-bottom-left-radius: 40px;
+            border-bottom-right-radius: 40px;
+        }
+        .hero-text {
+            color: white;
+            max-width: 600px;
+            margin-left: 60px;
+        }
+        .hero-text h1{
+            font-size: 2.8rem;
+            font-weight: 700;
+        }
+        .hero-btn{
+            background: #2f6b31;
+            color: white;
+            padding: 12px 26px;
+            border-radius: 12px;
+            text-decoration: none;
+            display: inline-block;
+            transition: background 0.3s ease;
+        }
+        .hero-btn:hover {
+            background: #1d4820;
+            color: white;
+        }
+
+        .service-card{
+            border-radius:14px;
+            overflow:hidden;
+            transition:transform .25s, box-shadow .25s;
+            background: white;
+            box-shadow: 0 5px 12px rgba(0,0,0,0.05);
+            border: none;
+            height: 100%;
+        }
+        .service-card:hover{
+            transform:translateY(-8px);
+            box-shadow:0 15px 35px rgba(0,0,0,0.15);
+        }
+        .provider-avatar{
+            width:48px;
+            height:48px;
+            border-radius:50%;
+            object-fit:cover
+        }
+        .filters-premium{
+            background:white;
+            padding:25px;
+            border-radius:20px;
+            box-shadow:0 8px 24px rgba(0,0,0,0.06);
+            border: 1px solid #e7efe4;
+        }
+        .badge-service{
+            background:#e9f7ee;
+            color:#1b6b2a;
+            font-size: 0.75rem;
+            padding: 4px 8px;
+            border-radius: 6px;
+        }
+        .reviews {
+            max-height:180px;
+            overflow:auto
+        }
+
+        /* Dropdown menu styles */
+        .dropdown-menu {
+            border: none;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            border-radius: 12px;
+            padding: 8px 0;
+            min-width: 280px;
+        }
+        .dropdown-header {
+            font-size: 0.9rem;
+            padding: 8px 16px 4px 16px;
+            margin-bottom: 0;
+            border-bottom: 2px solid #2f6b31;
+        }
+        .dropdown-item {
+            padding: 6px 16px;
+            font-size: 0.85rem;
+            transition: all 0.2s ease;
+        }
+        .dropdown-item:hover {
+            background-color: #f0f8f0;
+            color: #2f6b31;
+            padding-left: 24px;
+        }
+        .dropdown-divider {
+            margin: 8px 16px;
+            border-color: #e9ecef;
+        }
+
+        /* Mega menu */
+        .mega-menu-dropdown {
+            position: absolute;
+            left: 0;
+            top: 100%;
+            width: 100vw;
+            background: #fff;
+            padding: 20px 40px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            z-index: 9999;
+            max-height: 400px;
+            overflow-y: auto;
+            border: none;
+            border-radius: 12px;
+        }
+        .mega-title {
+            font-weight: 600;
+            color: #2f6b31;
+            margin-bottom: 8px;
+            font-size: 1rem;
+            border-bottom: 2px solid #2f6b31;
+            padding-bottom: 5px;
+        }
+        .mega-list a {
+            display: block;
+            padding: 4px 0;
+            font-size: 0.9rem;
+            color: #555;
+            transition: all 0.2s ease;
+        }
+        .mega-list a:hover {
+            color: #2f6b31;
+            background-color: #f8f9fa;
+            padding-left: 10px;
+            border-radius: 4px;
+        }
+        .categoria-item {
+            background: #fafafa;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            border: 1px solid #f0f0f0;
+            padding: 10px;
+        }
+        .categoria-item:hover {
+            background: #f0f8f0;
+            border-color: #2f6b31;
+            transform: translateY(-2px);
+        }
+
+        /* Footer styles */
+        .footer{
+            background: #2f6b31;
+            color: white;
+            padding: 40px 0 20px;
+            border-top-left-radius: 40px;
+            border-top-right-radius: 40px;
+            margin-top: 60px;
+        }
+        .footer-logo {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 12px;
+            border: 3px solid transparent;
+            background: linear-gradient(white, white) padding-box,
+            linear-gradient(135deg, #8B4513, #A0522D, #2f6b31, #556B2F, #6B8E23) border-box;
+            padding: 3px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(255, 255, 255, 0.2);
+        }
+        .footer-logo:hover {
+            transform: scale(1.1) rotate(5deg);
+            box-shadow: 0 6px 20px rgba(139, 69, 19, 0.4);
+        }
+
+        @media (max-width:767px){
+            .hero {
+                height:36vh;
+                margin-top: 70px;
+            }
+            .hero-text {
+                margin-left: 20px;
+                margin-right: 20px;
+            }
+            .hero-text h1 {
+                font-size: 2rem;
+            }
+            .brand-logo {
+                font-size: 1.8rem;
+            }
+            .brand-logo img {
+                width: 50px;
+                height: 50px;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .hero-text h1 {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<!-- NAVBAR PREMIUM (actualizado del index.html) -->
+<nav class="navbar navbar-expand-lg navbar-custom fixed-top">
+    <div class="container">
+        <!-- LOGO -->
+        <a class="navbar-brand brand-logo" th:href="@{/}">
+            <img th:src="@{/CSS/logo/logoAgro.jpeg}" alt="Logo Agrolink">
+            AgroMercado
+        </a>
+
+        <button class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navMenu">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navMenu">
+            <!-- BÚSQUEDA -->
+            <div class="mx-auto d-none d-lg-block">
+                <form class="d-flex search-box" th:action="@{/servicios}" method="get">
+                    <label for="qMain" class="visually-hidden">Buscar servicios</label>
+                    <input id="qMain" type="search" name="q" th:value="${q}" placeholder="Buscar servicios...">
+                    <button type="submit"><i class="bi bi-search"></i></button>
+                </form>
+            </div>
+
+            <ul class="navbar-nav ms-auto align-items-center">
+                <li class="nav-item">
+                    <a class="nav-link me-3" th:href="@{/}">Inicio</a>
+                </li>
+
+                <!-- MEGA MENU CATEGORÍAS DINÁMICO -->
+                <li class="nav-item dropdown position-static">
+                    <a class="nav-link dropdown-toggle me-3" data-bs-toggle="dropdown" href="javascript:void(0);">Categorías</a>
+
+                    <div class="dropdown-menu mega-menu-dropdown">
+                        <div class="container-fluid">
+                            <!-- Verificar si hay categorías disponibles -->
+                            <div th:if="${categorias != null and not #lists.isEmpty(categorias)}">
+                                <div class="row g-2">
+                                    <!-- Mostrar categorías en columnas más compactas -->
+                                    <div th:each="categoria : ${categorias}" class="col-lg-2 col-md-3 col-sm-4 col-6">
+                                        <div class="categoria-item p-2">
+                                            <h6 class="mega-title" th:text="${categoria.nombre}">Categoría</h6>
+                                            <div class="mega-list">
+                                                <a th:href="@{/servicios(categoria=${categoria.id})}"
+                                                   th:text="'Ver ' + ${categoria.nombre}">Ver Categoría</a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Mensaje cuando no hay categorías -->
+                            <div th:if="${categorias == null or #lists.isEmpty(categorias)}">
+                                <div class="text-center py-3">
+                                    <i class="bi bi-tags text-muted mb-2" style="font-size: 1.5rem;"></i>
+                                    <p class="text-muted mb-0 small">No hay categorías disponibles</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </li>
+
+                <!-- SERVICIOS ACTIVE -->
+                <li class="nav-item">
+                    <a class="nav-link me-3 active" th:href="@{/servicios}">Servicios</a>
+                </li>
+
+                <!-- PROVEEDORES -->
+                <li class="nav-item">
+                    <a class="nav-link me-3" th:href="@{/proveedores}">Proveedores</a>
+                </li>
+
+                <!-- CONTACTO -->
+                <li class="nav-item">
+                    <a class="nav-link me-3" th:href="@{/contacto}">Contacto</a>
+                </li>
+
+                <!-- CARRITO (opcional para servicios) -->
+                <li class="nav-item position-relative me-3">
+                    <a class="nav-link" th:href="@{/cliente/carrito}">
+                        <i class="bi bi-cart3 fs-5"></i>
+                        <span class="cart-badge" th:text="${cartCount}">0</span>
+                    </a>
+                </li>
+
+                <!-- PERFIL DEL USUARIO -->
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle d-flex align-items-center" data-bs-toggle="dropdown">
+                        <img th:src="@{https://i.pravatar.cc/40?img=12}" class="profile-img me-2" alt="Perfil">
+                        Cuenta
+                    </a>
+
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" th:href="@{/perfil}"><i class="bi bi-person me-2"></i>Mi perfil</a></li>
+                        <li><a class="dropdown-item" th:href="@{/mis-reservas}"><i class="bi bi-calendar-check me-2"></i>Mis reservas</a></li>
+                        <li><a class="dropdown-item" href="#"><i class="bi bi-gear me-2"></i>Configuración</a></li>
+                        <li><hr></li>
+                        <li><a class="dropdown-item text-danger" href="#"><i class="bi bi-box-arrow-right me-2"></i>Cerrar sesión</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero" th:style="|background-image: url('@{/CSS/imag/imagenfondo_servicios.jpg}');|">
+    <div class="hero-overlay">
+        <div class="hero-text text-white" data-aos="fade-right">
+            <h1>Encuentra servicios agrícolas profesionales</h1>
+            <p class="lead">Contrata transporte, maquinaria, asesoría y más — pagos seguros, reservas y evaluación de proveedores.</p>
+            <a th:href="@{/servicios}" class="hero-btn">Explorar servicios</a>
+        </div>
+    </div>
+</section>
+
+<!-- MAIN: filtros + listado -->
+<main class="container my-5">
+    <div class="row g-4">
+        <!-- SIDEBAR FILTROS -->
+        <aside class="col-lg-3">
+            <div class="filters-premium sticky-top" style="top:90px">
+                <div class="d-flex align-items-center mb-3">
+                    <i class="bi bi-funnel me-2" style="font-size:1.25rem;color:#2f6b31"></i>
+                    <h5 class="mb-0">Filtrar servicios</h5>
+                </div>
+
+                <form th:action="@{/servicios}" method="get">
+                    <input type="hidden" name="q" th:value="${q}" />
+
+                    <div class="mb-3">
+                        <label for="categoriaSelect" class="form-label small">Categoría</label>
+                        <select id="categoriaSelect" class="form-select form-select-sm" name="categoria">
+                            <option value="">Todas</option>
+                            <option th:each="c : ${categorias}" th:value="${c.id}" th:text="${c.nombre}" th:selected="${c.id == categoria}"></option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="ubicacionInput" class="form-label small">Ubicación</label>
+                        <input id="ubicacionInput" class="form-control form-control-sm" name="ubicacion" th:value="${ubicacion}" placeholder="Ciudad o departamento">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small">Rango de precio</label>
+                        <div class="d-flex gap-2">
+                            <input id="precioMin" type="number" class="form-control form-control-sm" name="precioMin" placeholder="Min" th:value="${precioMin}">
+                            <label for="precioMin" class="visually-hidden">Precio mínimo</label>
+
+                            <input id="precioMax" type="number" class="form-control form-control-sm" name="precioMax" placeholder="Max" th:value="${precioMax}">
+                            <label for="precioMax" class="visually-hidden">Precio máximo</label>
+                        </div>
+                    </div>
+
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="soloDisponibles" name="soloDisponibles" th:checked="${soloDisponibles}">
+                        <label class="form-check-label small" for="soloDisponibles">Solo servicios disponibles</label>
+                    </div>
+
+                    <div class="d-grid">
+                        <button class="btn btn-success">Aplicar</button>
+                    </div>
+                </form>
+
+                <hr/>
+                <h6 class="small text-muted">Opciones rápidas</h6>
+                <div class="d-flex flex-column gap-2 mt-2">
+                    <a class="btn btn-outline-secondary btn-sm" th:href="@{/servicios(categoria='transporte')}"><i class="bi bi-truck me-1"></i> Transporte</a>
+                    <a class="btn btn-outline-secondary btn-sm" th:href="@{/servicios(categoria='maquinaria')}"><i class="bi bi-gear me-1"></i> Maquinaria</a>
+                    <a class="btn btn-outline-secondary btn-sm" th:href="@{/servicios(categoria='asesoria')}"><i class="bi bi-chat-dots me-1"></i> Asesoría técnica</a>
+                </div>
+            </div>
+        </aside>
+
+        <!-- LISTADO -->
+        <section class="col-lg-9">
+            <!-- BARRA DE BUSQUEDA VISIBLE (mobile) -->
+            <div class="d-lg-none mb-3">
+                <form th:action="@{/servicios}" method="get" class="d-flex">
+                    <label for="qMobile" class="visually-hidden">Buscar</label>
+                    <input id="qMobile" class="form-control me-2" name="q" placeholder="Buscar servicios o proveedores..." th:value="${q}">
+                    <button class="btn btn-success"><i class="bi bi-search"></i></button>
+                </form>
+            </div>
+
+            <!-- LISTADO DE SERVICIOS -->
+            <div class="row g-4" th:if="${servicios != null}">
+                <div class="col-md-6" th:each="servicio : ${servicios}">
+                    <!-- Añadí data-attributes (categoria, ubicacion, precio) para que el filtrado JS pueda leerlos -->
+                    <div class="card service-card h-100 border-0" data-aos="fade-up"
+                         th:attr="data-category=${servicio.categoriaNombre}, data-ubicacion=${servicio.ubicacion}, data-precio=${servicio.precio}">
+                        <div class="row g-0">
+                            <div class="col-4">
+                                <img th:src="${servicio.imagen != null ? servicio.imagen : '/CSS/imag/servicio_default.jpg'}" alt="Imagen del servicio" class="img-fluid h-100" style="object-fit:cover">
+                            </div>
+                            <div class="col-8">
+                                <div class="card-body d-flex flex-column h-100">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <h5 class="mb-1 service-title" th:text="${servicio.titulo}">Servicio</h5>
+                                        <span class="badge badge-service small" th:text="${servicio.categoriaNombre}">Categoría</span>
+                                    </div>
+
+                                    <p class="small text-muted mb-1"><i class="bi bi-geo-alt me-1"></i><span th:text="${servicio.ubicacion}">Ubicación</span></p>
+
+                                    <p class="fw-bold text-success mb-2" th:text="${'$' + #numbers.formatDecimal(servicio.precio,1,'POINT',2,'POINT')}">$0</p>
+
+                                    <p class="small text-muted mb-2" th:text="${servicio.resumen}">Resumen del servicio...</p>
+
+                                    <div class="mt-auto d-flex gap-2 align-items-center">
+                                        <!-- Usar th:onclick para que Thymeleaf reemplace correctamente la expresión -->
+                                        <a class="btn btn-outline-success btn-sm"
+                                           th:href="@{/proveedor/{id}(id=${servicio.proveedorId})}"
+                                           th:onclick="|event.preventDefault(); openProviderProfile(${servicio.proveedorId});|">Ver proveedor</a>
+
+                                        <!-- Evitar submit accidental con type="button" y usar th:onclick para inyectar id -->
+                                        <button type="button" class="btn btn-success btn-sm" th:onclick="|openBookingModal(${servicio.id});|"><i class="bi bi-calendar-check me-1"></i>Reservar</button>
+
+                                        <div class="ms-auto d-flex align-items-center gap-2">
+                                            <small class="text-muted"> <i class="bi bi-star-fill text-warning"></i> <span th:text="${servicio.puntuacion != null ? servicio.puntuacion : '0.0'}">0.0</span></small>
+                                            <a class="text-muted small" th:href="@{/servicio/{id}#reviews(id=${servicio.id})}">Reseñas</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PAGINACIÓN (si aplica) -->
+                <div class="col-12">
+                    <nav th:if="${paginacion != null}">
+                        <ul class="pagination justify-content-center">
+                            <li class="page-item" th:classappend="${paginacion.paginaActual == 1} ? 'disabled'">
+                                <a class="page-link" th:href="@{/servicios(pagina=${paginacion.paginaActual - 1})}">Anterior</a>
+                            </li>
+                            <li class="page-item" th:each="i : ${#numbers.sequence(1,paginacion.totalPaginas)}" th:classappend="${i == paginacion.paginaActual} ? 'active'">
+                                <a class="page-link" th:href="@{/servicios(pagina=${i})}" th:text="${i}">1</a>
+                            </li>
+                            <li class="page-item" th:classappend="${paginacion.paginaActual == paginacion.totalPaginas} ? 'disabled'">
+                                <a class="page-link" th:href="@{/servicios(pagina=${paginacion.paginaActual + 1})}">Siguiente</a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+
+            <!-- MENSAJE SI NO HAY RESULTADOS -->
+            <div class="alert alert-info" th:if="${servicios == null or #lists.isEmpty(servicios)}">
+                <h5>No se encontraron servicios</h5>
+                <p class="mb-0">Intenta cambiar los filtros o prueba más tarde.</p>
+            </div>
+        </section>
+    </div>
+
+    <!-- SECCION DE ANALÍTICAS (resumen para proveedores) -->
+    <section class="my-5">
+        <div class="row">
+            <div class="col-12 d-flex justify-content-between align-items-center mb-3">
+                <h4 class="fw-bold">Analítica rápida</h4>
+                <small class="text-muted">Datos resumidos para proveedores</small>
+            </div>
+
+            <div class="col-md-3">
+                <div class="p-3 bg-white rounded shadow-sm text-center">
+                    <h5 th:text="${analytics.totalReservas != null ? analytics.totalReservas : 0}">0</h5>
+                    <p class="small text-muted mb-0">Reservas</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="p-3 bg-white rounded shadow-sm text-center">
+                    <h5 th:text="${analytics.ingresos != null ? '$' + analytics.ingresos : '$0'}">$0</h5>
+                    <p class="small text-muted mb-0">Ingresos</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="p-3 bg-white rounded shadow-sm text-center">
+                    <h5 th:text="${analytics.calificacionPromedio != null ? analytics.calificacionPromedio + '/5' : '0/5'}">0/5</h5>
+                    <p class="small text-muted mb-0">Calificación</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="p-3 bg-white rounded shadow-sm text-center">
+                    <h5 th:text="${analytics.mensajesPendientes != null ? analytics.mensajesPendientes : 0}">0</h5>
+                    <p class="small text-muted mb-0">Mensajes</p>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+
+<!-- FOOTER (actualizado del index.html) -->
+<footer class="footer">
+    <div class="container">
+        <div class="row justify-content-between">
+            <div class="col-md-5 mb-4 text-center">
+                <img th:src="@{/CSS/logo/logoAgro.jpeg}" alt="Logo AgroMercado" class="footer-logo mb-3">
+                <h5 class="mb-3">AgroMercado</h5>
+                <p>Conectando el campo colombiano con tu mesa. Servicios agrícolas profesionales, precios justos, calidad garantizada.</p>
+                <div class="mt-3">
+                    <a href="#" class="text-white me-3"><i class="bi bi-facebook"></i></a>
+                    <a href="#" class="text-white me-3"><i class="bi bi-instagram"></i></a>
+                    <a href="#" class="text-white me-3"><i class="bi bi-twitter"></i></a>
+                    <a href="#" class="text-white"><i class="bi bi-youtube"></i></a>
+                </div>
+            </div>
+            <div class="col-md-3 mb-4">
+                <h6>Soporte</h6>
+                <ul class="list-unstyled">
+                    <li><a href="#" class="text-white-50">Ayuda</a></li>
+                    <li><a href="#" class="text-white-50">Contacto</a></li>
+                    <li><a href="#" class="text-white-50">FAQ</a></li>
+                    <li><a href="#" class="text-white-50">Términos</a></li>
+                </ul>
+            </div>
+            <div class="col-md-3 mb-4">
+                <h6>Contacto</h6>
+                <p class="text-white-50 small">
+                    <i class="bi bi-telephone me-2"></i>+57 300 123 4567<br>
+                    <i class="bi bi-envelope me-2"></i>info@agromercado.co<br>
+                    <i class="bi bi-geo-alt me-2"></i>Bogotá, Colombia
+                </p>
+            </div>
+        </div>
+        <hr class="my-4">
+        <div class="row align-items-center">
+            <div class="col-md-6">
+                <p class="mb-0">&copy; 2024 AgroMercado. Todos los derechos reservados.</p>
+            </div>
+            <div class="col-md-6 text-md-end">
+                <p class="mb-0">
+                    <a href="#" class="text-white-50 me-3">Privacidad</a>
+                    <a href="#" class="text-white-50 me-3">Términos</a>
+                    <a href="#" class="text-white-50">Cookies</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- PROVIDER PROFILE MODAL -->
+<div class="modal fade" id="providerModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Perfil del proveedor</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Cuerpo cargado dinámicamente con JS/Thymeleaf -->
+                <div id="providerContent">
+                    <div class="d-flex gap-3 align-items-center mb-3">
+                        <img id="provAvatar" src="/CSS/logo/logoAgro.jpeg" alt="Avatar proveedor" class="provider-avatar">
+                        <div>
+                            <h5 id="provName">Proveedor Ejemplo</h5>
+                            <p id="provUbicacion" class="small text-muted mb-0">Ubicación</p>
+                        </div>
+                    </div>
+
+                    <p id="provDescripcion">Descripción del proveedor...</p>
+
+                    <h6>Servicios ofrecidos</h6>
+                    <ul id="provServicios"></ul>
+
+                    <h6 class="mt-3">Reseñas</h6>
+                    <div class="reviews mt-2" id="provReviews">
+                        <!-- reseñas -->
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <a id="provMessageBtn" href="#" class="btn btn-outline-secondary">Enviar mensaje</a>
+                <button class="btn btn-success" id="provContactBtn">Reservar/Contratar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- BOOKING / PAYMENT MODAL -->
+<div class="modal fade" id="bookingModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-md modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Reservar servicio</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="bookingForm" th:action="@{/reservar}" method="post">
+                <div class="modal-body">
+                    <input type="hidden" name="servicioId" id="bookingServicioId">
+                    <div class="mb-3">
+                        <label for="fechaInput" class="form-label">Fecha</label>
+                        <input id="fechaInput" type="date" name="fecha" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="horaInput" class="form-label">Hora</label>
+                        <input id="horaInput" type="time" name="hora" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="comentariosInput" class="form-label">Comentarios</label>
+                        <textarea id="comentariosInput" name="comentarios" class="form-control" rows="3"></textarea>
+                    </div>
+
+                    <div class="alert alert-light small">
+                        Pago seguro mediante pasarela. (Aquí integras tu proveedor: e.g. PayU, PlacetoPay, Stripe)
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-success">Pagar y reservar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- SCRIPTS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js"></script>
+<script>
+    // Inicialización AOS
+    AOS.init({
+        duration: 700,
+        once: true,
+        easing: 'ease-in-out'
+    });
+
+    // Abrir modal de perfil del proveedor
+    function openProviderProfile(proveedorId){
+        // Ejemplo estático: en producción hace fetch a /api/proveedores/{id}
+        const prov = {
+            id: proveedorId,
+            nombre: 'Proveedor ' + proveedorId,
+            ubicacion: 'Cundinamarca',
+            descripcion: 'Proveedor experto en servicios agrícolas con 10 años de experiencia.',
+            servicios: ['Transporte','Fumigación','Alquiler de maquinaria'],
+            avatar: '/CSS/logo/logoAgro.jpeg',
+            reviews: [
+                {user:'Ana', text:'Servicio excelente', rating:5},
+                {user:'Pedro', text:'Muy profesional', rating:4}
+            ]
+        };
+
+        document.getElementById('provAvatar').src = prov.avatar;
+        document.getElementById('provName').textContent = prov.nombre;
+        document.getElementById('provUbicacion').textContent = prov.ubicacion;
+        document.getElementById('provDescripcion').textContent = prov.descripcion;
+
+        const ul = document.getElementById('provServicios');
+        ul.innerHTML='';
+        prov.servicios.forEach(s=>{
+            const li=document.createElement('li');
+            li.textContent=s;
+            ul.appendChild(li);
+        });
+
+        const rv = document.getElementById('provReviews');
+        rv.innerHTML='';
+        prov.reviews.forEach(r=>{
+            const div=document.createElement('div');
+            div.className='mb-2';
+            div.innerHTML = `
+                <strong>${r.user}</strong>
+                <small class="text-muted"> - ${r.rating}/5</small>
+                <div class="small">${r.text}</div>
+            `;
+            rv.appendChild(div);
+        });
+
+        var modal = new bootstrap.Modal(document.getElementById('providerModal'));
+        modal.show();
+    }
+
+    // Abrir modal de booking y setear id del servicio
+    function openBookingModal(servicioId){
+        document.getElementById('bookingServicioId').value = servicioId;
+        var modal = new bootstrap.Modal(document.getElementById('bookingModal'));
+        modal.show();
+    }
+
+    // Funcionalidad de búsqueda con Enter
+    const searchInput = document.querySelector('input[name="q"]');
+    if (searchInput) {
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                this.closest('form').submit();
+            }
+        });
+    }
+
+    // Filtrar servicios dinámicamente (para la sección de filtros adicional)
+    document.addEventListener("DOMContentLoaded", () => {
+        const searchInput = document.querySelector("#searchInput");
+        const categorySelect = document.querySelector("#categorySelect");
+        const ubicacionSelect = document.querySelector("#ubicacionSelect");
+        const precioMaxInput = document.querySelector("#precioMax");
+        const serviceCards = document.querySelectorAll(".service-card");
+
+        if (searchInput && serviceCards.length > 0) {
+            function filterServices() {
+                const text = searchInput.value.toLowerCase();
+                const category = categorySelect.value;
+                const ubicacion = ubicacionSelect.value;
+                const precioMax = precioMaxInput.value ? parseInt(precioMaxInput.value) : null;
+
+                serviceCards.forEach(card => {
+                    const title = card.querySelector(".service-title").textContent.toLowerCase();
+                    const cardCategory = card.dataset.category;
+                    const cardUbicacion = card.dataset.ubicacion;
+                    const cardPrecio = parseInt(card.dataset.precio);
+
+                    const matchesText = title.includes(text);
+                    const matchesCategory = category === "all" || cardCategory === category;
+                    const matchesUbicacion = ubicacion === "all" || cardUbicacion === ubicacion;
+                    const matchesPrecio = precioMax === null || cardPrecio <= precioMax;
+
+                    const isVisible = matchesText && matchesCategory && matchesUbicacion && matchesPrecio;
+                    card.style.display = isVisible ? "block" : "none";
+                });
+            }
+
+            searchInput.addEventListener("input", filterServices);
+            categorySelect.addEventListener("change", filterServices);
+            ubicacionSelect.addEventListener("change", filterServices);
+            precioMaxInput.addEventListener("input", filterServices);
+        }
+
+        // Funcionalidad para mostrar/ocultar filtros con animación
+        const filterToggles = document.querySelectorAll('.filter-toggle');
+        filterToggles.forEach(toggle => {
+            toggle.addEventListener('click', function() {
+                const chevron = this.querySelector('.bi-chevron-down, .bi-chevron-up');
+                if (chevron) {
+                    // Alternar icono de chevron
+                    if (chevron.classList.contains('bi-chevron-down')) {
+                        chevron.classList.remove('bi-chevron-down');
+                        chevron.classList.add('bi-chevron-up');
+                    } else {
+                        chevron.classList.remove('bi-chevron-up');
+                        chevron.classList.add('bi-chevron-down');
+                    }
+                }
+            });
+        });
+    });
+</script>
+</body>
+</html>
