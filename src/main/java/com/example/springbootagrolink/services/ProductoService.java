@@ -20,7 +20,13 @@ public class ProductoService  implements Idao <Producto, Integer> {
     @Override
     @Transactional(readOnly = true)
     public List<Producto> obtenerTodos() {
-        return productoRepository.findAllWithImages();
+        // Cargar productos con imágenes
+        List<Producto> productos = productoRepository.findAllWithImages();
+        // Cargar fincas en segunda query para evitar cartesian product
+        if (!productos.isEmpty()) {
+            productoRepository.findAllWithFincas();
+        }
+        return productos;
     }
 
     @Override

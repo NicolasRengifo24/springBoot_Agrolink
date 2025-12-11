@@ -35,8 +35,15 @@ public interface ProductoRepository extends JpaRepository<Producto, Integer>, Jp
     Long countProductosDisponibles();
 
     // Obtener todos los productos con sus imágenes (JOIN FETCH para evitar N+1)
-    @Query("SELECT DISTINCT p FROM Producto p LEFT JOIN FETCH p.imagenesProducto")
+    @Query("SELECT DISTINCT p FROM Producto p " +
+           "LEFT JOIN FETCH p.imagenesProducto")
     List<Producto> findAllWithImages();
+
+    // Obtener todos los productos con sus fincas asociadas
+    @Query("SELECT DISTINCT p FROM Producto p " +
+           "LEFT JOIN FETCH p.productoFincas pf " +
+           "LEFT JOIN FETCH pf.finca")
+    List<Producto> findAllWithFincas();
 
     // Búsqueda avanzada en múltiples campos
     @Query("SELECT DISTINCT p FROM Producto p " +

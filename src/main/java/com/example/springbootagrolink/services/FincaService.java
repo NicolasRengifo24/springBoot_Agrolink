@@ -152,6 +152,30 @@ public class FincaService implements Idao<Finca, Integer> {
     /**
      * Obtiene todas las fincas de un productor específico
      *
+     * @param idProductor ID del productor
+     * @return Lista de fincas del productor
+     */
+    @Transactional(readOnly = true)
+    public List<Finca> obtenerPorProductor(Integer idProductor) {
+        return fincaRepository.findByProductorIdProductor(idProductor);
+    }
+
+    /**
+     * Cuenta cuántas fincas tiene un productor
+     *
+     * @param idProductor ID del productor
+     * @return Cantidad de fincas
+     */
+    @Transactional(readOnly = true)
+    public long contarPorProductor(Integer idProductor) {
+        return fincaRepository.countByProductorIdProductor(idProductor);
+    }
+
+
+
+    /**
+     * Obtiene todas las fincas de un productor específico
+     *
      * CASO DE USO: Un productor quiere ver todas sus fincas
      */
     @Transactional(readOnly = true)

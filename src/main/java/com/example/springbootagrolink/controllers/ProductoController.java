@@ -42,6 +42,12 @@ public class ProductoController {
     @Autowired
     private CompraService compraService;
 
+    @Autowired
+    private FincaService fincaService;
+
+    @Autowired
+    private ProductoFincaService productoFincaService;
+
     // Directorio para guardar las imágenes (usar ruta absoluta que funcione en desarrollo y producción)
     private static final String UPLOAD_DIR = "target/classes/static/images/products/";
 
@@ -53,10 +59,12 @@ public class ProductoController {
         List<Producto> productos = productoService.obtenerTodos();
         List<CategoriaProducto> categorias = categoriaProductoService.obtenerTodos();
         List<Productor> productores = productorService.obtenerTodos();
+        List<Finca> fincas = fincaService.obtenerTodos();
 
         model.addAttribute("productos", productos);
         model.addAttribute("categorias", categorias);
         model.addAttribute("productores", productores);
+        model.addAttribute("fincas", fincas);
         model.addAttribute("ubicacion", "");
         model.addAttribute("categoriaId", 0);
 
@@ -149,6 +157,7 @@ public class ProductoController {
     public String guardarProducto(@ModelAttribute Producto producto,
                                   @RequestParam("productorId") Integer productorId,
                                   @RequestParam("categoriaId") Integer categoriaId,
+                                  @RequestParam(value = "fincaIds", required = false) List<Integer> fincaIds,
                                   @RequestParam(value = "imagenFile", required = false) MultipartFile imagenFile,
                                   @RequestParam(value = "esPrincipal", defaultValue = "false") boolean esPrincipal,
                                   RedirectAttributes redirectAttributes) {
@@ -180,6 +189,25 @@ public class ProductoController {
             // Guardar el producto
             Producto productoGuardado = productoService.guardar(producto);
 
+            // Asociar producto con finca(s) si se proporcionaron
+            if (fincaIds != null && !fincaIds.isEmpty()) {
+                for (Integer fincaId : fincaIds) {
+                    Optional<Finca> fincaOpt = fincaService.obtenerPorId(fincaId);
+                    if (fincaOpt.isPresent()) {
+                        // Crear la asociación ProductoFinca
+                        ProductoFinca productoFinca = new ProductoFinca();
+                        productoFinca.setProducto(productoGuardado);
+                        productoFinca.setFinca(fincaOpt.get());
+                        // Valores por defecto para campos opcionales
+                        productoFinca.setCantidadProduccion(BigDecimal.ZERO);
+                        productoFinca.setFechaCosecha(null);
+
+                        productoFincaService.guardar(productoFinca);
+                        log.info("Producto {} asociado a finca {}", productoGuardado.getIdProducto(), fincaId);
+                    }
+                }
+            }
+
             // Procesar imagen si se proporciona
             if (imagenFile != null && !imagenFile.isEmpty()) {
                 guardarImagenProducto(imagenFile, productoGuardado, esPrincipal);
@@ -189,6 +217,7 @@ public class ProductoController {
             return "redirect:/productos";
 
         } catch (Exception e) {
+            log.error("Error al crear producto: {}", e.getMessage(), e);
             redirectAttributes.addFlashAttribute("error", "Error al crear el producto: " + e.getMessage());
             return "redirect:/productos";
         }
@@ -219,6 +248,7 @@ public class ProductoController {
                                    @ModelAttribute Producto producto,
                                    @RequestParam(value = "productorId", required = false) Integer productorId,
                                    @RequestParam(value = "categoriaId", required = false) Integer categoriaId,
+                                   @RequestParam(value = "fincaIds", required = false) List<Integer> fincaIds,
                                    @RequestParam(value = "imagenFile", required = false) MultipartFile imagenFile,
                                    @RequestParam(value = "esPrincipal", defaultValue = "false") boolean esPrincipal,
                                    RedirectAttributes redirectAttributes) {
@@ -253,6 +283,34 @@ public class ProductoController {
 
             // Guardar el producto actualizado directamente
             Producto productoActualizado = productoService.guardar(productoExistente);
+
+            // Actualizar asociaciones con fincas
+            if (fincaIds != null) {
+                // Eliminar asociaciones existentes
+                List<ProductoFinca> asociacionesExistentes = productoFincaService.obtenerTodos().stream()
+                    .filter(pf -> pf.getProducto() != null &&
+                                 pf.getProducto().getIdProducto().equals(id))
+                    .toList();
+
+                for (ProductoFinca pf : asociacionesExistentes) {
+                    productoFincaService.eliminar(pf.getIdProductoFinca());
+                }
+
+                // Crear nuevas asociaciones
+                for (Integer fincaId : fincaIds) {
+                    Optional<Finca> fincaOpt = fincaService.obtenerPorId(fincaId);
+                    if (fincaOpt.isPresent()) {
+                        ProductoFinca productoFinca = new ProductoFinca();
+                        productoFinca.setProducto(productoActualizado);
+                        productoFinca.setFinca(fincaOpt.get());
+                        productoFinca.setCantidadProduccion(BigDecimal.ZERO);
+                        productoFinca.setFechaCosecha(null);
+
+                        productoFincaService.guardar(productoFinca);
+                        log.info("Producto {} re-asociado a finca {}", id, fincaId);
+                    }
+                }
+            }
 
             // Procesar nueva imagen si se proporciona
             if (imagenFile != null && !imagenFile.isEmpty()) {
@@ -354,9 +412,11 @@ public class ProductoController {
     public String mostrarFormularioCrear(Model model) {
         List<CategoriaProducto> categorias = categoriaProductoService.obtenerTodos();
         List<Productor> productores = productorService.obtenerTodos();
+        List<Finca> fincas = fincaService.obtenerTodos();
 
         model.addAttribute("categorias", categorias);
         model.addAttribute("productores", productores);
+        model.addAttribute("fincas", fincas);
         model.addAttribute("producto", new Producto());
 
         return "productos/crear";
@@ -374,10 +434,12 @@ public class ProductoController {
 
         List<CategoriaProducto> categorias = categoriaProductoService.obtenerTodos();
         List<Productor> productores = productorService.obtenerTodos();
+        List<Finca> fincas = fincaService.obtenerTodos();
 
         model.addAttribute("producto", productoOpt.get());
         model.addAttribute("categorias", categorias);
         model.addAttribute("productores", productores);
+        model.addAttribute("fincas", fincas);
 
         return "productos/editar";
     }
@@ -395,16 +457,270 @@ public class ProductoController {
 
     /**
      * Endpoint JSON para cargar pedidos vía AJAX (usado en el dashboard interactivo)
+     * Maneja fechas NULL y referencias circulares
      */
     @GetMapping("/pedidos/json")
     @ResponseBody
-    public ResponseEntity<List<Compra>> obtenerPedidosJson() {
+    public ResponseEntity<?> obtenerPedidosJson() {
         try {
             List<Compra> compras = compraService.obtenerTodas();
-            return ResponseEntity.ok(compras);
+
+            // Si no hay compras, retornar lista vacía
+            if (compras == null || compras.isEmpty()) {
+                return ResponseEntity.ok(new ArrayList<>());
+            }
+
+            // Filtrar compras con fechas válidas para evitar errores
+            List<Map<String, Object>> comprasSimplificadas = new ArrayList<>();
+            for (Compra c : compras) {
+                try {
+                    Map<String, Object> compraMap = new HashMap<>();
+                    compraMap.put("idCompra", c.getIdCompra());
+                    compraMap.put("fechaHoraCompra", c.getFechaHoraCompra());
+                    compraMap.put("total", c.getTotal());
+                    compraMap.put("direccionEntrega", c.getDireccionEntrega());
+                    compraMap.put("metodoPago", c.getMetodoPago());
+
+                    // Datos del cliente (evitar referencia circular)
+                    if (c.getCliente() != null) {
+                        Map<String, Object> clienteMap = new HashMap<>();
+                        clienteMap.put("nombre", c.getCliente().getUsuario() != null ?
+                            c.getCliente().getUsuario().getNombre() : "Sin nombre");
+                        clienteMap.put("correo", c.getCliente().getUsuario() != null ?
+                            c.getCliente().getUsuario().getCorreo() : "");
+                        compraMap.put("cliente", clienteMap);
+                    }
+
+                    comprasSimplificadas.add(compraMap);
+                } catch (Exception ex) {
+                    log.warn("Error al procesar compra {}: {}", c.getIdCompra(), ex.getMessage());
+                    // Continuar con las demás compras
+                }
+            }
+
+            return ResponseEntity.ok(comprasSimplificadas);
         } catch (Exception e) {
             log.error("Error al obtener pedidos: {}", e.getMessage(), e);
-            return ResponseEntity.status(500).body(new ArrayList<>());
+            Map<String, String> error = new HashMap<>();
+            error.put("error", "Error al cargar pedidos: " + e.getMessage());
+            return ResponseEntity.status(500).body(error);
+        }
+    }
+
+    /**
+     * Endpoint JSON para listar todas las fincas del productor
+     * Evita referencias circulares simplificando los datos
+     */
+    @GetMapping("/fincas/listar")
+    @ResponseBody
+    public ResponseEntity<?> listarFincasJson() {
+        try {
+            List<Finca> fincas = fincaService.obtenerTodos();
+
+            if (fincas == null || fincas.isEmpty()) {
+                return ResponseEntity.ok(new ArrayList<>());
+            }
+
+            // Simplificar datos para evitar referencias circulares
+            List<Map<String, Object>> fincasSimplificadas = new ArrayList<>();
+            for (Finca f : fincas) {
+                try {
+                    Map<String, Object> fincaMap = new HashMap<>();
+                    fincaMap.put("idFinca", f.getIdFinca());
+                    fincaMap.put("nombreFinca", f.getNombreFinca() != null ? f.getNombreFinca() : "Sin nombre");
+                    fincaMap.put("departamento", f.getDepartamento() != null ? f.getDepartamento() : "");
+                    fincaMap.put("ciudad", f.getCiudad() != null ? f.getCiudad() : "");
+                    fincaMap.put("direccionFinca", f.getDireccionFinca() != null ? f.getDireccionFinca() : "");
+                    fincaMap.put("latitud", f.getLatitud());
+                    fincaMap.put("longitud", f.getLongitud());
+                    fincaMap.put("certificadoBPA", f.getCertificadoBPA() != null ? f.getCertificadoBPA() : "Sin Certificado");
+                    fincaMap.put("registroICA", f.getRegistroICA() != null ? f.getRegistroICA() : "Sin Certificado");
+
+                    // Contar productos asociados de manera segura
+                    int cantidadProductos = 0;
+                    try {
+                        cantidadProductos = f.getProductoFincas() != null ? f.getProductoFincas().size() : 0;
+                    } catch (Exception e) {
+                        log.debug("No se pudo cargar productos de finca {}", f.getIdFinca());
+                    }
+                    fincaMap.put("cantidadProductos", cantidadProductos);
+
+                    fincasSimplificadas.add(fincaMap);
+                } catch (Exception ex) {
+                    log.warn("Error al procesar finca {}: {}", f.getIdFinca(), ex.getMessage());
+                }
+            }
+
+            return ResponseEntity.ok(fincasSimplificadas);
+        } catch (Exception e) {
+            log.error("Error al listar fincas: {}", e.getMessage(), e);
+            Map<String, String> error = new HashMap<>();
+            error.put("error", "Error al cargar fincas: " + e.getMessage());
+            return ResponseEntity.status(500).body(error);
+        }
+    }
+
+    /**
+     * Endpoint de DEBUG para ver todas las fincas en el sistema
+     */
+    @GetMapping("/fincas/debug")
+    @ResponseBody
+    public ResponseEntity<?> debugTodasLasFincas() {
+        try {
+            log.info("========================================");
+            log.info("DEBUG: Obteniendo TODAS las fincas del sistema");
+
+            List<Finca> todasLasFincas = fincaService.obtenerTodos();
+            log.info("DEBUG: Total de fincas en el sistema: {}", todasLasFincas.size());
+
+            List<Map<String, Object>> fincasDebug = new ArrayList<>();
+
+            for (Finca f : todasLasFincas) {
+                Map<String, Object> fincaMap = new HashMap<>();
+                fincaMap.put("idFinca", f.getIdFinca());
+                fincaMap.put("nombreFinca", f.getNombreFinca());
+                fincaMap.put("ciudad", f.getCiudad());
+                fincaMap.put("departamento", f.getDepartamento());
+                fincaMap.put("productorId", f.getProductor() != null ? f.getProductor().getIdProductor() : null);
+
+                fincasDebug.add(fincaMap);
+                log.info("DEBUG: Finca ID {} - {} (Productor: {})",
+                    f.getIdFinca(),
+                    f.getNombreFinca(),
+                    f.getProductor() != null ? f.getProductor().getIdProductor() : "NULL");
+            }
+
+            log.info("========================================");
+
+            return ResponseEntity.ok(Map.of(
+                "total", todasLasFincas.size(),
+                "fincas", fincasDebug
+            ));
+
+        } catch (Exception e) {
+            log.error("DEBUG ERROR: {}", e.getMessage(), e);
+            return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    /**
+     * Endpoint JSON para obtener fincas de un productor específico
+     * Se usa en el formulario de creación de productos para seleccionar la finca
+     */
+    @GetMapping("/fincas/por-productor/{productorId}")
+    @ResponseBody
+    public ResponseEntity<?> obtenerFincasPorProductor(@PathVariable Integer productorId) {
+        try {
+            log.info("========================================");
+            log.info("Solicitando fincas para productor ID: {}", productorId);
+
+            // Verificar que el productor existe
+            Optional<Productor> productorOpt = productorService.obtenerPorId(productorId);
+            if (productorOpt.isEmpty()) {
+                log.warn("Productor no encontrado con ID: {}", productorId);
+                return ResponseEntity.badRequest()
+                    .body(Map.of("error", "Productor no encontrado"));
+            }
+
+            log.info("Productor encontrado: {}", productorOpt.get().getIdProductor());
+
+            // Obtener fincas del productor usando el método optimizado del servicio
+            List<Finca> fincasDelProductor = fincaService.obtenerPorProductor(productorId);
+            log.info("Total de fincas encontradas para productor {}: {}", productorId, fincasDelProductor.size());
+
+            if (fincasDelProductor.isEmpty()) {
+                log.warn("El productor {} no tiene fincas registradas", productorId);
+            }
+
+            List<Map<String, Object>> fincasSimplificadas = new ArrayList<>();
+
+            for (Finca f : fincasDelProductor) {
+                log.info("Procesando finca ID: {}, Nombre: {}", f.getIdFinca(), f.getNombreFinca());
+
+                Map<String, Object> fincaMap = new HashMap<>();
+                fincaMap.put("idFinca", f.getIdFinca());
+                fincaMap.put("nombreFinca", f.getNombreFinca() != null ? f.getNombreFinca() : "Sin nombre");
+                fincaMap.put("ciudad", f.getCiudad() != null ? f.getCiudad() : "");
+                fincaMap.put("departamento", f.getDepartamento() != null ? f.getDepartamento() : "");
+                fincaMap.put("direccionFinca", f.getDireccionFinca() != null ? f.getDireccionFinca() : "");
+
+                fincasSimplificadas.add(fincaMap);
+            }
+
+            log.info("Fincas simplificadas a enviar: {}", fincasSimplificadas.size());
+            log.info("========================================");
+
+            return ResponseEntity.ok(fincasSimplificadas);
+
+        } catch (Exception e) {
+            log.error("Error al obtener fincas del productor {}: {}", productorId, e.getMessage(), e);
+            return ResponseEntity.status(500)
+                .body(Map.of("error", "Error al cargar las fincas: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * Endpoint JSON para crear una nueva finca (sin productos asociados inicialmente)
+     * Los productos se asociarán cuando se creen/editen
+     */
+    @PostMapping("/fincas/crear")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> crearFincaJson(@RequestBody Map<String, Object> fincaData) {
+        try {
+            // Extraer datos del JSON
+            String nombreFinca = (String) fincaData.get("nombreFinca");
+            String departamento = (String) fincaData.get("departamento");
+            String ciudad = (String) fincaData.get("ciudad");
+            String direccionFinca = (String) fincaData.get("direccionFinca");
+            String certificadoBPA = (String) fincaData.getOrDefault("certificadoBPA", "Sin Certificado");
+            String registroICA = (String) fincaData.getOrDefault("registroICA", "Sin Certificado");
+
+            Double latitud = fincaData.get("latitud") != null ?
+                Double.parseDouble(fincaData.get("latitud").toString()) : null;
+            Double longitud = fincaData.get("longitud") != null ?
+                Double.parseDouble(fincaData.get("longitud").toString()) : null;
+
+            // Validar datos obligatorios
+            if (nombreFinca == null || nombreFinca.trim().isEmpty()) {
+                return ResponseEntity.badRequest()
+                    .body(Map.of("error", "El nombre de la finca es obligatorio"));
+            }
+
+            // TODO: Obtener el productor actual de la sesión
+            // Por ahora usaremos el primer productor disponible (TEMPORAL)
+            List<Productor> productores = productorService.obtenerTodos();
+            if (productores.isEmpty()) {
+                return ResponseEntity.badRequest()
+                    .body(Map.of("error", "No hay productores registrados"));
+            }
+            Productor productor = productores.get(0); // TEMPORAL: en producción debe venir de la sesión
+
+            // Crear la finca
+            Finca finca = new Finca();
+            finca.setNombreFinca(nombreFinca);
+            finca.setDepartamento(departamento);
+            finca.setCiudad(ciudad);
+            finca.setDireccionFinca(direccionFinca);
+            finca.setLatitud(latitud);
+            finca.setLongitud(longitud);
+            finca.setCertificadoBPA(certificadoBPA);
+            finca.setRegistroICA(registroICA);
+            finca.setProductor(productor);
+
+            // Guardar la finca
+            Finca fincaGuardada = fincaService.guardar(finca);
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("finca", fincaGuardada);
+            response.put("message", "Finca creada exitosamente. Ahora puedes asociar productos al crearlos o editarlos.");
+
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            log.error("Error al crear finca: {}", e.getMessage(), e);
+            return ResponseEntity.status(500)
+                .body(Map.of("error", "Error al crear la finca: " + e.getMessage()));
         }
     }
 }

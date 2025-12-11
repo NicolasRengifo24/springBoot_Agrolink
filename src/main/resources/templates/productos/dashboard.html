@@ -70,6 +70,8 @@
       border-radius:50%;
       object-fit:cover;
       border:2px solid var(--green);
+      display:block;
+      background:#fff;
     }
 
     .brand-title{
@@ -235,7 +237,10 @@
 
       <div class="d-flex justify-content-between align-items-center">
         <div class="brand">
-          <img th:src="@{/CSS/logo/logoAgro.jpeg}" alt="Logo Agrolink">
+          <img th:src="@{/CSS/logo/logoAgro.jpeg}"
+               alt="Logo Agrolink"
+               style="width:42px; height:42px; border-radius:50%; object-fit:cover; border:2px solid var(--green);"
+               onerror="this.style.display='none';">
           <div>
             <div class="brand-title">Agrolink</div>
             <div class="small text-muted">Productor</div>
@@ -254,8 +259,8 @@
         <div class="nav-item" data-section="pedidos" onclick="cambiarSeccion('pedidos')">
           <i class="bi bi-receipt"></i><span class="nav-label"> Pedidos</span>
         </div>
-        <div class="nav-item" data-section="estadisticas" onclick="cambiarSeccion('estadisticas')">
-          <i class="bi bi-speedometer2"></i><span class="nav-label"> Fincas</span>
+        <div class="nav-item" data-section="fincas" onclick="cambiarSeccion('fincas')">
+          <i class="bi bi-geo-alt-fill"></i><span class="nav-label"> Fincas</span>
         </div>
       </nav>
 
@@ -283,23 +288,23 @@
       <!-- ALERTAS -->
       <div th:if="${success}" class="alert alert-success alert-custom alert-dismissible fade show" role="alert">
         <i class="bi bi-check-circle-fill me-2"></i>
-        <!-- Evitar ${} anidados: evaluar ternaria dentro de una sola expresión -->
-        <span th:text="${
-            success == 'created' ? 'Producto creado exitosamente' :
-            (success == 'updated' ? 'Producto actualizado exitosamente' :
-            (success == 'deleted' ? 'Producto eliminado exitosamente' : success))
-        }"></span>
+        <span th:switch="${success}">
+          <span th:case="'created'">Producto creado exitosamente</span>
+          <span th:case="'updated'">Producto actualizado exitosamente</span>
+          <span th:case="'deleted'">Producto eliminado exitosamente</span>
+          <span th:case="*" th:text="${success}">Operación exitosa</span>
+        </span>
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
       </div>
 
       <div th:if="${error}" class="alert alert-danger alert-custom alert-dismissible fade show" role="alert">
         <i class="bi bi-exclamation-triangle-fill me-2"></i>
-        <!-- Evitar ${} anidados: evaluar ternaria dentro de una sola expresión -->
-        <span th:text="${
-            error == 'delete_failed' ? 'Error al eliminar el producto' :
-            (error == 'update_failed' ? 'Error al actualizar el producto' :
-            (error == 'has_orders' ? 'No se puede eliminar: el producto tiene pedidos asociados' : error))
-        }"></span>
+        <span th:switch="${error}">
+          <span th:case="'delete_failed'">Error al eliminar el producto</span>
+          <span th:case="'update_failed'">Error al actualizar el producto</span>
+          <span th:case="'has_orders'">No se puede eliminar: el producto tiene pedidos asociados</span>
+          <span th:case="*" th:text="${error}">Error en la operación</span>
+        </span>
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
       </div>
 
@@ -383,6 +388,7 @@
                   <th>Imagen</th>
                   <th>Producto</th>
                   <th>Categoría</th>
+                  <th>Finca(s)</th>
                   <th>Stock</th>
                   <th>Precio</th>
                   <th>Acciones</th>
@@ -402,6 +408,26 @@
                     <small class="text-muted" th:text="${'ID: ' + producto.idProducto}">ID: 1</small>
                   </td>
                   <td th:text="${producto.categoria != null ? producto.categoria.nombreCategoria : 'Sin categoría'}">Categoría</td>
+                  <td>
+                    <!-- Mostrar fincas asociadas -->
+                    <th:block th:if="${producto.productoFincas != null and #lists.size(producto.productoFincas) > 0}">
+                      <th:block th:each="pf, iterStat : ${producto.productoFincas}">
+                        <span th:if="${iterStat.index < 2 and pf != null and pf.finca != null}"
+                              class="badge bg-success-subtle text-success me-1 mb-1"
+                              th:text="${pf.finca.nombreFinca}"
+                              th:title="${pf.finca.nombreFinca}">
+                          Finca
+                        </span>
+                      </th:block>
+                      <span th:if="${#lists.size(producto.productoFincas) > 2}"
+                            class="badge bg-secondary-subtle text-secondary">
+                        + más
+                      </span>
+                    </th:block>
+                    <small class="text-muted" th:if="${producto.productoFincas == null or #lists.size(producto.productoFincas) == 0}">
+                      <i class="bi bi-dash-circle"></i> Sin finca
+                    </small>
+                  </td>
                   <td th:text="${producto.stock}">0</td>
                   <td>
                     <strong th:text="${#numbers.formatCurrency(producto.precio)}">$0</strong>
@@ -423,7 +449,7 @@
                 </tr>
 
                 <tr th:if="${productos == null || productos.isEmpty()}">
-                  <td colspan="6" class="text-center text-muted py-4">
+                  <td colspan="7" class="text-center text-muted py-4">
                     <i class="bi bi-inbox fs-1 d-block mb-2"></i>
                     No hay productos registrados. Crea tu primer producto.
                   </td>
@@ -481,12 +507,109 @@
       </div>
 
       <!-- ============================================ -->
-      <!-- SECCIÓN ESTADÍSTICAS (oculta inicialmente) -->
+      <!-- SECCIÓN FINCAS (oculta inicialmente)       -->
       <!-- ============================================ -->
-      <div id="seccionEstadisticas" style="display:none;">
+      <div id="seccionFincas" style="display:none;">
         <div class="card-glass fade">
-          <h5><i class="bi bi-speedometer2 me-2"></i>Estadísticas</h5>
-          <p class="text-muted">Próximamente: análisis detallado de ventas, productos más vendidos, etc.</p>
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="mb-0"><i class="bi bi-geo-alt-fill me-2"></i>Mis Fincas</h5>
+            <button class="btn btn-success btn-sm" onclick="mostrarFormularioFinca()">
+              <i class="bi bi-plus-lg"></i> Agregar Finca
+            </button>
+          </div>
+
+          <!-- Formulario de Nueva Finca (oculto inicialmente) -->
+          <div id="formularioFinca" style="display:none;" class="mb-4">
+            <div class="card border-success">
+              <div class="card-header bg-success text-white">
+                <h6 class="mb-0"><i class="bi bi-plus-circle me-2"></i>Nueva Finca</h6>
+              </div>
+              <div class="card-body">
+                <form id="formCrearFinca">
+                  <div class="row g-3">
+                    <!-- Nombre de la Finca -->
+                    <div class="col-md-6">
+                      <label for="nombreFinca" class="form-label">Nombre de la Finca *</label>
+                      <input type="text" class="form-control" id="nombreFinca" name="nombreFinca" required
+                             placeholder="Ej: Finca El Paraíso">
+                    </div>
+
+                    <!-- Departamento -->
+                    <div class="col-md-3">
+                      <label for="departamento" class="form-label">Departamento *</label>
+                      <input type="text" class="form-control" id="departamento" name="departamento" required
+                             placeholder="Ej: Cundinamarca">
+                    </div>
+
+                    <!-- Ciudad -->
+                    <div class="col-md-3">
+                      <label for="ciudad" class="form-label">Ciudad/Municipio *</label>
+                      <input type="text" class="form-control" id="ciudad" name="ciudad" required
+                             placeholder="Ej: Fusagasugá">
+                    </div>
+
+                    <!-- Dirección -->
+                    <div class="col-12">
+                      <label for="direccionFinca" class="form-label">Dirección</label>
+                      <input type="text" class="form-control" id="direccionFinca" name="direccionFinca"
+                             placeholder="Vereda, Finca, Km, etc.">
+                    </div>
+
+                    <!-- Coordenadas GPS -->
+                    <div class="col-md-6">
+                      <label for="latitud" class="form-label">Latitud (GPS)</label>
+                      <input type="number" step="0.000001" class="form-control" id="latitud" name="latitud"
+                             placeholder="Ej: 4.338889">
+                    </div>
+
+                    <div class="col-md-6">
+                      <label for="longitud" class="form-label">Longitud (GPS)</label>
+                      <input type="number" step="0.000001" class="form-control" id="longitud" name="longitud"
+                             placeholder="Ej: -74.360278">
+                    </div>
+
+                    <!-- Certificaciones (opcionales) -->
+                    <div class="col-12">
+                      <h6 class="text-muted mt-2">Certificaciones (Opcional)</h6>
+                    </div>
+
+                    <div class="col-md-6">
+                      <label for="certificadoBPA" class="form-label">Certificado BPA</label>
+                      <input type="text" class="form-control" id="certificadoBPA" name="certificadoBPA"
+                             placeholder="Número de certificado">
+                    </div>
+
+                    <div class="col-md-6">
+                      <label for="registroICA" class="form-label">Registro ICA</label>
+                      <input type="text" class="form-control" id="registroICA" name="registroICA"
+                             placeholder="Número de registro">
+                    </div>
+
+
+                  </div>
+
+                  <!-- Botones de Acción -->
+                  <div class="d-flex gap-2 justify-content-end mt-4">
+                    <button type="button" class="btn btn-secondary" onclick="cancelarFormularioFinca()">
+                      <i class="bi bi-x-lg"></i> Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-success">
+                      <i class="bi bi-check-lg"></i> Guardar Finca
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+
+          <!-- Listado de Fincas Existentes -->
+          <div id="listadoFincas" class="row g-3">
+            <!-- Se llenará dinámicamente con JavaScript -->
+            <div class="col-12 text-center text-muted py-5">
+              <i class="bi bi-geo-alt fs-1 d-block mb-2"></i>
+              <p>Haz clic en "Agregar Finca" para registrar tu primera finca.</p>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -501,11 +624,12 @@
   <!-- SCRIPTS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
+  <!-- Script principal -->
   <script>
     /* ============================ */
-    /*        SIDEBAR              */
+    /*   INICIALIZACIÓN AL CARGAR   */
     /* ============================ */
-    (function(){
+    document.addEventListener('DOMContentLoaded', function() {
       var btn = document.getElementById('btnToggle');
       if (btn) {
         btn.addEventListener('click', function(){
@@ -540,82 +664,147 @@
       /* ============================ */
       /*        CHART SALES           */
       /* ============================ */
-      // Cargar datos reales de ventas
-      try {
-        fetch('/productos/ventas-mensuales')
-          .then(function(response){ return response.json(); })
-          .then(function(data){
-            new Chart(document.getElementById('chartSales'), {
-              type: 'line',
-              data: {
-                labels: data.meses,
-                datasets: [{
-                  label: 'Ventas COP',
-                  data: data.ventas,
-                  borderColor: '#2f6b31',
-                  backgroundColor: 'rgba(47,107,49,0.15)',
-                  borderWidth: 3,
-                  pointRadius: 5,
-                  tension: 0.3
-                }]
-              },
-              options: {
-                responsive: true,
-                maintainAspectRatio: true,
-                plugins: {
-                  legend: { display: true, position: 'top' },
-                  tooltip: {
-                    callbacks: {
-                      label: function(context) {
-                        var label = context.dataset && context.dataset.label ? context.dataset.label : '';
-                        if (label) label += ': ';
-                        if (context.parsed && context.parsed.y != null) {
-                          label += new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(context.parsed.y);
-                        }
-                        return label;
-                      }
-                    }
-                  }
-                },
-                scales: {
-                  y: {
-                    beginAtZero: true,
-                    ticks: {
-                      callback: function(value) {
-                        return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(value);
-                      }
-                    }
-                  }
-                }
-              }
-            });
-          })
-          .catch(function(error){
-            console.error('Error al cargar datos de ventas:', error);
-            // Cargar datos por defecto si falla
-            new Chart(document.getElementById('chartSales'),{
-              type:'line',
-              data:{
-                labels:['Jun','Jul','Ago','Sep','Oct','Nov'],
-                datasets:[{ label:'Ventas COP', data:[12000,22000,18000,26000,30000,42000], borderColor:'#2f6b31', backgroundColor:'rgba(47,107,49,0.15)', borderWidth:3, pointRadius:5 }]
-              },
-              options:{ plugins:{ legend:{ display:false } }, scales:{ y:{ beginAtZero:true } } }
-            });
-          });
-      } catch (e) {
-        console.error('Error al inicializar gráfico:', e);
+      // Gráfico simple con datos de ejemplo
+      var chartCanvas = document.getElementById('chartSales');
+      if (chartCanvas && typeof Chart !== 'undefined') {
+        new Chart(chartCanvas, {
+          type: 'line',
+          data: {
+            labels: ['Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov'],
+            datasets: [{
+              label: 'Ventas COP',
+              data: [12000, 22000, 18000, 26000, 30000, 42000],
+              borderColor: '#2f6b31',
+              backgroundColor: 'rgba(47,107,49,0.15)',
+              borderWidth: 3,
+              pointRadius: 5,
+              tension: 0.3
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+              legend: { display: true, position: 'top' }
+            },
+            scales: {
+              y: { beginAtZero: true }
+            }
+          }
+        });
       }
 
-    })();
+      /* ============================ */
+      /*  FORMULARIO DE FINCAS        */
+      /* ============================ */
+      // Configurar event listener del formulario de fincas
+      var formFinca = document.getElementById('formCrearFinca');
+      if (formFinca) {
+        formFinca.addEventListener('submit', function(e) {
+          e.preventDefault();
+
+          // Recopilar datos del formulario
+          var formData = {
+            nombreFinca: document.getElementById('nombreFinca').value,
+            departamento: document.getElementById('departamento').value,
+            ciudad: document.getElementById('ciudad').value,
+            direccionFinca: document.getElementById('direccionFinca').value,
+            latitud: document.getElementById('latitud').value || null,
+            longitud: document.getElementById('longitud').value || null,
+            certificadoBPA: document.getElementById('certificadoBPA').value || 'Sin Certificado',
+            registroICA: document.getElementById('registroICA').value || 'Sin Certificado'
+          };
+
+          // Validar nombre de finca
+          if (!formData.nombreFinca || formData.nombreFinca.trim() === '') {
+            alert('Por favor ingresa el nombre de la finca.');
+            return;
+          }
+
+          // Enviar al backend
+          fetch('/productos/fincas/crear', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(formData)
+          })
+          .then(function(response) {
+            if (!response.ok) {
+              return response.json().then(function(err) {
+                throw new Error(err.error || 'Error al crear la finca');
+              });
+            }
+            return response.json();
+          })
+          .then(function(data) {
+            // Mostrar mensaje de éxito con estilo Bootstrap
+            var seccionFincas = document.getElementById('seccionFincas');
+            var alertaExito = document.createElement('div');
+            alertaExito.className = 'alert alert-success alert-dismissible fade show';
+            alertaExito.role = 'alert';
+            alertaExito.innerHTML = '<i class="bi bi-check-circle-fill me-2"></i><strong>¡Finca creada exitosamente!</strong><br>' +
+                                    '<small>' + (data.message || 'Ahora puedes asociar productos al crearlos.') + '</small>' +
+                                    '<button type="button" class="btn-close" data-bs-dismiss="alert"></button>';
+
+            // Insertar alerta al inicio de la sección
+            seccionFincas.insertBefore(alertaExito, seccionFincas.firstChild);
+
+            // Auto-remover alerta después de 5 segundos
+            setTimeout(function() {
+              if (alertaExito.parentNode) {
+                alertaExito.classList.remove('show');
+                setTimeout(function() {
+                  alertaExito.remove();
+                }, 150);
+              }
+            }, 5000);
+
+            // Cerrar formulario y recargar lista
+            cancelarFormularioFinca();
+            cargarFincas();
+
+            // Scroll suave hacia arriba para ver la alerta
+            seccionFincas.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          })
+          .catch(function(error) {
+            console.error('Error:', error);
+
+            // Mostrar alerta de error
+            var seccionFincas = document.getElementById('seccionFincas');
+            var alertaError = document.createElement('div');
+            alertaError.className = 'alert alert-danger alert-dismissible fade show';
+            alertaError.role = 'alert';
+            alertaError.innerHTML = '<i class="bi bi-exclamation-triangle-fill me-2"></i><strong>Error al crear la finca</strong><br>' +
+                                   '<small>' + error.message + '</small>' +
+                                   '<button type="button" class="btn-close" data-bs-dismiss="alert"></button>';
+
+            seccionFincas.insertBefore(alertaError, seccionFincas.firstChild);
+
+            // Auto-remover alerta después de 5 segundos
+            setTimeout(function() {
+              if (alertaError.parentNode) {
+                alertaError.classList.remove('show');
+                setTimeout(function() {
+                  alertaError.remove();
+                }, 150);
+              }
+            }, 5000);
+          });
+        });
+      }
+    }); // Cierre del DOMContentLoaded
+
 
     /* ================================================ */
-    /*  CAMBIO DE SECCIÓN (Productos/Pedidos/Stats)   */
+    /*  CAMBIO DE SECCIÓN (Productos/Pedidos/Fincas)  */
+    /*  FUNCIONES GLOBALES (fuera de DOMContentLoaded) */
     /* ================================================ */
-    function cambiarSeccion(seccion) {
+    window.cambiarSeccion = function(seccion) {
       // Ocultar todas las secciones
       document.getElementById('seccionProductos').style.display = 'none';
       document.getElementById('seccionPedidos').style.display = 'none';
-      document.getElementById('seccionEstadisticas').style.display = 'none';
+      document.getElementById('seccionFincas').style.display = 'none';
 
       // Quitar clase activar de todos los nav-items
       var navItems = document.querySelectorAll('.nav-item');
@@ -632,9 +821,11 @@
         document.querySelector('[data-section="pedidos"]').classList.add('active');
         // Cargar pedidos automáticamente al entrar
         cargarPedidos();
-      } else if (seccion === 'estadisticas') {
-        document.getElementById('seccionEstadisticas').style.display = 'block';
-        document.querySelector('[data-section="estadisticas"]').classList.add('active');
+      } else if (seccion === 'fincas') {
+        document.getElementById('seccionFincas').style.display = 'block';
+        document.querySelector('[data-section="fincas"]').classList.add('active');
+        // Cargar fincas automáticamente al entrar
+        cargarFincas();
       }
     }
 
@@ -642,7 +833,7 @@
     /*  CARGAR PEDIDOS VÍA AJAX                        */
     /* ================================================ */
     var pedidosCargados = false;
-    function cargarPedidos() {
+    window.cargarPedidos = function() {
       if (pedidosCargados) {
         // Si ya se cargaron, solo refrescar
         console.log('Pedidos ya cargados, refrescando...');
@@ -695,10 +886,106 @@
         });
     }
 
-    function verDetallePedido(idCompra) {
+    window.verDetallePedido = function(idCompra) {
       alert('Ver detalle del pedido #' + idCompra + '\n\n(Puedes implementar un modal o navegar a otra vista)');
       // TODO: implementar modal o redirección para ver detalles
+    };
+
+    /* ================================================ */
+    /*  GESTIÓN DE FINCAS                              */
+    /* ================================================ */
+    window.mostrarFormularioFinca = function() {
+      var formulario = document.getElementById('formularioFinca');
+      formulario.style.display = 'block';
+      formulario.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    };
+
+    window.cancelarFormularioFinca = function() {
+      document.getElementById('formularioFinca').style.display = 'none';
+      document.getElementById('formCrearFinca').reset();
+    };
+
+
+    /* ================================================ */
+    /*  CARGAR FINCAS - FUNCIÓN GLOBAL                */
+    /* ================================================ */
+    window.cargarFincas = function() {
+      var container = document.getElementById('listadoFincas');
+      container.innerHTML = '<div class="col-12 text-center text-muted py-3">' +
+                           '<div class="spinner-border spinner-border-sm text-success me-2"></div>' +
+                           '<span>Cargando fincas...</span></div>';
+
+      fetch('/productos/fincas/listar')
+        .then(function(response) {
+          if (!response.ok) throw new Error('Error al cargar fincas');
+          return response.json();
+        })
+        .then(function(fincas) {
+          console.log('Fincas cargadas:', fincas); // Debug
+
+          if (!fincas || fincas.length === 0) {
+            container.innerHTML = '<div class="col-12 text-center text-muted py-5">' +
+                                 '<i class="bi bi-geo-alt fs-1 d-block mb-2 text-success"></i>' +
+                                 '<h6 class="mb-2">No tienes fincas registradas</h6>' +
+                                 '<p class="small">Haz clic en "Agregar Finca" para registrar tu primera finca.</p></div>';
+            return;
+          }
+
+          var html = '';
+          for (var i = 0; i < fincas.length; i++) {
+            var finca = fincas[i];
+            var cantidadProductos = finca.cantidadProductos || 0;
+
+            html += '<div class="col-md-6">';
+            html += '<div class="card border-0 shadow-sm h-100">';
+            html += '<div class="card-body">';
+            html += '<div class="d-flex justify-content-between align-items-start mb-3">';
+            html += '<div>';
+            html += '<h6 class="fw-bold mb-1 text-success">' + (finca.nombreFinca || 'Sin nombre') + '</h6>';
+            html += '<small class="text-muted"><i class="bi bi-geo-alt me-1"></i>' + (finca.departamento || '') + ', ' + (finca.ciudad || '') + '</small>';
+            html += '</div>';
+            html += '<span class="badge bg-success">Activa</span>';
+            html += '</div>';
+            html += '<div class="row g-2 mb-3">';
+            html += '<div class="col-6"><small class="text-muted d-block">Dirección</small><strong class="small">' + (finca.direccionFinca || '—') + '</strong></div>';
+            html += '<div class="col-6"><small class="text-muted d-block">Productos asociados</small><strong>' + cantidadProductos + '</strong></div>';
+            html += '</div>';
+
+            // Información adicional si existe
+            if (finca.certificadoBPA && finca.certificadoBPA !== 'Sin Certificado') {
+              html += '<div class="mb-2"><small class="badge bg-info-subtle text-info"><i class="bi bi-patch-check"></i> BPA: ' + finca.certificadoBPA + '</small></div>';
+            }
+
+            html += '<div class="d-flex gap-2 mt-3">';
+            html += '<button class="btn btn-sm btn-outline-primary flex-fill" onclick="verDetalleFinca(' + finca.idFinca + ')"><i class="bi bi-eye"></i> Ver</button>';
+            html += '<button class="btn btn-sm btn-outline-secondary" title="Editar finca"><i class="bi bi-pencil"></i></button>';
+            html += '</div>';
+            html += '</div></div></div>';
+          }
+          container.innerHTML = html;
+        })
+        .catch(function(error) {
+          console.error('Error al cargar fincas:', error);
+          container.innerHTML = '<div class="col-12">' +
+                               '<div class="alert alert-danger">' +
+                               '<i class="bi bi-exclamation-triangle me-2"></i>' +
+                               '<strong>Error al cargar fincas:</strong> ' + error.message +
+                               '</div></div>';
+        });
     }
+
+    window.verDetalleFinca = function(idFinca) {
+      alert('Ver detalle de la finca #' + idFinca + '\n\n(Funcionalidad en desarrollo)');
+      // TODO: Implementar vista de detalle con productos asociados
+    };
+  </script>
+
+  <!-- Script separado con Thymeleaf inline para cargar productos -->
+  <script th:inline="javascript">
+    /*<![CDATA[*/
+    // Variable global con productos desde el servidor
+    window.productosDelServidor = /*[[${productos}]]*/ [];
+    /*]]>*/
   </script>
 
 </body>
