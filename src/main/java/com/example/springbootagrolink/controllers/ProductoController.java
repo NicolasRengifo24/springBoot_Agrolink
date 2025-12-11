@@ -72,6 +72,15 @@ public class ProductoController {
     }
 
     /**
+     * Alias explícito para el dashboard (soporta /productos/dashboard)
+     */
+    @GetMapping("/dashboard")
+    public String listarProductosDashboard(Model model) {
+        // Reusar la lógica existente
+        return listarProductos(model);
+    }
+
+    /**
      * Buscar productos por ubicación y categoría
      */
     @GetMapping("/buscar")
@@ -226,7 +235,7 @@ public class ProductoController {
     /**
      * Ver detalles de un producto específico
      */
-    @GetMapping("/{id}")
+    @GetMapping("/{id:\\d+}")
     public String verDetalleProducto(@PathVariable Integer id, Model model) {
         Optional<Producto> productoOpt = productoService.obtenerPorId(id);
         if (productoOpt.isEmpty()) {
@@ -243,7 +252,7 @@ public class ProductoController {
     /**
      * Actualizar un producto existente
      */
-    @PostMapping("/actualizar/{id}")
+    @PostMapping("/actualizar/{id:\\d+}")
     public String actualizarProducto(@PathVariable Integer id,
                                    @ModelAttribute Producto producto,
                                    @RequestParam(value = "productorId", required = false) Integer productorId,
@@ -330,7 +339,7 @@ public class ProductoController {
     /**
      * Eliminar un producto
      */
-    @PostMapping("/eliminar/{id}")
+    @PostMapping("/eliminar/{id:\\d+}")
     public String eliminarProducto(@PathVariable Integer id, RedirectAttributes redirectAttributes) {
         try {
             boolean eliminado = productoService.eliminar(id);
@@ -425,7 +434,7 @@ public class ProductoController {
     /**
      * Mostrar formulario de edición en una página separada
      */
-    @GetMapping("/editar/{id}")
+    @GetMapping("/editar/{id:\\d+}")
     public String mostrarFormularioEditar(@PathVariable Integer id, Model model) {
         Optional<Producto> productoOpt = productoService.obtenerPorId(id);
         if (productoOpt.isEmpty()) {

@@ -21,10 +21,11 @@ public class Envio implements Serializable {
     @Column(name = "id_envio")
     private Integer idEnvio;
 
-    @OneToOne(fetch = FetchType.LAZY, optional = false)
+    // Permitir que un Envío se cree sin compra para fines de prueba y flujo posterior
+    @OneToOne(fetch = FetchType.LAZY, optional = true)
     @JoinColumn(
         name = "id_compra",
-        nullable = false,
+        nullable = true,
         foreignKey = @ForeignKey(name = "fk_envios_compra")
     )
     private Compra compra;
@@ -82,19 +83,19 @@ public class Envio implements Serializable {
     @Column(name = "peso_total_kg")
     private Double pesoTotalKg;
 
-    @Column(name = "costo_base", precision = 10, scale = 2)
+    @Column(name = "costo_base", precision = 10, scale = 2, columnDefinition = "DECIMAL(10,2)")
     private BigDecimal costoBase = BigDecimal.ZERO;
 
-    @Column(name = "costo_peso", precision = 10, scale = 2)
+    @Column(name = "costo_peso", precision = 10, scale = 2, columnDefinition = "DECIMAL(10,2)")
     private BigDecimal costoPeso = BigDecimal.ZERO;
 
-    @Column(name = "costo_total", precision = 10, scale = 2)
+    @Column(name = "costo_total", precision = 10, scale = 2, columnDefinition = "DECIMAL(10,2)")
     private BigDecimal costoTotal = BigDecimal.ZERO;
 
-    @Column(name = "tarifa_por_km", precision = 10, scale = 2)
+    @Column(name = "tarifa_por_km", precision = 10, scale = 2, columnDefinition = "DECIMAL(10,2)")
     private BigDecimal tarifaPorKm = new BigDecimal("2500"); // $2,500 COP por km por defecto
 
-    @Column(name = "tarifa_por_kg", precision = 10, scale = 2)
+    @Column(name = "tarifa_por_kg", precision = 10, scale = 2, columnDefinition = "DECIMAL(10,2)")
     private BigDecimal tarifaPorKg = new BigDecimal("50"); // $50 COP por kg por defecto
 
     public enum EstadoEnvio {
@@ -105,4 +106,3 @@ public class Envio implements Serializable {
         Cancelado
     }
 }
-
