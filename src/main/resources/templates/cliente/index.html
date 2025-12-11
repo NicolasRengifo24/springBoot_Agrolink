@@ -419,9 +419,12 @@
                     </ul>
                 </li>
 
-                <!-- MIS PRODUCTOS -->
-                <li class="nav-item">
-                    <a class="nav-link me-3">Mis pedidos</a>
+
+                <!-- MIS PEDIDOS -->
+                <li class="nav-item me-3">
+                    <a class="nav-link" th:href="@{/cliente/pedidos}" style="color:#2f6b31; font-weight:600;">
+                        <i class="bi bi-box-seam me-1"></i>Mis Pedidos
+                    </a>
                 </li>
 
                 <!-- CARRITO -->
@@ -436,14 +439,20 @@
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle d-flex align-items-center" data-bs-toggle="dropdown">
                         <img th:src="@{https://i.pravatar.cc/40?img=12}" class="profile-img me-2" alt="Perfil">
-                        Cuenta
+                        <span th:text="${nombreUsuario != null ? nombreUsuario : 'Cuenta'}">Cuenta</span>
                     </a>
 
                     <ul class="dropdown-menu dropdown-menu-end">
                         <li><a class="dropdown-item" th:href="@{/cliente/perfil}"><i class="bi bi-person me-2"></i>Mi perfil</a></li>
                         <li><a class="dropdown-item" href="#"><i class="bi bi-gear me-2"></i>Configuración</a></li>
                         <li><hr></li>
-                        <li><a class="dropdown-item text-danger" href="#"><i class="bi bi-box-arrow-right me-2"></i>Cerrar sesión</a></li>
+                        <li>
+                            <form th:action="@{/logout}" method="post" style="margin: 0;">
+                                <button type="submit" class="dropdown-item text-danger" style="border: none; background: none; cursor: pointer; width: 100%; text-align: left;">
+                                    <i class="bi bi-box-arrow-right me-2"></i>Cerrar sesión
+                                </button>
+                            </form>
+                        </li>
                     </ul>
                 </li>
 
@@ -994,6 +1003,25 @@
                     }
                 }
             });
+        });
+    });
+</script>
+
+<!-- Script para prevenir acceso desde caché después de logout -->
+<script>
+    // Prevenir que la página se cargue desde el caché del navegador
+    window.addEventListener('pageshow', function(event) {
+        if (event.persisted || (window.performance && window.performance.navigation.type === 2)) {
+            // La página se cargó desde el caché (botón atrás)
+            window.location.reload();
+        }
+    });
+
+    // Prevenir navegación hacia atrás después de logout
+    window.addEventListener('load', function() {
+        window.history.pushState(null, "", window.location.href);
+        window.addEventListener('popstate', function() {
+            window.history.pushState(null, "", window.location.href);
         });
     });
 </script>

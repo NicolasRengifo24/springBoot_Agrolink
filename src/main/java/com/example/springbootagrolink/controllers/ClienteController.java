@@ -4,6 +4,7 @@ import com.example.springbootagrolink.model.Cliente;
 import com.example.springbootagrolink.model.Producto;
 import com.example.springbootagrolink.model.CategoriaProducto;
 import com.example.springbootagrolink.model.Servicio;
+import com.example.springbootagrolink.model.Usuario;
 import com.example.springbootagrolink.services.ClienteService;
 import com.example.springbootagrolink.services.ProductoService;
 import com.example.springbootagrolink.services.CategoriaProductoService;
@@ -13,6 +14,8 @@ import com.example.springbootagrolink.repository.ProductoRepository;
 import com.example.springbootagrolink.repository.EnvioRepository;
 import com.example.springbootagrolink.repository.CalificacionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -40,6 +43,10 @@ public class ClienteController {
     private EnvioRepository envioRepository;
     @Autowired
     private CalificacionRepository calificacionRepository;
+    @Autowired
+    private com.example.springbootagrolink.repository.CompraRepository compraRepository;
+    @Autowired
+    private com.example.springbootagrolink.repository.ClienteRepository clienteRepository;
 
     /**
      * Método que agrega el contador del carrito a todas las vistas automáticamente
@@ -55,6 +62,24 @@ public class ClienteController {
         return carrito.values().stream()
             .mapToInt(Integer::intValue)
             .sum();
+    }
+
+    /**
+     * Método que agrega el nombre del usuario autenticado a todas las vistas automáticamente
+     */
+    @ModelAttribute("nombreUsuario")
+    public String getNombreUsuario() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.isAuthenticated() &&
+            !"anonymousUser".equals(authentication.getPrincipal())) {
+            String username = authentication.getName();
+            // Obtener el usuario de la base de datos
+            Usuario usuario = usuarioRepository.findByNombreUsuario(username).orElse(null);
+            if (usuario != null) {
+                return usuario.getNombre();
+            }
+        }
+        return null;
     }
 
     // Ruta principal para mostrar productos en el index
@@ -173,6 +198,15 @@ public class ClienteController {
         model.addAttribute("tituloSeccion", "Productos Frescos del Campo");
         model.addAttribute("subtituloSeccion", "Directamente desde nuestros productores certificados");
         return "cliente/index";
+    }
+
+    /**
+     * Ruta específica para clientes autenticados (redirección desde login)
+     */
+    @GetMapping("/cliente/index")
+    public String clienteIndex(Model model) {
+        // Reusar la lógica del método inicio
+        return inicio(null, null, null, null, null, null, null, model);
     }
 
     /**
@@ -786,6 +820,43 @@ public class ClienteController {
                    .replace("ú", "u").replace("ù", "u").replace("ü", "u")
                    .replace("ñ", "n")
                    .trim();
+    }
+
+    /**
+     * Ver pedidos del cliente autenticado
+     */
+    @GetMapping("/cliente/pedidos")
+    public String verPedidosCliente(HttpSession session, Model model) {
+        try {
+            // Obtener el usuario autenticado
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            if (authentication == null || !authentication.isAuthenticated() ||
+                "anonymousUser".equals(authentication.getPrincipal())) {
+                return "redirect:/login"; // Redirigir a la página de login si no está autenticado
+            }
+
+            String username = authentication.getName();
+            Usuario usuario = usuarioRepository.findByNombreUsuario(username).orElse(null);
+            if (usuario == null) {
+                return "redirect:/login"; // Redirigir a la página de login si no se encuentra el usuario
+            }
+
+            // Obtener el cliente asociado al usuario
+            Cliente cliente = clienteRepository.findByUsuario(usuario).orElse(null);
+            if (cliente == null) {
+                return "redirect:/login"; // Redirigir a la página de login si no se encuentra el cliente
+            }
+
+            // Obtener los pedidos del cliente
+            List<com.example.springbootagrolink.model.Compra> pedidos = compraRepository.findByCliente(cliente);
+            model.addAttribute("pedidos", pedidos);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            model.addAttribute("error", "Error al cargar los pedidos: " + e.getMessage());
+        }
+
+        return "cliente/pedidos";
     }
 
 }

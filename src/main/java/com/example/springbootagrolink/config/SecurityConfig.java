@@ -65,7 +65,12 @@ public class SecurityConfig {
                 .requestMatchers("/servicio/**").hasRole("SERVICIO")
                 .requestMatchers("/productos/**").hasRole("PRODUCTOR")
                 .requestMatchers("/cliente/**").hasRole("CLIENTE")
+                .requestMatchers("/compras/**").hasRole("CLIENTE")
+                .requestMatchers("/pago/**").hasRole("CLIENTE")
                 .anyRequest().authenticated()
+            )
+            .headers(headers -> headers
+                .cacheControl(cache -> cache.disable())
             )
             .formLogin(form -> form
                 .loginPage("/login")
@@ -84,7 +89,13 @@ public class SecurityConfig {
             .logout(logout -> logout
                 .logoutUrl("/logout")
                 .logoutSuccessUrl("/login?logout")
+                .invalidateHttpSession(true)
+                .deleteCookies("JSESSIONID")
+                .clearAuthentication(true)
                 .permitAll()
+            )
+            .csrf(csrf -> csrf
+                .ignoringRequestMatchers("/logout")
             );
 
         return http.build();
