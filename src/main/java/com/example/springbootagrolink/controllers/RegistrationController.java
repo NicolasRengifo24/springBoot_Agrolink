@@ -204,7 +204,8 @@ public class RegistrationController {
             }
 
             Productor productor = new Productor();
-            productor.setIdProductor(usuario.getIdUsuario());
+            // Con @MapsId, NO debemos establecer el idProductor manualmente
+            // Solo establecemos el usuario y JPA manejará el ID automáticamente
             productor.setUsuario(usuario);
             productor.setCalificacion(null);
 
@@ -220,6 +221,10 @@ public class RegistrationController {
                 logger.info("No se especificó tipo de cultivo");
             }
 
+            logger.info("Objeto Productor creado en memoria");
+            logger.info("Productor - Tipo de cultivo: {}", productor.getTipoCultivo());
+            logger.info("Productor - Usuario asociado: {}", productor.getUsuario() != null ? "SI" : "NO");
+
             Productor productorGuardado = productorRepository.saveAndFlush(productor);
             logger.info("✓✓✓ Productor guardado en BD exitosamente");
             logger.info("ID del productor guardado: {}", productorGuardado.getIdProductor());
@@ -228,8 +233,10 @@ public class RegistrationController {
             logger.error("=== ERROR EN crearProductor ===");
             logger.error("Tipo de error: {}", e.getClass().getName());
             logger.error("Mensaje: {}", e.getMessage());
-            logger.error("Stack trace:", e);
+            logger.error("Causa raíz: {}", e.getCause() != null ? e.getCause().getMessage() : "N/A");
+            logger.error("Stack trace completo:", e);
             logger.error("=== FIN ERROR ===");
+            logger.error("No se pudo crear el productor, pero el usuario ya fue guardado");
         }
     }
 
@@ -246,7 +253,8 @@ public class RegistrationController {
             }
 
             Transportista transportista = new Transportista();
-            transportista.setIdUsuario(usuario.getIdUsuario());
+            // Con @MapsId, NO debemos establecer el idUsuario manualmente
+            // Solo establecemos el usuario y JPA manejará el ID automáticamente
             transportista.setUsuario(usuario);
             transportista.setCalificacion(null);
 
@@ -254,6 +262,10 @@ public class RegistrationController {
                 ? zonasEntrega.trim()
                 : "No especificado";
             transportista.setZonasEntrega(zonasEntregaFinal);
+
+            logger.info("Objeto Transportista creado en memoria");
+            logger.info("Transportista - Zonas de entrega finales: {}", transportista.getZonasEntrega());
+            logger.info("Transportista - Usuario asociado: {}", transportista.getUsuario() != null ? "SI" : "NO");
 
             Transportista transportistaGuardado = transportistaRepository.saveAndFlush(transportista);
             logger.info("✓✓✓ Transportista guardado en BD exitosamente");
@@ -264,8 +276,10 @@ public class RegistrationController {
             logger.error("=== ERROR EN crearTransportista ===");
             logger.error("Tipo de error: {}", e.getClass().getName());
             logger.error("Mensaje: {}", e.getMessage());
-            logger.error("Stack trace:", e);
+            logger.error("Causa raíz: {}", e.getCause() != null ? e.getCause().getMessage() : "N/A");
+            logger.error("Stack trace completo:", e);
             logger.error("=== FIN ERROR ===");
+            logger.error("No se pudo crear el transportista, pero el usuario ya fue guardado");
         }
     }
 
@@ -282,7 +296,8 @@ public class RegistrationController {
             }
 
             Asesor asesor = new Asesor();
-            asesor.setIdUsuario(usuario.getIdUsuario());
+            // Con @MapsId, NO debemos establecer el idUsuario manualmente
+            // Solo establecemos el usuario y JPA manejará el ID automáticamente
             asesor.setUsuario(usuario);
             asesor.setCalificacion(null);
 
@@ -290,6 +305,10 @@ public class RegistrationController {
                 ? tipoAsesoria.trim()
                 : "No especificado";
             asesor.setTipoAsesoria(tipoAsesoriaFinal);
+
+            logger.info("Objeto Asesor creado en memoria");
+            logger.info("Asesor - Tipo de asesoría final: {}", asesor.getTipoAsesoria());
+            logger.info("Asesor - Usuario asociado: {}", asesor.getUsuario() != null ? "SI" : "NO");
 
             Asesor asesorGuardado = asesorRepository.saveAndFlush(asesor);
             logger.info("✓✓✓ Asesor guardado en BD exitosamente");
@@ -300,8 +319,10 @@ public class RegistrationController {
             logger.error("=== ERROR EN crearAsesor ===");
             logger.error("Tipo de error: {}", e.getClass().getName());
             logger.error("Mensaje: {}", e.getMessage());
-            logger.error("Stack trace:", e);
+            logger.error("Causa raíz: {}", e.getCause() != null ? e.getCause().getMessage() : "N/A");
+            logger.error("Stack trace completo:", e);
             logger.error("=== FIN ERROR ===");
+            logger.error("No se pudo crear el asesor, pero el usuario ya fue guardado");
         }
     }
 }

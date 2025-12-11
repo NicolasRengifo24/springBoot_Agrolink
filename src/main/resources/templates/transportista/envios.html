@@ -3,289 +3,96 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Envíos Disponibles - Agrolink Transportista</title>
+    <title>Envíos Disponibles - Agrolink</title>
 
     <!-- Bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-
-    <!-- Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-
-    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
 
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
         body {
             font-family: "Inter", sans-serif;
-            background: #f8faf7;
-        }
-
-        /* ========== SIDEBAR (Same as dashboard) ========== */
-        .sidebar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            height: 100vh;
-            width: 280px;
-            background: linear-gradient(180deg, #2f6b31 0%, #1d4820 100%);
-            padding: 20px 0;
-            z-index: 1000;
-            box-shadow: 4px 0 15px rgba(0,0,0,0.1);
-        }
-
-        .sidebar-brand {
-            padding: 0 25px 25px 25px;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-            margin-bottom: 20px;
-        }
-
-        .sidebar-brand img {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            margin-right: 12px;
-            border: 2px solid #fff;
-        }
-
-        .sidebar-brand h4 {
-            color: white;
-            font-weight: 700;
-            margin: 0;
-            font-size: 1.5rem;
-        }
-
-        .sidebar-menu {
-            list-style: none;
-            padding: 0;
-        }
-
-        .sidebar-menu li {
-            margin: 5px 15px;
-        }
-
-        .sidebar-menu a {
-            display: flex;
-            align-items: center;
-            padding: 14px 18px;
-            color: rgba(255,255,255,0.85);
-            text-decoration: none;
-            border-radius: 12px;
-            transition: all 0.3s ease;
-            font-weight: 500;
-            font-size: 0.95rem;
-        }
-
-        .sidebar-menu a:hover,
-        .sidebar-menu a.active {
-            background: rgba(255,255,255,0.15);
-            color: white;
-            transform: translateX(5px);
-        }
-
-        .sidebar-menu a i {
-            font-size: 1.3rem;
-            margin-right: 15px;
-            width: 25px;
-        }
-
-        .sidebar-footer {
-            position: absolute;
-            bottom: 20px;
-            left: 0;
-            right: 0;
-            padding: 0 15px;
-        }
-
-        /* ========== MAIN CONTENT ========== */
-        .main-content {
-            margin-left: 280px;
-            padding: 25px 30px;
+            background: linear-gradient(135deg, #f0f9f4 0%, #e3f2e8 100%);
             min-height: 100vh;
+            padding: 20px;
         }
 
-        /* ========== TOPBAR ========== */
-        .topbar {
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
             background: white;
-            padding: 20px 30px;
+            padding: 30px;
             border-radius: 16px;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
             margin-bottom: 30px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         }
 
-        .topbar h2 {
+        .header h1 {
             color: #2f6b31;
-            font-weight: 700;
-            margin: 0;
-            font-size: 1.8rem;
+            font-weight: 800;
+            margin-bottom: 10px;
         }
 
-        /* ========== FILTERS ========== */
-        .filters-card {
-            background: white;
-            border-radius: 16px;
-            padding: 25px;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
-            margin-bottom: 30px;
-        }
-
-        .filter-group {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            align-items: end;
-        }
-
-        .filter-item label {
-            display: block;
-            color: #2f6b31;
-            font-weight: 600;
-            margin-bottom: 8px;
-            font-size: 0.9rem;
-        }
-
-        .filter-item select,
-        .filter-item input {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #e0e7db;
-            border-radius: 10px;
-            font-size: 0.95rem;
-            transition: all 0.3s ease;
-        }
-
-        .filter-item select:focus,
-        .filter-item input:focus {
-            outline: none;
-            border-color: #2f6b31;
-            box-shadow: 0 0 0 3px rgba(47, 107, 49, 0.1);
-        }
-
-        .btn-filter {
-            background: #2f6b31;
-            color: white;
+        .btn-back {
+            background: linear-gradient(135deg, #2f6b31 0%, #5cb85c 100%);
             border: none;
-            padding: 12px 30px;
-            border-radius: 10px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .btn-filter:hover {
-            background: #1d4820;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(47, 107, 49, 0.3);
-        }
-
-        .btn-reset {
-            background: #6c757d;
             color: white;
-            border: none;
-            padding: 12px 30px;
-            border-radius: 10px;
+            padding: 12px 24px;
+            border-radius: 12px;
             font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .btn-reset:hover {
-            background: #545b62;
-        }
-
-        /* ========== ENVIOS GRID ========== */
-        .envios-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
-            gap: 25px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
         }
 
         .envio-card {
             background: white;
             border-radius: 16px;
             padding: 25px;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+            margin-bottom: 20px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
             transition: all 0.3s ease;
-            border-left: 4px solid #2f6b31;
-            position: relative;
         }
 
         .envio-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
         }
 
         .envio-header {
             display: flex;
             justify-content: space-between;
-            align-items: start;
-            margin-bottom: 20px;
+            align-items: center;
+            margin-bottom: 15px;
             padding-bottom: 15px;
-            border-bottom: 1px solid #f0f0f0;
+            border-bottom: 2px solid #f0f8f0;
         }
 
         .envio-id {
-            font-size: 1.1rem;
+            font-size: 1.2rem;
             font-weight: 700;
             color: #2f6b31;
         }
 
-        .envio-priority {
-            padding: 4px 12px;
+        .badge-disponible {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            padding: 6px 14px;
             border-radius: 20px;
-            font-size: 0.75rem;
             font-weight: 600;
-        }
-
-        .priority-alta {
-            background: #ffe5e5;
-            color: #e63946;
-        }
-
-        .priority-media {
-            background: #fff3cd;
-            color: #856404;
-        }
-
-        .priority-baja {
-            background: #d4edda;
-            color: #155724;
-        }
-
-        .route-info {
-            margin-bottom: 20px;
-        }
-
-        .route-item {
-            display: flex;
-            align-items: center;
-            margin-bottom: 12px;
-            padding: 10px;
-            background: #f8faf7;
-            border-radius: 8px;
-        }
-
-        .route-item i {
-            font-size: 1.2rem;
-            color: #2f6b31;
-            margin-right: 12px;
-        }
-
-        .route-item strong {
-            color: #2f6b31;
-            margin-right: 5px;
+            font-size: 0.85rem;
         }
 
         .envio-details {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 15px;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
         }
 
         .detail-item {
@@ -294,698 +101,145 @@
         }
 
         .detail-label {
-            font-size: 0.8rem;
+            font-size: 0.85rem;
             color: #6c757d;
-            margin-bottom: 4px;
+            font-weight: 600;
+            margin-bottom: 5px;
         }
 
         .detail-value {
-            font-weight: 600;
-            color: #2f6b31;
+            font-size: 1rem;
+            color: #2a2a2a;
+            font-weight: 500;
         }
 
-        .envio-footer {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding-top: 15px;
-            border-top: 1px solid #f0f0f0;
-        }
-
-        .price-tag {
-            font-size: 1.5rem;
-            font-weight: 800;
-            color: #2f6b31;
-        }
-
-        .btn-accept {
-            background: #2f6b31;
-            color: white;
+        .btn-aceptar {
+            background: linear-gradient(135deg, #2f6b31 0%, #5cb85c 100%);
             border: none;
-            padding: 10px 25px;
-            border-radius: 10px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .btn-accept:hover {
-            background: #1d4820;
-            transform: scale(1.05);
-            box-shadow: 0 5px 15px rgba(47, 107, 49, 0.3);
-        }
-
-        .btn-details {
-            background: transparent;
-            color: #2f6b31;
-            border: 2px solid #2f6b31;
-            padding: 10px 25px;
-            border-radius: 10px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin-right: 10px;
-        }
-
-        .btn-details:hover {
-            background: #2f6b31;
             color: white;
+            padding: 12px 30px;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-aceptar:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(47,107,49,0.3);
         }
 
         .empty-state {
+            text-align: center;
+            padding: 60px 20px;
             background: white;
             border-radius: 16px;
-            padding: 60px;
-            text-align: center;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
         }
 
         .empty-state i {
             font-size: 4rem;
-            color: #2f6b31;
+            color: #ccc;
             margin-bottom: 20px;
-        }
-
-        .empty-state h4 {
-            color: #2f6b31;
-            font-weight: 700;
-            margin-bottom: 10px;
-        }
-
-        .empty-state p {
-            color: #6c757d;
-        }
-
-        /* ========== MOBILE MENU ========== */
-        .mobile-menu-toggle {
-            display: none;
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            width: 60px;
-            height: 60px;
-            background: linear-gradient(135deg, #2f6b31, #1d4820);
-            border-radius: 50%;
-            border: none;
-            color: white;
-            font-size: 1.5rem;
-            box-shadow: 0 4px 15px rgba(47, 107, 49, 0.4);
-            z-index: 1001;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .sidebar.mobile-open {
-            transform: translateX(0) !important;
-        }
-
-        .mobile-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 999;
-        }
-
-        .mobile-overlay.active {
-            display: block;
-        }
-
-        /* ========== RESPONSIVE ========== */
-        @media (max-width: 992px) {
-            .filter-group {
-                grid-template-columns: 1fr 1fr;
-            }
-
-            .envios-grid {
-                grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            }
-        }
-
-        @media (max-width: 768px) {
-            .sidebar {
-                transform: translateX(-100%);
-                transition: transform 0.3s ease;
-            }
-
-            .main-content {
-                margin-left: 0;
-                padding: 15px;
-            }
-
-            .mobile-menu-toggle {
-                display: flex;
-                align-items: center;
-                justify-content: center;
-            }
-
-            .topbar {
-                padding: 15px 20px;
-            }
-
-            .topbar h2 {
-                font-size: 1.4rem;
-            }
-
-            .filters-card {
-                padding: 20px;
-            }
-
-            .filter-group {
-                grid-template-columns: 1fr;
-                gap: 15px;
-            }
-
-            .envios-grid {
-                grid-template-columns: 1fr;
-                gap: 20px;
-            }
-
-            .envio-card {
-                padding: 20px;
-            }
-
-            .envio-details {
-                grid-template-columns: 1fr;
-            }
-
-            .envio-footer {
-                flex-direction: column;
-                gap: 10px;
-            }
-
-            .envio-footer > div {
-                width: 100%;
-                display: flex;
-                gap: 10px;
-            }
-
-            .btn-details,
-            .btn-accept {
-                flex: 1;
-            }
-
-            .price-tag {
-                font-size: 1.3rem;
-                margin-bottom: 10px;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .topbar h2 {
-                font-size: 1.2rem;
-            }
-
-            .envio-id {
-                font-size: 1rem;
-            }
-
-            .route-item {
-                font-size: 0.85rem;
-            }
-
-            .detail-value {
-                font-size: 0.9rem;
-            }
         }
     </style>
 </head>
 <body>
 
-<!-- Mobile Menu Toggle -->
-<button class="mobile-menu-toggle" id="mobileMenuBtn">
-    <i class="bi bi-list"></i>
-</button>
-
-<!-- Mobile Overlay -->
-<div class="mobile-overlay" id="mobileOverlay"></div>
-
-<!-- ========== SIDEBAR ========== -->
-<aside class="sidebar">
-    <div class="sidebar-brand d-flex align-items-center">
-        <img th:src="@{/CSS/logo/logoAgro.jpeg}" alt="Logo Agrolink">
-        <div>
-            <h4>Agrolink</h4>
-            <small style="color: rgba(255,255,255,0.7);">Transportista</small>
+<div class="container">
+    <div class="header">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h1><i class="bi bi-box-seam me-2"></i>Envíos Disponibles</h1>
+                <p class="text-muted mb-0">Total: <strong th:text="${envios.size()}">0</strong> envíos disponibles para aceptar</p>
+            </div>
+            <a href="/transportista/dashboard" class="btn-back">
+                <i class="bi bi-arrow-left"></i> Volver al Dashboard
+            </a>
         </div>
     </div>
 
-    <ul class="sidebar-menu">
-        <li>
-            <a th:href="@{/transportista/dashboard}">
-                <i class="bi bi-speedometer2"></i>
-                <span>Dashboard</span>
-            </a>
-        </li>
-        <li>
-            <a href="#" class="active">
-                <i class="bi bi-box-seam"></i>
-                <span>Envíos Disponibles</span>
-            </a>
-        </li>
-        <li>
-            <a th:href="@{/transportista/mis-envios}">
-                <i class="bi bi-truck"></i>
-                <span>Mis Envíos</span>
-            </a>
-        </li>
-        <li>
-            <a th:href="@{/transportista/vehiculos}">
-                <i class="bi bi-car-front"></i>
-                <span>Mis Vehículos</span>
-            </a>
-        </li>
-        <li>
-            <a th:href="@{/transportista/seguimiento}">
-                <i class="bi bi-geo-alt"></i>
-                <span>Seguimiento</span>
-            </a>
-        </li>
-        <li>
-            <a th:href="@{/transportista/rentabilidad}">
-                <i class="bi bi-graph-up"></i>
-                <span>Rentabilidad</span>
-            </a>
-        </li>
-        <li>
-            <a th:href="@{/transportista/perfil}">
-                <i class="bi bi-person-circle"></i>
-                <span>Mi Perfil</span>
-            </a>
-        </li>
-    </ul>
-
-    <div class="sidebar-footer">
-        <a href="#" style="color: rgba(255,255,255,0.85); text-decoration: none; display: flex; align-items: center; padding: 14px 18px; border-radius: 12px; transition: all 0.3s ease;">
-            <i class="bi bi-box-arrow-left" style="font-size: 1.3rem; margin-right: 15px;"></i>
-            <span>Cerrar Sesión</span>
-        </a>
-    </div>
-</aside>
-
-<!-- ========== MAIN CONTENT ========== -->
-<main class="main-content">
-
-    <!-- TOPBAR -->
-    <div class="topbar">
-        <h2><i class="bi bi-box-seam me-3"></i>Envíos Disponibles</h2>
-        <p class="text-muted mb-0">Encuentra envíos cercanos y aumenta tus ganancias</p>
-    </div>
-
-    <!-- FILTERS -->
-    <div class="filters-card">
-        <h5 class="text-success fw-bold mb-4"><i class="bi bi-funnel me-2"></i>Filtros de Búsqueda</h5>
-        <form class="filter-group">
-            <div class="filter-item">
-                <label>Ciudad Origen</label>
-                <select>
-                    <option value="">Todas</option>
-                    <option value="bogota">Bogotá</option>
-                    <option value="medellin">Medellín</option>
-                    <option value="cali">Cali</option>
-                    <option value="barranquilla">Barranquilla</option>
-                    <option value="cartagena">Cartagena</option>
-                </select>
+    <!-- Lista de Envíos -->
+    <div th:if="${!envios.isEmpty()}">
+        <div class="envio-card" th:each="envio : ${envios}">
+            <div class="envio-header">
+                <span class="envio-id" th:text="'Envío #ENV-' + ${envio.idEnvio}">#ENV-0</span>
+                <span class="badge-disponible">Disponible</span>
             </div>
 
-            <div class="filter-item">
-                <label>Ciudad Destino</label>
-                <select>
-                    <option value="">Todas</option>
-                    <option value="bogota">Bogotá</option>
-                    <option value="medellin">Medellín</option>
-                    <option value="cali">Cali</option>
-                    <option value="barranquilla">Barranquilla</option>
-                    <option value="cartagena">Cartagena</option>
-                </select>
+            <div class="envio-details">
+                <div class="detail-item">
+                    <span class="detail-label">Cliente</span>
+                    <span class="detail-value" th:text="${envio.compra != null && envio.compra.cliente != null && envio.compra.cliente.usuario != null ? envio.compra.cliente.usuario.nombre : 'N/A'}">Cliente</span>
+                </div>
+
+                <div class="detail-item">
+                    <span class="detail-label">Origen</span>
+                    <span class="detail-value" th:text="${envio.direccionOrigen != null ? envio.direccionOrigen : 'N/A'}">Origen</span>
+                </div>
+
+                <div class="detail-item">
+                    <span class="detail-label">Destino</span>
+                    <span class="detail-value" th:text="${envio.direccionDestino != null ? envio.direccionDestino : 'N/A'}">Destino</span>
+                </div>
+
+                <div class="detail-item">
+                    <span class="detail-label">Distancia</span>
+                    <span class="detail-value" th:text="${envio.distanciaKm != null ? #numbers.formatDecimal(envio.distanciaKm, 0, 'POINT', 1, 'COMMA') + ' km' : 'N/A'}">0 km</span>
+                </div>
+
+                <div class="detail-item">
+                    <span class="detail-label">Peso Total</span>
+                    <span class="detail-value" th:text="${envio.pesoTotalKg != null ? #numbers.formatDecimal(envio.pesoTotalKg, 0, 'POINT', 0, 'COMMA') + ' kg' : 'N/A'}">0 kg</span>
+                </div>
+
+                <div class="detail-item">
+                    <span class="detail-label">Costo Total</span>
+                    <span class="detail-value" style="color: #2f6b31; font-weight: 700;">
+                        $<span th:text="${envio.costoTotal != null ? #numbers.formatDecimal(envio.costoTotal, 0, 'POINT', 0, 'COMMA') : '0'}">0</span> COP
+                    </span>
+                </div>
             </div>
 
-            <div class="filter-item">
-                <label>Prioridad</label>
-                <select>
-                    <option value="">Todas</option>
-                    <option value="alta">Alta</option>
-                    <option value="media">Media</option>
-                    <option value="baja">Baja</option>
-                </select>
-            </div>
-
-            <div class="filter-item">
-                <label>Fecha Mínima</label>
-                <input type="date">
-            </div>
-
-            <div class="filter-item">
-                <button type="submit" class="btn-filter w-100">
-                    <i class="bi bi-search me-2"></i>Buscar
+            <div class="text-end">
+                <button class="btn-aceptar" th:onclick="'aceptarEnvio(' + ${envio.idEnvio} + ')'">
+                    <i class="bi bi-check-circle me-2"></i>Aceptar Envío
                 </button>
             </div>
-
-            <div class="filter-item">
-                <button type="reset" class="btn-reset w-100">
-                    <i class="bi bi-arrow-clockwise me-2"></i>Limpiar
-                </button>
-            </div>
-        </form>
+        </div>
     </div>
 
-    <!-- ENVIOS GRID -->
-    <div class="envios-grid">
-
-        <!-- Envío 1 -->
-        <div class="envio-card">
-            <div class="envio-header">
-                <div class="envio-id">#ENV-2045</div>
-                <span class="envio-priority priority-alta">ALTA PRIORIDAD</span>
-            </div>
-
-            <div class="route-info">
-                <div class="route-item">
-                    <i class="bi bi-geo-alt-fill"></i>
-                    <div>
-                        <strong>Origen:</strong> Bogotá, Cundinamarca
-                    </div>
-                </div>
-                <div class="route-item">
-                    <i class="bi bi-geo-fill"></i>
-                    <div>
-                        <strong>Destino:</strong> Medellín, Antioquia
-                    </div>
-                </div>
-            </div>
-
-            <div class="envio-details">
-                <div class="detail-item">
-                    <span class="detail-label">Fecha de Envío</span>
-                    <span class="detail-value">12 Dic 2025</span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">Distancia</span>
-                    <span class="detail-value">420 km</span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">Peso</span>
-                    <span class="detail-value">850 kg</span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">Cliente</span>
-                    <span class="detail-value">AgroFinca S.A.</span>
-                </div>
-            </div>
-
-            <div class="envio-footer">
-                <div class="price-tag">$650.000</div>
-                <div>
-                    <button class="btn-details">Ver Detalles</button>
-                    <button class="btn-accept">Aceptar</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Envío 2 -->
-        <div class="envio-card">
-            <div class="envio-header">
-                <div class="envio-id">#ENV-2044</div>
-                <span class="envio-priority priority-media">MEDIA PRIORIDAD</span>
-            </div>
-
-            <div class="route-info">
-                <div class="route-item">
-                    <i class="bi bi-geo-alt-fill"></i>
-                    <div>
-                        <strong>Origen:</strong> Cali, Valle del Cauca
-                    </div>
-                </div>
-                <div class="route-item">
-                    <i class="bi bi-geo-fill"></i>
-                    <div>
-                        <strong>Destino:</strong> Bogotá, Cundinamarca
-                    </div>
-                </div>
-            </div>
-
-            <div class="envio-details">
-                <div class="detail-item">
-                    <span class="detail-label">Fecha de Envío</span>
-                    <span class="detail-value">13 Dic 2025</span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">Distancia</span>
-                    <span class="detail-value">480 km</span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">Peso</span>
-                    <span class="detail-value">1,200 kg</span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">Cliente</span>
-                    <span class="detail-value">Frutas del Valle</span>
-                </div>
-            </div>
-
-            <div class="envio-footer">
-                <div class="price-tag">$720.000</div>
-                <div>
-                    <button class="btn-details">Ver Detalles</button>
-                    <button class="btn-accept">Aceptar</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Envío 3 -->
-        <div class="envio-card">
-            <div class="envio-header">
-                <div class="envio-id">#ENV-2043</div>
-                <span class="envio-priority priority-baja">BAJA PRIORIDAD</span>
-            </div>
-
-            <div class="route-info">
-                <div class="route-item">
-                    <i class="bi bi-geo-alt-fill"></i>
-                    <div>
-                        <strong>Origen:</strong> Barranquilla, Atlántico
-                    </div>
-                </div>
-                <div class="route-item">
-                    <i class="bi bi-geo-fill"></i>
-                    <div>
-                        <strong>Destino:</strong> Cartagena, Bolívar
-                    </div>
-                </div>
-            </div>
-
-            <div class="envio-details">
-                <div class="detail-item">
-                    <span class="detail-label">Fecha de Envío</span>
-                    <span class="detail-value">15 Dic 2025</span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">Distancia</span>
-                    <span class="detail-value">120 km</span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">Peso</span>
-                    <span class="detail-value">450 kg</span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">Cliente</span>
-                    <span class="detail-value">Productos Costa</span>
-                </div>
-            </div>
-
-            <div class="envio-footer">
-                <div class="price-tag">$280.000</div>
-                <div>
-                    <button class="btn-details">Ver Detalles</button>
-                    <button class="btn-accept">Aceptar</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Envío 4 -->
-        <div class="envio-card">
-            <div class="envio-header">
-                <div class="envio-id">#ENV-2042</div>
-                <span class="envio-priority priority-alta">ALTA PRIORIDAD</span>
-            </div>
-
-            <div class="route-info">
-                <div class="route-item">
-                    <i class="bi bi-geo-alt-fill"></i>
-                    <div>
-                        <strong>Origen:</strong> Pereira, Risaralda
-                    </div>
-                </div>
-                <div class="route-item">
-                    <i class="bi bi-geo-fill"></i>
-                    <div>
-                        <strong>Destino:</strong> Manizales, Caldas
-                    </div>
-                </div>
-            </div>
-
-            <div class="envio-details">
-                <div class="detail-item">
-                    <span class="detail-label">Fecha de Envío</span>
-                    <span class="detail-value">11 Dic 2025</span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">Distancia</span>
-                    <span class="detail-value">60 km</span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">Peso</span>
-                    <span class="detail-value">300 kg</span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">Cliente</span>
-                    <span class="detail-value">Café Premium</span>
-                </div>
-            </div>
-
-            <div class="envio-footer">
-                <div class="price-tag">$190.000</div>
-                <div>
-                    <button class="btn-details">Ver Detalles</button>
-                    <button class="btn-accept">Aceptar</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Envío 5 -->
-        <div class="envio-card">
-            <div class="envio-header">
-                <div class="envio-id">#ENV-2041</div>
-                <span class="envio-priority priority-media">MEDIA PRIORIDAD</span>
-            </div>
-
-            <div class="route-info">
-                <div class="route-item">
-                    <i class="bi bi-geo-alt-fill"></i>
-                    <div>
-                        <strong>Origen:</strong> Bucaramanga, Santander
-                    </div>
-                </div>
-                <div class="route-item">
-                    <i class="bi bi-geo-fill"></i>
-                    <div>
-                        <strong>Destino:</strong> Cúcuta, Norte de Santander
-                    </div>
-                </div>
-            </div>
-
-            <div class="envio-details">
-                <div class="detail-item">
-                    <span class="detail-label">Fecha de Envío</span>
-                    <span class="detail-value">14 Dic 2025</span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">Distancia</span>
-                    <span class="detail-value">200 km</span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">Peso</span>
-                    <span class="detail-value">650 kg</span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">Cliente</span>
-                    <span class="detail-value">Agrícola Norte</span>
-                </div>
-            </div>
-
-            <div class="envio-footer">
-                <div class="price-tag">$420.000</div>
-                <div>
-                    <button class="btn-details">Ver Detalles</button>
-                    <button class="btn-accept">Aceptar</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Envío 6 -->
-        <div class="envio-card">
-            <div class="envio-header">
-                <div class="envio-id">#ENV-2040</div>
-                <span class="envio-priority priority-baja">BAJA PRIORIDAD</span>
-            </div>
-
-            <div class="route-info">
-                <div class="route-item">
-                    <i class="bi bi-geo-alt-fill"></i>
-                    <div>
-                        <strong>Origen:</strong> Armenia, Quindío
-                    </div>
-                </div>
-                <div class="route-item">
-                    <i class="bi bi-geo-fill"></i>
-                    <div>
-                        <strong>Destino:</strong> Ibagué, Tolima
-                    </div>
-                </div>
-            </div>
-
-            <div class="envio-details">
-                <div class="detail-item">
-                    <span class="detail-label">Fecha de Envío</span>
-                    <span class="detail-value">16 Dic 2025</span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">Distancia</span>
-                    <span class="detail-value">140 km</span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">Peso</span>
-                    <span class="detail-value">380 kg</span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">Cliente</span>
-                    <span class="detail-value">Panela Quindiana</span>
-                </div>
-            </div>
-
-            <div class="envio-footer">
-                <div class="price-tag">$310.000</div>
-                <div>
-                    <button class="btn-details">Ver Detalles</button>
-                    <button class="btn-accept">Aceptar</button>
-                </div>
-            </div>
-        </div>
-
+    <!-- Estado vacío -->
+    <div th:if="${envios.isEmpty()}" class="empty-state">
+        <i class="bi bi-inbox"></i>
+        <h4>No hay envíos disponibles</h4>
+        <p class="text-muted">En este momento no hay envíos disponibles para aceptar. Vuelve más tarde.</p>
     </div>
+</div>
 
-</main>
-
-<!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
-<!-- Mobile Menu Script -->
 <script>
-    const mobileMenuBtn = document.getElementById('mobileMenuBtn');
-    const mobileOverlay = document.getElementById('mobileOverlay');
-    const sidebar = document.querySelector('.sidebar');
-
-    function toggleMobileMenu() {
-        sidebar.classList.toggle('mobile-open');
-        mobileOverlay.classList.toggle('active');
-        const icon = mobileMenuBtn.querySelector('i');
-        icon.classList.toggle('bi-list');
-        icon.classList.toggle('bi-x');
+    function aceptarEnvio(idEnvio) {
+        if (confirm('¿Estás seguro de que deseas aceptar este envío?')) {
+            fetch('/transportista/envios/aceptar/' + idEnvio, {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('¡Envío aceptado exitosamente!');
+                    window.location.reload();
+                } else {
+                    alert('Error: ' + (data.message || 'No se pudo aceptar el envío'));
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error al conectar con el servidor');
+            });
+        }
     }
-
-    mobileMenuBtn.addEventListener('click', toggleMobileMenu);
-    mobileOverlay.addEventListener('click', toggleMobileMenu);
-
-    document.querySelectorAll('.sidebar-menu a').forEach(link => {
-        link.addEventListener('click', () => {
-            if (window.innerWidth <= 768) {
-                toggleMobileMenu();
-            }
-        });
-    });
 </script>
 
 </body>

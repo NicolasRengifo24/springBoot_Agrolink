@@ -690,12 +690,6 @@
             </a>
         </li>
         <li>
-            <a th:href="@{/transportista/rentabilidad}">
-                <i class="bi bi-graph-up"></i>
-                <span>Rentabilidad</span>
-            </a>
-        </li>
-        <li>
             <a th:href="@{/transportista/perfil}">
                 <i class="bi bi-person-circle"></i>
                 <span>Mi Perfil</span>
@@ -718,17 +712,17 @@
     <div class="topbar">
         <div>
             <h2>Dashboard Transportista</h2>
-            <p class="text-muted mb-0">Bienvenido de nuevo, Juan Pérez</p>
+            <p class="text-muted mb-0">Bienvenido de nuevo, <span th:text="${usuario.nombre != null && !usuario.nombre.isEmpty() ? usuario.nombre : usuario.nombreUsuario}">Usuario</span></p>
         </div>
         <div class="topbar-right">
             <button class="notification-btn">
                 <i class="bi bi-bell"></i>
-                <span class="notification-badge">5</span>
+                <span class="notification-badge" th:text="${enviosDisponiblesCount}">0</span>
             </button>
-            <div class="user-profile">
+            <div class="user-profile" onclick="window.location.href='/transportista/perfil'" style="cursor: pointer;">
                 <img src="https://i.pravatar.cc/100?img=33" alt="Usuario">
                 <div class="user-info">
-                    <h6>Juan Pérez</h6>
+                    <h6 th:text="${usuario.nombre != null && !usuario.nombre.isEmpty() ? usuario.nombre : usuario.nombreUsuario}">Usuario</h6>
                     <p>Transportista</p>
                 </div>
             </div>
@@ -740,7 +734,7 @@
         <div class="stat-card">
             <div class="stat-header">
                 <div>
-                    <div class="stat-value">24</div>
+                    <div class="stat-value" th:text="${enviosActivosCount}">0</div>
                     <div class="stat-label">Envíos Activos</div>
                 </div>
                 <div class="stat-icon green">
@@ -748,14 +742,14 @@
                 </div>
             </div>
             <div class="stat-change positive">
-                <i class="bi bi-arrow-up"></i> 12% vs mes anterior
+                <i class="bi bi-truck-flatbed"></i> En tránsito ahora
             </div>
         </div>
 
         <div class="stat-card">
             <div class="stat-header">
                 <div>
-                    <div class="stat-value">156</div>
+                    <div class="stat-value" th:text="${totalEnvios}">0</div>
                     <div class="stat-label">Total Completados</div>
                 </div>
                 <div class="stat-icon blue">
@@ -763,14 +757,14 @@
                 </div>
             </div>
             <div class="stat-change positive">
-                <i class="bi bi-arrow-up"></i> 8% vs mes anterior
+                <i class="bi bi-calendar-check"></i> Historial total
             </div>
         </div>
 
         <div class="stat-card">
             <div class="stat-header">
                 <div>
-                    <div class="stat-value">$4.2M</div>
+                    <div class="stat-value">$<span th:text="${#numbers.formatDecimal(gananciasMes, 0, 'POINT', 0, 'COMMA')}">0</span></div>
                     <div class="stat-label">Ganancias del Mes</div>
                 </div>
                 <div class="stat-icon orange">
@@ -778,22 +772,22 @@
                 </div>
             </div>
             <div class="stat-change positive">
-                <i class="bi bi-arrow-up"></i> 15% vs mes anterior
+                <i class="bi bi-graph-up"></i> Mes actual
             </div>
         </div>
 
         <div class="stat-card">
             <div class="stat-header">
                 <div>
-                    <div class="stat-value">98.5%</div>
-                    <div class="stat-label">Tasa de Éxito</div>
+                    <div class="stat-value" th:text="${totalVehiculos}">0</div>
+                    <div class="stat-label">Vehículos Registrados</div>
                 </div>
                 <div class="stat-icon red">
-                    <i class="bi bi-star-fill"></i>
+                    <i class="bi bi-car-front"></i>
                 </div>
             </div>
             <div class="stat-change positive">
-                <i class="bi bi-arrow-up"></i> 2% vs mes anterior
+                <i class="bi bi-tools"></i> Flota activa
             </div>
         </div>
     </div>
@@ -818,11 +812,11 @@
     <!-- ENVIOS RECIENTES -->
     <div class="envios-section">
         <div class="table-header">
-            <h5><i class="bi bi-box-seam me-2"></i>Envíos Recientes</h5>
+            <h5><i class="bi bi-box-seam me-2"></i>Envíos Disponibles</h5>
             <a th:href="@{/transportista/envios}" class="btn-custom">Ver Todos</a>
         </div>
 
-        <div class="table-responsive">
+        <div class="table-responsive" th:if="${!enviosDisponibles.isEmpty()}">
             <table class="custom-table">
                 <thead>
                     <tr>
@@ -830,100 +824,37 @@
                         <th>Cliente</th>
                         <th>Origen</th>
                         <th>Destino</th>
-                        <th>Fecha</th>
-                        <th>Estado</th>
-                        <th>Monto</th>
+                        <th>Distancia</th>
+                        <th>Peso</th>
+                        <th>Costo</th>
                         <th>Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr>
-                        <td><strong>#ENV-1024</strong></td>
-                        <td>María González</td>
-                        <td>Bogotá</td>
-                        <td>Medellín</td>
-                        <td>2025-12-10</td>
-                        <td><span class="badge-status badge-enproceso">En Proceso</span></td>
-                        <td><strong>$450.000</strong></td>
-                        <td>
-                            <button class="action-btn" title="Ver detalles">
+                    <tr th:each="envio : ${enviosDisponibles}">
+                        <td data-label="#ID"><strong th:text="'#ENV-' + ${envio.idEnvio}">#ENV-0</strong></td>
+                        <td data-label="Cliente" th:text="${envio.compra != null && envio.compra.cliente != null && envio.compra.cliente.usuario != null ? envio.compra.cliente.usuario.nombre : 'N/A'}">Cliente</td>
+                        <td data-label="Origen" th:text="${envio.direccionOrigen != null ? #strings.abbreviate(envio.direccionOrigen, 30) : 'N/A'}">Origen</td>
+                        <td data-label="Destino" th:text="${envio.direccionDestino != null ? #strings.abbreviate(envio.direccionDestino, 30) : 'N/A'}">Destino</td>
+                        <td data-label="Distancia"><span th:text="${envio.distanciaKm != null ? #numbers.formatDecimal(envio.distanciaKm, 0, 'POINT', 1, 'COMMA') + ' km' : 'N/A'}">0 km</span></td>
+                        <td data-label="Peso"><span th:text="${envio.pesoTotalKg != null ? #numbers.formatDecimal(envio.pesoTotalKg, 0, 'POINT', 0, 'COMMA') + ' kg' : 'N/A'}">0 kg</span></td>
+                        <td data-label="Costo"><strong>$<span th:text="${envio.costoTotal != null ? #numbers.formatDecimal(envio.costoTotal, 0, 'POINT', 0, 'COMMA') : '0'}">0</span></strong></td>
+                        <td data-label="Acciones">
+                            <button class="action-btn" th:onclick="'aceptarEnvio(' + ${envio.idEnvio} + ')'" title="Aceptar envío">
+                                <i class="bi bi-check-circle"></i>
+                            </button>
+                            <button class="action-btn" th:onclick="'verDetalleEnvio(' + ${envio.idEnvio} + ')'" title="Ver detalles">
                                 <i class="bi bi-eye"></i>
-                            </button>
-                            <button class="action-btn" title="Actualizar">
-                                <i class="bi bi-pencil"></i>
-                            </button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td><strong>#ENV-1023</strong></td>
-                        <td>Carlos Ramírez</td>
-                        <td>Cali</td>
-                        <td>Bogotá</td>
-                        <td>2025-12-09</td>
-                        <td><span class="badge-status badge-completado">Completado</span></td>
-                        <td><strong>$380.000</strong></td>
-                        <td>
-                            <button class="action-btn" title="Ver detalles">
-                                <i class="bi bi-eye"></i>
-                            </button>
-                            <button class="action-btn" title="Actualizar">
-                                <i class="bi bi-pencil"></i>
-                            </button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td><strong>#ENV-1022</strong></td>
-                        <td>Ana Martínez</td>
-                        <td>Barranquilla</td>
-                        <td>Cartagena</td>
-                        <td>2025-12-08</td>
-                        <td><span class="badge-status badge-pendiente">Pendiente</span></td>
-                        <td><strong>$290.000</strong></td>
-                        <td>
-                            <button class="action-btn" title="Ver detalles">
-                                <i class="bi bi-eye"></i>
-                            </button>
-                            <button class="action-btn" title="Actualizar">
-                                <i class="bi bi-pencil"></i>
-                            </button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td><strong>#ENV-1021</strong></td>
-                        <td>Pedro López</td>
-                        <td>Pereira</td>
-                        <td>Armenia</td>
-                        <td>2025-12-07</td>
-                        <td><span class="badge-status badge-completado">Completado</span></td>
-                        <td><strong>$210.000</strong></td>
-                        <td>
-                            <button class="action-btn" title="Ver detalles">
-                                <i class="bi bi-eye"></i>
-                            </button>
-                            <button class="action-btn" title="Actualizar">
-                                <i class="bi bi-pencil"></i>
-                            </button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td><strong>#ENV-1020</strong></td>
-                        <td>Laura Sánchez</td>
-                        <td>Manizales</td>
-                        <td>Bogotá</td>
-                        <td>2025-12-06</td>
-                        <td><span class="badge-status badge-enproceso">En Proceso</span></td>
-                        <td><strong>$520.000</strong></td>
-                        <td>
-                            <button class="action-btn" title="Ver detalles">
-                                <i class="bi bi-eye"></i>
-                            </button>
-                            <button class="action-btn" title="Actualizar">
-                                <i class="bi bi-pencil"></i>
                             </button>
                         </td>
                     </tr>
                 </tbody>
             </table>
+        </div>
+
+        <div th:if="${enviosDisponibles.isEmpty()}" class="text-center py-5">
+            <i class="bi bi-inbox" style="font-size: 3rem; color: #ccc;"></i>
+            <p class="text-muted mt-3">No hay envíos disponibles en este momento</p>
         </div>
     </div>
 
@@ -932,93 +863,658 @@
 <!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
-<!-- Charts JS -->
+<!-- Variables globales de datos -->
 <script>
-    // Revenue Chart
-    const revenueCtx = document.getElementById('revenueChart').getContext('2d');
-    new Chart(revenueCtx, {
-        type: 'line',
-        data: {
-            labels: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'],
-            datasets: [{
-                label: 'Ingresos (Millones COP)',
-                data: [2.8, 3.1, 3.5, 3.2, 4.1, 3.8, 4.5, 4.2, 4.8, 4.3, 4.6, 4.2],
-                borderColor: '#2f6b31',
-                backgroundColor: 'rgba(47, 107, 49, 0.1)',
-                borderWidth: 3,
-                fill: true,
-                tension: 0.4,
-                pointRadius: 5,
-                pointHoverRadius: 8,
-                pointBackgroundColor: '#2f6b31',
-                pointBorderColor: '#fff',
-                pointBorderWidth: 2
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: true,
-            plugins: {
-                legend: {
-                    display: false
+    window.ingresosPorMesArray = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+    window.enviosActivosCount = 0;
+    window.totalEnvios = 0;
+    window.enviosDisponiblesCount = 0;
+    window.revenueChartInstance = null;
+    window.statusChartInstance = null;
+</script>
+
+<!-- Script para obtener datos del servidor y renderizar gráficas -->
+<script>
+    // Cargar datos desde el servidor al iniciar
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('🔄 Iniciando carga del dashboard desde el servidor...');
+        cargarDatosDelServidor();
+    });
+
+    /**
+     * Obtiene los datos de las gráficas desde el servidor
+     */
+    function cargarDatosDelServidor() {
+        fetch('/transportista/api/datos-dashboard')
+            .then(response => {
+                console.log('📡 Respuesta del servidor:', response.status);
+                if (!response.ok) {
+                    throw new Error('Error ' + response.status + ': ' + response.statusText);
                 }
+                return response.json();
+            })
+            .then(data => {
+                console.log('✅ Datos recibidos del servidor:');
+                console.log('   📊 Ingresos por mes:', data.ingresosPorMes);
+                console.log('   📦 Total envíos:', data.totalEnvios);
+                console.log('   🚚 Envíos activos:', data.enviosActivosCount);
+                console.log('   📋 Envíos disponibles:', data.enviosDisponiblesCount);
+
+                // Asignar datos a variables globales
+                window.ingresosPorMesArray = data.ingresosPorMes || [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+                window.enviosActivosCount = data.enviosActivosCount || 0;
+                window.totalEnvios = data.totalEnvios || 0;
+                window.enviosDisponiblesCount = data.enviosDisponiblesCount || 0;
+
+                console.log('✅ Datos asignados a variables globales');
+
+                // Renderizar gráficas con los datos obtenidos
+                renderCharts();
+            })
+            .catch(error => {
+                console.error('✗ Error al obtener datos del servidor:', error);
+                console.error('  Detalles:', error.message);
+
+                // Renderizar con datos vacíos para evitar errores
+                renderCharts();
+            });
+    }
+
+    /**
+     * Renderiza las gráficas con los datos cargados
+     */
+    function renderCharts() {
+        const enviosCompletados = Math.max(0, window.totalEnvios - window.enviosActivosCount - window.enviosDisponiblesCount);
+        const enviosCancelados = 0;
+
+        console.log('🎨 Renderizando gráficas...');
+        console.log('   Envíos completados calculados:', enviosCompletados);
+
+        // Revenue Chart - Gráfica de Ingresos Mensuales
+        renderRevenueChart();
+
+        // Status Chart - Gráfica de Estado de Envíos
+        renderStatusChart(enviosCompletados, enviosCancelados);
+
+        console.log('✅ Gráficas renderizadas correctamente');
+    }
+
+    /**
+     * Renderiza la gráfica de ingresos mensuales
+     */
+    function renderRevenueChart() {
+        const revenueCtx = document.getElementById('revenueChart');
+        if (!revenueCtx) {
+            console.warn('⚠️ Elemento #revenueChart no encontrado');
+            return;
+        }
+
+        // Destruir gráfica anterior si existe
+        if (window.revenueChartInstance) {
+            window.revenueChartInstance.destroy();
+        }
+
+        window.revenueChartInstance = new Chart(revenueCtx.getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'],
+                datasets: [{
+                    label: 'Ingresos (COP)',
+                    data: window.ingresosPorMesArray,
+                    borderColor: '#2f6b31',
+                    backgroundColor: 'rgba(47, 107, 49, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 5,
+                    pointHoverRadius: 8,
+                    pointBackgroundColor: '#2f6b31',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2
+                }]
             },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    grid: {
-                        color: '#f0f0f0',
-                        drawBorder: false
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        display: false
                     },
-                    ticks: {
-                        callback: function(value) {
-                            return '$' + value + 'M';
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        padding: 12,
+                        titleFont: { size: 14, weight: 'bold' },
+                        bodyFont: { size: 13 },
+                        callbacks: {
+                            label: function(context) {
+                                return 'Ingresos: $' + formatNumber(context.parsed.y);
+                            }
                         }
                     }
                 },
-                x: {
-                    grid: {
-                        display: false
-                    }
-                }
-            }
-        }
-    });
-
-    // Status Chart
-    const statusCtx = document.getElementById('statusChart').getContext('2d');
-    new Chart(statusCtx, {
-        type: 'doughnut',
-        data: {
-            labels: ['Completados', 'En Proceso', 'Pendientes', 'Cancelados'],
-            datasets: [{
-                data: [156, 24, 12, 3],
-                backgroundColor: [
-                    '#2f6b31',
-                    '#3498db',
-                    '#f39c12',
-                    '#e63946'
-                ],
-                borderWidth: 0
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: true,
-            plugins: {
-                legend: {
-                    position: 'bottom',
-                    labels: {
-                        padding: 15,
-                        font: {
-                            size: 12,
-                            family: 'Inter'
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: '#f0f0f0',
+                            drawBorder: false
+                        },
+                        ticks: {
+                            callback: function(value) {
+                                return '$' + formatNumber(value);
+                            }
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
                         }
                     }
                 }
             }
+        });
+
+        console.log('✅ Gráfica de ingresos renderizada');
+    }
+
+    /**
+     * Renderiza la gráfica de estado de envíos
+     */
+    function renderStatusChart(enviosCompletados, enviosCancelados) {
+        const statusCtx = document.getElementById('statusChart');
+        if (!statusCtx) {
+            console.warn('⚠️ Elemento #statusChart no encontrado');
+            return;
+        }
+
+        // Destruir gráfica anterior si existe
+        if (window.statusChartInstance) {
+            window.statusChartInstance.destroy();
+        }
+
+        window.statusChartInstance = new Chart(statusCtx.getContext('2d'), {
+            type: 'doughnut',
+            data: {
+                labels: ['Completados', 'En Proceso', 'Disponibles', 'Cancelados'],
+                datasets: [{
+                    data: [
+                        enviosCompletados,
+                        window.enviosActivosCount,
+                        window.enviosDisponiblesCount,
+                        enviosCancelados
+                    ],
+                    backgroundColor: [
+                        '#2f6b31',
+                        '#3498db',
+                        '#f39c12',
+                        '#e63946'
+                    ],
+                    borderWidth: 0,
+                    borderRadius: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 15,
+                            font: {
+                                size: 12,
+                                family: 'Inter'
+                            }
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const label = context.label || '';
+                                const value = context.parsed || 0;
+                                return label + ': ' + value + ' envío(s)';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        console.log('✅ Gráfica de estado de envíos renderizada');
+    }
+
+    /**
+     * Actualiza las gráficas después de que se finaliza un envío
+     * @param {number} nuevoIngreso - El costo del envío finalizado a sumar al mes actual
+     */
+    window.actualizarGraficasAlFinalizarEnvio = function(nuevoIngreso) {
+        console.log('📈 Actualizando gráficas por envío finalizado...');
+        console.log('   Nuevo ingreso: $' + formatNumber(nuevoIngreso));
+
+        const mesActual = new Date().getMonth(); // 0-11
+
+        // Sumar el nuevo ingreso al mes actual
+        window.ingresosPorMesArray[mesActual] += nuevoIngreso;
+
+        // Actualizar contadores
+        window.enviosActivosCount = Math.max(0, window.enviosActivosCount - 1);
+        window.totalEnvios++;
+
+        console.log('   Nuevo total de envíos:', window.totalEnvios);
+        console.log('   Ingresos del mes actualizado:', window.ingresosPorMesArray[mesActual]);
+
+        // Re-renderizar gráficas
+        renderCharts();
+
+        console.log('✅ Gráficas actualizadas correctamente');
+    };
+
+    /**
+     * Función auxiliar para formatear números con separadores de miles
+     */
+    window.formatNumber = function(num) {
+        if (typeof num !== 'number' || isNaN(num)) {
+            return '0';
+        }
+        return num.toLocaleString('es-CO', {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0
+        });
+    };
+
+    function formatNumber(num) {
+        return window.formatNumber(num);
+    }
+
+    /**
+     * Acepta un envío disponible para que el transportista lo tome
+     * @param {number} idEnvio - ID del envío a aceptar
+     */
+    window.aceptarEnvio = function(idEnvio) {
+        console.log('🚚 Aceptando envío #' + idEnvio);
+
+        if (!confirm('¿Deseas aceptar este envío?')) {
+            console.log('   Aceptación cancelada por el usuario');
+            return;
+        }
+
+        fetch('/transportista/envios/aceptar/' + idEnvio, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => {
+            console.log('   Respuesta del servidor:', response.status);
+            if (response.ok) {
+                return response.json();
+            } else {
+                throw new Error('Error al aceptar el envío: ' + response.statusText);
+            }
+        })
+        .then(data => {
+            console.log('✅ Envío aceptado correctamente');
+            console.log('   Datos recibidos:', data);
+
+            showNotification('✅ Envío aceptado correctamente', 'success');
+
+            if (data.success) {
+                console.log('   Recargando datos desde el servidor...');
+                setTimeout(() => {
+                    cargarDatosDelServidor();
+                    location.reload();
+                }, 1500);
+            }
+        })
+        .catch(error => {
+            console.error('✗ Error:', error);
+            showNotification('❌ Error al aceptar el envío: ' + error.message, 'error');
+        });
+    };
+
+    /**
+     * Ver detalles de un envío
+     * @param {number} idEnvio - ID del envío
+     */
+    window.verDetalleEnvio = function(idEnvio) {
+        console.log('👁️ Viendo detalles del envío #' + idEnvio);
+        window.location.href = '/transportista/envio-detalle/' + idEnvio;
+    };
+
+    /**
+     * Mostrar notificación temporal al usuario
+     * @param {string} mensaje - Mensaje a mostrar
+     * @param {string} tipo - Tipo de notificación: 'success', 'error', 'warning', 'info'
+     */
+    window.showNotification = function(mensaje, tipo) {
+        console.log('📢 Notificación [' + tipo.toUpperCase() + ']: ' + mensaje);
+
+        const notification = document.createElement('div');
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 10px;
+            font-weight: 600;
+            color: white;
+            z-index: 9999;
+            animation: slideIn 0.3s ease-out;
+            max-width: 300px;
+        `;
+
+        switch(tipo) {
+            case 'success':
+                notification.style.backgroundColor = '#2f6b31';
+                break;
+            case 'error':
+                notification.style.backgroundColor = '#e63946';
+                break;
+            case 'warning':
+                notification.style.backgroundColor = '#f39c12';
+                break;
+            case 'info':
+                notification.style.backgroundColor = '#3498db';
+                break;
+        }
+
+        notification.textContent = mensaje;
+        document.body.appendChild(notification);
+
+        setTimeout(() => {
+            notification.style.animation = 'slideOut 0.3s ease-in';
+            setTimeout(() => {
+                notification.remove();
+            }, 300);
+        }, 3000);
+    };
+
+    // Agregar animaciones CSS para notificaciones
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+        }
+    `;
+    document.head.appendChild(style);
+</script>
+    // Variables globales para almacenar instancias de gráficas
+    window.revenueChartInstance = null;
+    window.statusChartInstance = null;
+
+    // Cargar datos desde atributos del DOM
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('🔄 Iniciando carga del dashboard...');
+
+        const chartDataElement = document.getElementById('chartData');
+
+        if (!chartDataElement) {
+            console.error('✗ Elemento #chartData no encontrado');
+            return;
+        }
+
+        try {
+            // Obtener datos de meses (con validación)
+            const mes1 = parseFloat(chartDataElement.getAttribute('data-mes1')) || 0;
+            const mes2 = parseFloat(chartDataElement.getAttribute('data-mes2')) || 0;
+            const mes3 = parseFloat(chartDataElement.getAttribute('data-mes3')) || 0;
+            const mes4 = parseFloat(chartDataElement.getAttribute('data-mes4')) || 0;
+            const mes5 = parseFloat(chartDataElement.getAttribute('data-mes5')) || 0;
+            const mes6 = parseFloat(chartDataElement.getAttribute('data-mes6')) || 0;
+            const mes7 = parseFloat(chartDataElement.getAttribute('data-mes7')) || 0;
+            const mes8 = parseFloat(chartDataElement.getAttribute('data-mes8')) || 0;
+            const mes9 = parseFloat(chartDataElement.getAttribute('data-mes9')) || 0;
+            const mes10 = parseFloat(chartDataElement.getAttribute('data-mes10')) || 0;
+            const mes11 = parseFloat(chartDataElement.getAttribute('data-mes11')) || 0;
+            const mes12 = parseFloat(chartDataElement.getAttribute('data-mes12')) || 0;
+
+            window.ingresosPorMesArray = [mes1, mes2, mes3, mes4, mes5, mes6, mes7, mes8, mes9, mes10, mes11, mes12];
+
+            // Obtener datos de envíos
+            window.enviosActivosCount = parseInt(chartDataElement.getAttribute('data-envios-activos')) || 0;
+            window.totalEnvios = parseInt(chartDataElement.getAttribute('data-total-envios')) || 0;
+            window.enviosDisponiblesCount = parseInt(chartDataElement.getAttribute('data-envios-disponibles')) || 0;
+
+            console.log('✅ Datos cargados correctamente');
+            console.log('   📊 Ingresos por mes:', window.ingresosPorMesArray);
+            console.log('   📦 Total envíos:', window.totalEnvios);
+            console.log('   🚚 Envíos activos:', window.enviosActivosCount);
+            console.log('   📋 Envíos disponibles:', window.enviosDisponiblesCount);
+
+            // Renderizar gráficas después de cargar datos
+            renderCharts();
+        } catch (error) {
+            console.error('✗ Error al cargar datos:', error);
+            console.error('  Stack:', error.stack);
         }
     });
+
+    /**
+     * Renderiza las gráficas con los datos cargados
+     */
+    function renderCharts() {
+        const enviosCompletados = Math.max(0, window.totalEnvios - window.enviosActivosCount - window.enviosDisponiblesCount);
+        const enviosCancelados = 0;
+
+        console.log('🎨 Renderizando gráficas...');
+        console.log('   Envíos completados calculados:', enviosCompletados);
+
+        // Revenue Chart - Gráfica de Ingresos Mensuales
+        renderRevenueChart(enviosCompletados);
+
+        // Status Chart - Gráfica de Estado de Envíos
+        renderStatusChart(enviosCompletados, enviosCancelados);
+
+        console.log('✅ Gráficas renderizadas correctamente');
+    }
+
+    /**
+     * Renderiza la gráfica de ingresos mensuales
+     */
+    function renderRevenueChart() {
+        const revenueCtx = document.getElementById('revenueChart');
+        if (!revenueCtx) {
+            console.warn('⚠️ Elemento #revenueChart no encontrado');
+            return;
+        }
+
+        // Destruir gráfica anterior si existe
+        if (window.revenueChartInstance) {
+            window.revenueChartInstance.destroy();
+        }
+
+        window.revenueChartInstance = new Chart(revenueCtx.getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'],
+                datasets: [{
+                    label: 'Ingresos (COP)',
+                    data: window.ingresosPorMesArray,
+                    borderColor: '#2f6b31',
+                    backgroundColor: 'rgba(47, 107, 49, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 5,
+                    pointHoverRadius: 8,
+                    pointBackgroundColor: '#2f6b31',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        padding: 12,
+                        titleFont: { size: 14, weight: 'bold' },
+                        bodyFont: { size: 13 },
+                        callbacks: {
+                            label: function(context) {
+                                return 'Ingresos: $' + formatNumber(context.parsed.y);
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: '#f0f0f0',
+                            drawBorder: false
+                        },
+                        ticks: {
+                            callback: function(value) {
+                                return '$' + formatNumber(value);
+                            }
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                }
+            }
+        });
+
+        console.log('✅ Gráfica de ingresos renderizada');
+    }
+
+    /**
+     * Renderiza la gráfica de estado de envíos
+     */
+    function renderStatusChart(enviosCompletados, enviosCancelados) {
+        const statusCtx = document.getElementById('statusChart');
+        if (!statusCtx) {
+            console.warn('⚠️ Elemento #statusChart no encontrado');
+            return;
+        }
+
+        // Destruir gráfica anterior si existe
+        if (window.statusChartInstance) {
+            window.statusChartInstance.destroy();
+        }
+
+        window.statusChartInstance = new Chart(statusCtx.getContext('2d'), {
+            type: 'doughnut',
+            data: {
+                labels: ['Completados', 'En Proceso', 'Disponibles', 'Cancelados'],
+                datasets: [{
+                    data: [
+                        enviosCompletados,
+                        window.enviosActivosCount,
+                        window.enviosDisponiblesCount,
+                        enviosCancelados
+                    ],
+                    backgroundColor: [
+                        '#2f6b31',
+                        '#3498db',
+                        '#f39c12',
+                        '#e63946'
+                    ],
+                    borderWidth: 0,
+                    borderRadius: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 15,
+                            font: {
+                                size: 12,
+                                family: 'Inter'
+                            }
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const label = context.label || '';
+                                const value = context.parsed || 0;
+                                return label + ': ' + value + ' envío(s)';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        console.log('✅ Gráfica de estado de envíos renderizada');
+    }
+
+    /**
+     * Actualiza las gráficas después de que se finaliza un envío
+     * Llamar a esta función desde el backend o desde eventos de cambio de estado
+     * @param {number} nuevoIngreso - El costo del envío finalizado a sumar al mes actual
+     */
+    window.actualizarGraficasAlFinalizarEnvio = function(nuevoIngreso) {
+        console.log('📈 Actualizando gráficas por envío finalizado...');
+        console.log('   Nuevo ingreso: $' + formatNumber(nuevoIngreso));
+
+        const mesActual = new Date().getMonth(); // 0-11
+
+        // Sumar el nuevo ingreso al mes actual
+        window.ingresosPorMesArray[mesActual] += nuevoIngreso;
+
+        // Actualizar contadores
+        window.enviosDisponiblesCount = Math.max(0, window.enviosDisponiblesCount - 1);
+        window.enviosActivosCount = Math.max(0, window.enviosActivosCount - 1);
+        window.totalEnvios++;
+
+        console.log('   Nuevo total de envíos:', window.totalEnvios);
+        console.log('   Ingresos del mes actualizado:', window.ingresosPorMesArray[mesActual]);
+
+        // Re-renderizar gráficas
+        renderCharts();
+
+        console.log('✅ Gráficas actualizadas correctamente');
+    };
+
+    /**
+     * Función auxiliar para formatear números con separadores de miles
+     */
+    window.formatNumber = function(num) {
+        if (typeof num !== 'number' || isNaN(num)) {
+            return '0';
+        }
+        return num.toLocaleString('es-CO', {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0
+        });
+    };
+
+    // Crear alias global para compatibilidad
+    function formatNumber(num) {
+        return window.formatNumber(num);
+    }
 </script>
 
 <!-- Mobile Menu Script -->

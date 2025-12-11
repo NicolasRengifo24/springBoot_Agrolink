@@ -3,960 +3,277 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mis Envíos - Agrolink Transportista</title>
+    <title>Mis Envíos - Agrolink</title>
 
-    <!-- Bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-
-    <!-- Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-
-    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
 
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
         body {
             font-family: "Inter", sans-serif;
-            background: #f8faf7;
-        }
-
-        /* SIDEBAR */
-        .sidebar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            height: 100vh;
-            width: 280px;
-            background: linear-gradient(180deg, #2f6b31 0%, #1d4820 100%);
-            padding: 20px 0;
-            z-index: 1000;
-            box-shadow: 4px 0 15px rgba(0,0,0,0.1);
-        }
-
-        .sidebar-brand {
-            padding: 0 25px 25px 25px;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-            margin-bottom: 20px;
-        }
-
-        .sidebar-brand img {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            margin-right: 12px;
-            border: 2px solid #fff;
-        }
-
-        .sidebar-brand h4 {
-            color: white;
-            font-weight: 700;
-            margin: 0;
-            font-size: 1.5rem;
-        }
-
-        .sidebar-menu {
-            list-style: none;
-            padding: 0;
-        }
-
-        .sidebar-menu li {
-            margin: 5px 15px;
-        }
-
-        .sidebar-menu a {
-            display: flex;
-            align-items: center;
-            padding: 14px 18px;
-            color: rgba(255,255,255,0.85);
-            text-decoration: none;
-            border-radius: 12px;
-            transition: all 0.3s ease;
-            font-weight: 500;
-            font-size: 0.95rem;
-        }
-
-        .sidebar-menu a:hover,
-        .sidebar-menu a.active {
-            background: rgba(255,255,255,0.15);
-            color: white;
-            transform: translateX(5px);
-        }
-
-        .sidebar-menu a i {
-            font-size: 1.3rem;
-            margin-right: 15px;
-            width: 25px;
-        }
-
-        .sidebar-footer {
-            position: absolute;
-            bottom: 20px;
-            left: 0;
-            right: 0;
-            padding: 0 15px;
-        }
-
-        /* MAIN CONTENT */
-        .main-content {
-            margin-left: 280px;
-            padding: 25px 30px;
+            background: linear-gradient(135deg, #f0f9f4 0%, #e3f2e8 100%);
             min-height: 100vh;
+            padding: 20px;
         }
 
-        /* TOPBAR */
-        .topbar {
+        .container { max-width: 1400px; margin: 0 auto; }
+
+        .header {
             background: white;
-            padding: 20px 30px;
+            padding: 30px;
             border-radius: 16px;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
             margin-bottom: 30px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         }
 
-        .topbar h2 {
-            color: #2f6b31;
-            font-weight: 700;
-            margin: 0;
-            font-size: 1.8rem;
-        }
+        .header h1 { color: #2f6b31; font-weight: 800; }
 
-        /* TABS */
-        .status-tabs {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 30px;
-            flex-wrap: wrap;
-        }
-
-        .status-tab {
-            padding: 10px 20px;
-            border: 2px solid #e0e7db;
-            background: white;
-            border-radius: 10px;
+        .btn-back {
+            background: linear-gradient(135deg, #2f6b31 0%, #5cb85c 100%);
+            border: none;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 12px;
             font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            color: #6c757d;
-            display: flex;
+            text-decoration: none;
+            display: inline-flex;
             align-items: center;
             gap: 8px;
         }
 
-        .status-tab:hover,
-        .status-tab.active {
-            background: #2f6b31;
-            color: white;
-            border-color: #2f6b31;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(47, 107, 49, 0.2);
-        }
-
-        .status-count {
-            background: rgba(255, 255, 255, 0.2);
-            padding: 2px 8px;
-            border-radius: 20px;
-            font-size: 0.85rem;
-        }
-
-        .status-tab.active .status-count {
-            background: rgba(255, 255, 255, 0.3);
-        }
-
-        /* ENVIOS TABLE */
-        .envios-section {
+        .envio-card {
             background: white;
             border-radius: 16px;
             padding: 25px;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
-        }
-
-        .envio-row {
-            background: #f8faf7;
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 15px;
-            transition: all 0.3s ease;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
             border-left: 4px solid #2f6b31;
         }
 
-        .envio-row:hover {
-            transform: translateX(5px);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-        }
-
-        .envio-header-row {
-            display: grid;
-            grid-template-columns: 1fr 2fr 1fr 1fr 1fr 150px;
-            gap: 15px;
+        .envio-header {
+            display: flex;
+            justify-content: space-between;
             align-items: center;
             margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f8f0;
         }
 
         .envio-id {
-            font-size: 1.1rem;
+            font-size: 1.2rem;
             font-weight: 700;
             color: #2f6b31;
         }
 
-        .route-info-compact {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 0.9rem;
-        }
-
-        .route-arrow {
-            color: #2f6b31;
-            font-weight: bold;
-        }
-
-        .badge-status {
-            padding: 6px 14px;
+        .badge-estado {
+            padding: 8px 16px;
             border-radius: 20px;
-            font-size: 0.8rem;
             font-weight: 600;
-            display: inline-block;
-            text-align: center;
+            font-size: 0.85rem;
         }
 
-        .badge-enproceso {
-            background: #cce5ff;
-            color: #004085;
-        }
+        .badge-asignado { background: #cce5ff; color: #004085; }
+        .badge-en-transito { background: #fff3cd; color: #856404; }
+        .badge-finalizado { background: #d4edda; color: #155724; }
+        .badge-cancelado { background: #f8d7da; color: #721c24; }
 
-        .badge-completado {
-            background: #d4edda;
-            color: #155724;
-        }
-
-        .badge-cancelado {
-            background: #f8d7da;
-            color: #721c24;
-        }
-
-        .badge-pendiente {
-            background: #fff3cd;
-            color: #856404;
-        }
-
-        .envio-details-row {
+        .envio-details {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
             gap: 15px;
-            padding-top: 15px;
-            border-top: 1px solid #e0e7db;
+            margin-bottom: 15px;
         }
 
-        .detail-box {
+        .detail-item { display: flex; flex-direction: column; }
+        .detail-label { font-size: 0.85rem; color: #6c757d; font-weight: 600; margin-bottom: 5px; }
+        .detail-value { font-size: 1rem; color: #2a2a2a; font-weight: 500; }
+
+        .actions {
             display: flex;
-            align-items: center;
             gap: 10px;
-        }
-
-        .detail-icon {
-            width: 35px;
-            height: 35px;
-            border-radius: 8px;
-            background: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #2f6b31;
-            font-size: 1.1rem;
-        }
-
-        .detail-content {
-            flex: 1;
-        }
-
-        .detail-label {
-            font-size: 0.75rem;
-            color: #6c757d;
-            display: block;
-        }
-
-        .detail-value {
-            font-weight: 600;
-            color: #2f6b31;
-            font-size: 0.95rem;
-        }
-
-        .action-buttons-row {
-            display: flex;
-            gap: 8px;
+            flex-wrap: wrap;
         }
 
         .btn-action {
-            padding: 8px 15px;
-            border-radius: 8px;
+            padding: 10px 20px;
+            border-radius: 10px;
             border: none;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 0.85rem;
             font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.9rem;
         }
 
-        .btn-view {
-            background: #e3f2fd;
-            color: #1976d2;
-        }
-
-        .btn-view:hover {
-            background: #1976d2;
+        .btn-iniciar {
+            background: linear-gradient(135deg, #3498db, #2980b9);
             color: white;
         }
 
-        .btn-update {
-            background: #f0f8f0;
-            color: #2f6b31;
-        }
-
-        .btn-update:hover {
-            background: #2f6b31;
+        .btn-finalizar {
+            background: linear-gradient(135deg, #2f6b31, #1d4820);
             color: white;
         }
 
-        .btn-complete {
-            background: #d4edda;
-            color: #155724;
+        .btn-action:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
         }
 
-        .btn-complete:hover {
-            background: #155724;
-            color: white;
-        }
-
-        /* EMPTY STATE */
         .empty-state {
             text-align: center;
             padding: 60px 20px;
+            background: white;
+            border-radius: 16px;
         }
 
         .empty-state i {
             font-size: 4rem;
-            color: #2f6b31;
-            opacity: 0.3;
+            color: #ccc;
             margin-bottom: 20px;
-        }
-
-        .empty-state h4 {
-            color: #6c757d;
-            margin-bottom: 10px;
-        }
-
-        .empty-state p {
-            color: #999;
-        }
-
-        /* MOBILE MENU */
-        .mobile-menu-toggle {
-            display: none;
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            width: 60px;
-            height: 60px;
-            background: linear-gradient(135deg, #2f6b31, #1d4820);
-            border-radius: 50%;
-            border: none;
-            color: white;
-            font-size: 1.5rem;
-            box-shadow: 0 4px 15px rgba(47, 107, 49, 0.4);
-            z-index: 1001;
-            cursor: pointer;
-        }
-
-        .sidebar.mobile-open {
-            transform: translateX(0) !important;
-        }
-
-        .mobile-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 999;
-        }
-
-        .mobile-overlay.active {
-            display: block;
-        }
-
-        /* RESPONSIVE */
-        @media (max-width: 992px) {
-            .envio-header-row {
-                grid-template-columns: 1fr;
-                gap: 10px;
-            }
-
-            .route-info-compact {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-
-            .action-buttons-row {
-                width: 100%;
-            }
-        }
-
-        @media (max-width: 768px) {
-            .sidebar {
-                transform: translateX(-100%);
-                transition: transform 0.3s ease;
-            }
-
-            .main-content {
-                margin-left: 0;
-                padding: 15px;
-            }
-
-            .mobile-menu-toggle {
-                display: flex;
-                align-items: center;
-                justify-content: center;
-            }
-
-            .topbar {
-                padding: 15px 20px;
-                flex-direction: column;
-                gap: 15px;
-                align-items: flex-start;
-            }
-
-            .topbar h2 {
-                font-size: 1.4rem;
-            }
-
-            .status-tabs {
-                width: 100%;
-                overflow-x: auto;
-                flex-wrap: nowrap;
-                padding-bottom: 10px;
-            }
-
-            .status-tab {
-                white-space: nowrap;
-                font-size: 0.85rem;
-                padding: 8px 15px;
-            }
-
-            .envios-section {
-                padding: 15px;
-            }
-
-            .envio-row {
-                padding: 15px;
-            }
-
-            .envio-details-row {
-                grid-template-columns: 1fr;
-            }
-
-            .action-buttons-row {
-                flex-direction: column;
-            }
-
-            .btn-action {
-                width: 100%;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .topbar h2 {
-                font-size: 1.2rem;
-            }
-
-            .envio-id {
-                font-size: 1rem;
-            }
-
-            .detail-value {
-                font-size: 0.85rem;
-            }
         }
     </style>
 </head>
 <body>
 
-<!-- Mobile Menu Toggle -->
-<button class="mobile-menu-toggle" id="mobileMenuBtn">
-    <i class="bi bi-list"></i>
-</button>
-
-<!-- Mobile Overlay -->
-<div class="mobile-overlay" id="mobileOverlay"></div>
-
-<!-- SIDEBAR -->
-<aside class="sidebar">
-    <div class="sidebar-brand d-flex align-items-center">
-        <img th:src="@{/CSS/logo/logoAgro.jpeg}" alt="Logo Agrolink">
-        <div>
-            <h4>Agrolink</h4>
-            <small style="color: rgba(255,255,255,0.7);">Transportista</small>
+<div class="container">
+    <div class="header">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h1><i class="bi bi-truck me-2"></i>Mis Envíos</h1>
+                <p class="text-muted mb-0">Total: <strong th:text="${envios.size()}">0</strong> envíos asignados</p>
+            </div>
+            <a href="/transportista/dashboard" class="btn-back">
+                <i class="bi bi-arrow-left"></i> Volver al Dashboard
+            </a>
         </div>
     </div>
 
-    <ul class="sidebar-menu">
-        <li>
-            <a th:href="@{/transportista/dashboard}">
-                <i class="bi bi-speedometer2"></i>
-                <span>Dashboard</span>
-            </a>
-        </li>
-        <li>
-            <a th:href="@{/transportista/envios}">
-                <i class="bi bi-box-seam"></i>
-                <span>Envíos Disponibles</span>
-            </a>
-        </li>
-        <li>
-            <a href="#" class="active">
-                <i class="bi bi-truck"></i>
-                <span>Mis Envíos</span>
-            </a>
-        </li>
-        <li>
-            <a th:href="@{/transportista/vehiculos}">
-                <i class="bi bi-car-front"></i>
-                <span>Mis Vehículos</span>
-            </a>
-        </li>
-        <li>
-            <a th:href="@{/transportista/seguimiento}">
-                <i class="bi bi-geo-alt"></i>
-                <span>Seguimiento</span>
-            </a>
-        </li>
-        <li>
-            <a th:href="@{/transportista/rentabilidad}">
-                <i class="bi bi-graph-up"></i>
-                <span>Rentabilidad</span>
-            </a>
-        </li>
-        <li>
-            <a th:href="@{/transportista/perfil}">
-                <i class="bi bi-person-circle"></i>
-                <span>Mi Perfil</span>
-            </a>
-        </li>
-    </ul>
+    <!-- Lista de Mis Envíos -->
+    <div th:if="${!envios.isEmpty()}">
+        <div class="envio-card" th:each="envio : ${envios}">
+            <div class="envio-header">
+                <span class="envio-id" th:text="'Envío #ENV-' + ${envio.idEnvio}">#ENV-0</span>
+                <span class="badge-estado"
+                      th:classappend="${envio.estadoEnvio == T(com.example.springbootagrolink.model.Envio.EstadoEnvio).Asignado ? 'badge-asignado' :
+                                       envio.estadoEnvio == T(com.example.springbootagrolink.model.Envio.EstadoEnvio).En_Transito ? 'badge-en-transito' :
+                                       envio.estadoEnvio == T(com.example.springbootagrolink.model.Envio.EstadoEnvio).Finalizado ? 'badge-finalizado' : 'badge-cancelado'}"
+                      th:text="${envio.estadoEnvio}">Estado</span>
+            </div>
 
-    <div class="sidebar-footer">
-        <a href="#" style="color: rgba(255,255,255,0.85); text-decoration: none; display: flex; align-items: center; padding: 14px 18px; border-radius: 12px; transition: all 0.3s ease;">
-            <i class="bi bi-box-arrow-left" style="font-size: 1.3rem; margin-right: 15px;"></i>
-            <span>Cerrar Sesión</span>
+            <div class="envio-details">
+                <div class="detail-item">
+                    <span class="detail-label">Cliente</span>
+                    <span class="detail-value" th:text="${envio.compra != null && envio.compra.cliente != null && envio.compra.cliente.usuario != null ? envio.compra.cliente.usuario.nombre : 'N/A'}">Cliente</span>
+                </div>
+
+                <div class="detail-item">
+                    <span class="detail-label">Origen</span>
+                    <span class="detail-value" th:text="${envio.direccionOrigen != null ? #strings.abbreviate(envio.direccionOrigen, 30) : 'N/A'}">Origen</span>
+                </div>
+
+                <div class="detail-item">
+                    <span class="detail-label">Destino</span>
+                    <span class="detail-value" th:text="${envio.direccionDestino != null ? #strings.abbreviate(envio.direccionDestino, 30) : 'N/A'}">Destino</span>
+                </div>
+
+                <div class="detail-item">
+                    <span class="detail-label">Distancia</span>
+                    <span class="detail-value" th:text="${envio.distanciaKm != null ? #numbers.formatDecimal(envio.distanciaKm, 0, 'POINT', 1, 'COMMA') + ' km' : 'N/A'}">0 km</span>
+                </div>
+
+                <div class="detail-item">
+                    <span class="detail-label">Peso</span>
+                    <span class="detail-value" th:text="${envio.pesoTotalKg != null ? #numbers.formatDecimal(envio.pesoTotalKg, 0, 'POINT', 0, 'COMMA') + ' kg' : 'N/A'}">0 kg</span>
+                </div>
+
+                <div class="detail-item">
+                    <span class="detail-label">Costo</span>
+                    <span class="detail-value" style="color: #2f6b31; font-weight: 700;">
+                        $<span th:text="${envio.costoTotal != null ? #numbers.formatDecimal(envio.costoTotal, 0, 'POINT', 0, 'COMMA') : '0'}">0</span>
+                    </span>
+                </div>
+
+                <div class="detail-item" th:if="${envio.fechaSalida != null}">
+                    <span class="detail-label">Fecha Salida</span>
+                    <span class="detail-value" th:text="${#temporals.format(envio.fechaSalida, 'dd/MM/yyyy')}">--/--/----</span>
+                </div>
+
+                <div class="detail-item" th:if="${envio.fechaEntrega != null}">
+                    <span class="detail-label">Fecha Entrega</span>
+                    <span class="detail-value" th:text="${#temporals.format(envio.fechaEntrega, 'dd/MM/yyyy')}">--/--/----</span>
+                </div>
+            </div>
+
+            <!-- Acciones según el estado -->
+            <div class="actions">
+                <button th:if="${envio.estadoEnvio == T(com.example.springbootagrolink.model.Envio.EstadoEnvio).Asignado}"
+                        class="btn-action btn-iniciar"
+                        th:onclick="'cambiarEstado(' + ${envio.idEnvio} + ', \'En_Transito\')'">
+                    <i class="bi bi-play-circle me-2"></i>Iniciar Transporte
+                </button>
+
+                <button th:if="${envio.estadoEnvio == T(com.example.springbootagrolink.model.Envio.EstadoEnvio).En_Transito}"
+                        class="btn-action btn-finalizar"
+                        th:onclick="'cambiarEstado(' + ${envio.idEnvio} + ', \'Finalizado\')'">
+                    <i class="bi bi-check-circle me-2"></i>Marcar como Entregado
+                </button>
+
+                <button class="btn-action" style="background: #6c757d; color: white;"
+                        th:onclick="'verSeguimiento(' + ${envio.idEnvio} + ')'">
+                    <i class="bi bi-geo-alt me-2"></i>Ver en Mapa
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Estado vacío -->
+    <div th:if="${envios.isEmpty()}" class="empty-state">
+        <i class="bi bi-inbox"></i>
+        <h4>No tienes envíos asignados</h4>
+        <p class="text-muted">Aún no has aceptado ningún envío. Ve a "Envíos Disponibles" para aceptar uno.</p>
+        <a href="/transportista/envios" class="btn-back mt-3">
+            <i class="bi bi-box-seam me-2"></i>Ver Envíos Disponibles
         </a>
     </div>
-</aside>
+</div>
 
-<!-- MAIN CONTENT -->
-<main class="main-content">
-
-    <!-- TOPBAR -->
-    <div class="topbar">
-        <div>
-            <h2><i class="bi bi-truck me-3"></i>Mis Envíos</h2>
-            <p class="text-muted mb-0">Gestiona todos tus envíos aceptados</p>
-        </div>
-    </div>
-
-    <!-- STATUS TABS -->
-    <div class="status-tabs">
-        <button class="status-tab active">
-            <i class="bi bi-grid-fill"></i>
-            Todos
-            <span class="status-count">24</span>
-        </button>
-        <button class="status-tab">
-            <i class="bi bi-clock-history"></i>
-            Pendientes
-            <span class="status-count">3</span>
-        </button>
-        <button class="status-tab">
-            <i class="bi bi-truck"></i>
-            En Proceso
-            <span class="status-count">5</span>
-        </button>
-        <button class="status-tab">
-            <i class="bi bi-check-circle"></i>
-            Completados
-            <span class="status-count">15</span>
-        </button>
-        <button class="status-tab">
-            <i class="bi bi-x-circle"></i>
-            Cancelados
-            <span class="status-count">1</span>
-        </button>
-    </div>
-
-    <!-- ENVIOS LIST -->
-    <div class="envios-section">
-
-        <!-- Envío 1 -->
-        <div class="envio-row">
-            <div class="envio-header-row">
-                <div class="envio-id">#ENV-1024</div>
-                <div class="route-info-compact">
-                    <span><i class="bi bi-geo-alt-fill me-1"></i>Bogotá</span>
-                    <span class="route-arrow">→</span>
-                    <span><i class="bi bi-geo-fill me-1"></i>Medellín</span>
-                </div>
-                <div><strong>$450.000</strong></div>
-                <div><span class="badge-status badge-enproceso">En Proceso</span></div>
-                <div class="action-buttons-row">
-                    <button class="btn-action btn-view">
-                        <i class="bi bi-eye me-1"></i>Ver
-                    </button>
-                    <button class="btn-action btn-update">
-                        <i class="bi bi-arrow-repeat me-1"></i>Actualizar
-                    </button>
-                </div>
-            </div>
-
-            <div class="envio-details-row">
-                <div class="detail-box">
-                    <div class="detail-icon">
-                        <i class="bi bi-person"></i>
-                    </div>
-                    <div class="detail-content">
-                        <span class="detail-label">Cliente</span>
-                        <div class="detail-value">María González</div>
-                    </div>
-                </div>
-
-                <div class="detail-box">
-                    <div class="detail-icon">
-                        <i class="bi bi-calendar"></i>
-                    </div>
-                    <div class="detail-content">
-                        <span class="detail-label">Fecha Entrega</span>
-                        <div class="detail-value">Hoy, 6:00 PM</div>
-                    </div>
-                </div>
-
-                <div class="detail-box">
-                    <div class="detail-icon">
-                        <i class="bi bi-box"></i>
-                    </div>
-                    <div class="detail-content">
-                        <span class="detail-label">Peso</span>
-                        <div class="detail-value">850 kg</div>
-                    </div>
-                </div>
-
-                <div class="detail-box">
-                    <div class="detail-icon">
-                        <i class="bi bi-truck-front"></i>
-                    </div>
-                    <div class="detail-content">
-                        <span class="detail-label">Vehículo</span>
-                        <div class="detail-value">ABC-123</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Envío 2 -->
-        <div class="envio-row">
-            <div class="envio-header-row">
-                <div class="envio-id">#ENV-1023</div>
-                <div class="route-info-compact">
-                    <span><i class="bi bi-geo-alt-fill me-1"></i>Cali</span>
-                    <span class="route-arrow">→</span>
-                    <span><i class="bi bi-geo-fill me-1"></i>Bogotá</span>
-                </div>
-                <div><strong>$380.000</strong></div>
-                <div><span class="badge-status badge-completado">Completado</span></div>
-                <div class="action-buttons-row">
-                    <button class="btn-action btn-view">
-                        <i class="bi bi-eye me-1"></i>Ver
-                    </button>
-                </div>
-            </div>
-
-            <div class="envio-details-row">
-                <div class="detail-box">
-                    <div class="detail-icon">
-                        <i class="bi bi-person"></i>
-                    </div>
-                    <div class="detail-content">
-                        <span class="detail-label">Cliente</span>
-                        <div class="detail-value">Carlos Ramírez</div>
-                    </div>
-                </div>
-
-                <div class="detail-box">
-                    <div class="detail-icon">
-                        <i class="bi bi-calendar"></i>
-                    </div>
-                    <div class="detail-content">
-                        <span class="detail-label">Fecha Entrega</span>
-                        <div class="detail-value">09 Dic, 5:30 PM</div>
-                    </div>
-                </div>
-
-                <div class="detail-box">
-                    <div class="detail-icon">
-                        <i class="bi bi-box"></i>
-                    </div>
-                    <div class="detail-content">
-                        <span class="detail-label">Peso</span>
-                        <div class="detail-value">1,200 kg</div>
-                    </div>
-                </div>
-
-                <div class="detail-box">
-                    <div class="detail-icon">
-                        <i class="bi bi-truck-front"></i>
-                    </div>
-                    <div class="detail-content">
-                        <span class="detail-label">Vehículo</span>
-                        <div class="detail-value">DEF-456</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Envío 3 -->
-        <div class="envio-row">
-            <div class="envio-header-row">
-                <div class="envio-id">#ENV-1022</div>
-                <div class="route-info-compact">
-                    <span><i class="bi bi-geo-alt-fill me-1"></i>Barranquilla</span>
-                    <span class="route-arrow">→</span>
-                    <span><i class="bi bi-geo-fill me-1"></i>Cartagena</span>
-                </div>
-                <div><strong>$290.000</strong></div>
-                <div><span class="badge-status badge-pendiente">Pendiente</span></div>
-                <div class="action-buttons-row">
-                    <button class="btn-action btn-view">
-                        <i class="bi bi-eye me-1"></i>Ver
-                    </button>
-                    <button class="btn-action btn-complete">
-                        <i class="bi bi-check me-1"></i>Iniciar
-                    </button>
-                </div>
-            </div>
-
-            <div class="envio-details-row">
-                <div class="detail-box">
-                    <div class="detail-icon">
-                        <i class="bi bi-person"></i>
-                    </div>
-                    <div class="detail-content">
-                        <span class="detail-label">Cliente</span>
-                        <div class="detail-value">Ana Martínez</div>
-                    </div>
-                </div>
-
-                <div class="detail-box">
-                    <div class="detail-icon">
-                        <i class="bi bi-calendar"></i>
-                    </div>
-                    <div class="detail-content">
-                        <span class="detail-label">Fecha Entrega</span>
-                        <div class="detail-value">11 Dic, 10:00 AM</div>
-                    </div>
-                </div>
-
-                <div class="detail-box">
-                    <div class="detail-icon">
-                        <i class="bi bi-box"></i>
-                    </div>
-                    <div class="detail-content">
-                        <span class="detail-label">Peso</span>
-                        <div class="detail-value">450 kg</div>
-                    </div>
-                </div>
-
-                <div class="detail-box">
-                    <div class="detail-icon">
-                        <i class="bi bi-truck-front"></i>
-                    </div>
-                    <div class="detail-content">
-                        <span class="detail-label">Vehículo</span>
-                        <div class="detail-value">GHI-789</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Envío 4 -->
-        <div class="envio-row">
-            <div class="envio-header-row">
-                <div class="envio-id">#ENV-1021</div>
-                <div class="route-info-compact">
-                    <span><i class="bi bi-geo-alt-fill me-1"></i>Pereira</span>
-                    <span class="route-arrow">→</span>
-                    <span><i class="bi bi-geo-fill me-1"></i>Armenia</span>
-                </div>
-                <div><strong>$210.000</strong></div>
-                <div><span class="badge-status badge-completado">Completado</span></div>
-                <div class="action-buttons-row">
-                    <button class="btn-action btn-view">
-                        <i class="bi bi-eye me-1"></i>Ver
-                    </button>
-                </div>
-            </div>
-
-            <div class="envio-details-row">
-                <div class="detail-box">
-                    <div class="detail-icon">
-                        <i class="bi bi-person"></i>
-                    </div>
-                    <div class="detail-content">
-                        <span class="detail-label">Cliente</span>
-                        <div class="detail-value">Pedro López</div>
-                    </div>
-                </div>
-
-                <div class="detail-box">
-                    <div class="detail-icon">
-                        <i class="bi bi-calendar"></i>
-                    </div>
-                    <div class="detail-content">
-                        <span class="detail-label">Fecha Entrega</span>
-                        <div class="detail-value">07 Dic, 3:00 PM</div>
-                    </div>
-                </div>
-
-                <div class="detail-box">
-                    <div class="detail-icon">
-                        <i class="bi bi-box"></i>
-                    </div>
-                    <div class="detail-content">
-                        <span class="detail-label">Peso</span>
-                        <div class="detail-value">300 kg</div>
-                    </div>
-                </div>
-
-                <div class="detail-box">
-                    <div class="detail-icon">
-                        <i class="bi bi-truck-front"></i>
-                    </div>
-                    <div class="detail-content">
-                        <span class="detail-label">Vehículo</span>
-                        <div class="detail-value">JKL-012</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Envío 5 -->
-        <div class="envio-row">
-            <div class="envio-header-row">
-                <div class="envio-id">#ENV-1020</div>
-                <div class="route-info-compact">
-                    <span><i class="bi bi-geo-alt-fill me-1"></i>Manizales</span>
-                    <span class="route-arrow">→</span>
-                    <span><i class="bi bi-geo-fill me-1"></i>Bogotá</span>
-                </div>
-                <div><strong>$520.000</strong></div>
-                <div><span class="badge-status badge-enproceso">En Proceso</span></div>
-                <div class="action-buttons-row">
-                    <button class="btn-action btn-view">
-                        <i class="bi bi-eye me-1"></i>Ver
-                    </button>
-                    <button class="btn-action btn-update">
-                        <i class="bi bi-arrow-repeat me-1"></i>Actualizar
-                    </button>
-                </div>
-            </div>
-
-            <div class="envio-details-row">
-                <div class="detail-box">
-                    <div class="detail-icon">
-                        <i class="bi bi-person"></i>
-                    </div>
-                    <div class="detail-content">
-                        <span class="detail-label">Cliente</span>
-                        <div class="detail-value">Laura Sánchez</div>
-                    </div>
-                </div>
-
-                <div class="detail-box">
-                    <div class="detail-icon">
-                        <i class="bi bi-calendar"></i>
-                    </div>
-                    <div class="detail-content">
-                        <span class="detail-label">Fecha Entrega</span>
-                        <div class="detail-value">Hoy, 2:00 PM</div>
-                    </div>
-                </div>
-
-                <div class="detail-box">
-                    <div class="detail-icon">
-                        <i class="bi bi-box"></i>
-                    </div>
-                    <div class="detail-content">
-                        <span class="detail-label">Peso</span>
-                        <div class="detail-value">520 kg</div>
-                    </div>
-                </div>
-
-                <div class="detail-box">
-                    <div class="detail-icon">
-                        <i class="bi bi-truck-front"></i>
-                    </div>
-                    <div class="detail-content">
-                        <span class="detail-label">Vehículo</span>
-                        <div class="detail-value">MNO-345</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-    </div>
-
-</main>
-
-<!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
-<!-- Mobile Menu Script -->
 <script>
-    const mobileMenuBtn = document.getElementById('mobileMenuBtn');
-    const mobileOverlay = document.getElementById('mobileOverlay');
-    const sidebar = document.querySelector('.sidebar');
+    function cambiarEstado(idEnvio, nuevoEstado) {
+        const mensajes = {
+            'En_Transito': '¿Deseas iniciar el transporte de este envío?',
+            'Finalizado': '¿Confirmas que el envío ha sido entregado exitosamente?'
+        };
 
-    function toggleMobileMenu() {
-        sidebar.classList.toggle('mobile-open');
-        mobileOverlay.classList.toggle('active');
-        const icon = mobileMenuBtn.querySelector('i');
-        icon.classList.toggle('bi-list');
-        icon.classList.toggle('bi-x');
+        if (confirm(mensajes[nuevoEstado])) {
+            const formData = new FormData();
+            formData.append('estado', nuevoEstado);
+
+            fetch('/transportista/envios/actualizar-estado/' + idEnvio, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('¡Estado actualizado exitosamente!');
+                    window.location.reload();
+                } else {
+                    alert('Error: ' + (data.message || 'No se pudo actualizar el estado'));
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error al conectar con el servidor');
+            });
+        }
     }
 
-    mobileMenuBtn.addEventListener('click', toggleMobileMenu);
-    mobileOverlay.addEventListener('click', toggleMobileMenu);
-
-    document.querySelectorAll('.sidebar-menu a').forEach(link => {
-        link.addEventListener('click', () => {
-            if (window.innerWidth <= 768) {
-                toggleMobileMenu();
-            }
-        });
-    });
-
-    // Status Tabs Functionality
-    document.querySelectorAll('.status-tab').forEach(tab => {
-        tab.addEventListener('click', function() {
-            document.querySelectorAll('.status-tab').forEach(t => t.classList.remove('active'));
-            this.classList.add('active');
-            // Aquí puedes agregar lógica para filtrar los envíos según el estado
-        });
-    });
+    function verSeguimiento(idEnvio) {
+        window.location.href = '/transportista/seguimiento?envioId=' + idEnvio;
+    }
 </script>
 
 </body>
