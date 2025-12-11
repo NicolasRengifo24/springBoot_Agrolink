@@ -980,12 +980,14 @@
     };
   </script>
 
-  <!-- Script separado con Thymeleaf inline para cargar productos -->
-  <script th:inline="javascript">
-    /*<![CDATA[*/
-    // Variable global con productos desde el servidor
-    window.productosDelServidor = /*[[${productos}]]*/ [];
-    /*]]>*/
+  <!-- Variable global de productos (sin inline para evitar errores de serialización) -->
+  <script>
+    // Los productos se cargan directamente desde el DOM, no desde inline JavaScript
+    // Esto evita errores de serialización circular con entidades JPA
+    window.productosDelServidor = [];
+
+    // Si necesitas datos de productos en JavaScript, usa el endpoint JSON:
+    // fetch('/productos/api/listar').then(r => r.json()).then(data => { ... });
   </script>
 
 </body>

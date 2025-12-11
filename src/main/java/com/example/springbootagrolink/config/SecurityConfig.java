@@ -41,13 +41,21 @@ public class SecurityConfig {
         return (HttpServletRequest request, HttpServletResponse response, org.springframework.security.core.Authentication authentication) -> {
             Collection<? extends GrantedAuthority> auth = authentication.getAuthorities();
             String redirectUrl = "/";
-            if (auth.stream().anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()))) redirectUrl = "/admin/index";
-            else if (auth.stream().anyMatch(a -> "ROLE_TRANSPORTISTA".equals(a.getAuthority()))) redirectUrl = "/transportista/dashboard";
-            else if (auth.stream().anyMatch(a -> "ROLE_PRODUCTOR".equals(a.getAuthority()))) redirectUrl = "/productos/dashboard";
-            else if (auth.stream().anyMatch(a -> "ROLE_SERVICIO".equals(a.getAuthority()))) redirectUrl = "/servicio/dashboard";
-            else redirectUrl = "/cliente/index";
 
-            // Log selected redirect and authorities (useful for debugging role-based redirects)
+            // Redirección basada en roles (prioridad: Admin > Transportista > Productor > Servicio > Cliente)
+            if (auth.stream().anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()))) {
+                redirectUrl = "/admin"; // Dashboard premium de administrador
+            } else if (auth.stream().anyMatch(a -> "ROLE_TRANSPORTISTA".equals(a.getAuthority()))) {
+                redirectUrl = "/transportista/dashboard";
+            } else if (auth.stream().anyMatch(a -> "ROLE_PRODUCTOR".equals(a.getAuthority()))) {
+                redirectUrl = "/productos/dashboard";
+            } else if (auth.stream().anyMatch(a -> "ROLE_SERVICIO".equals(a.getAuthority()))) {
+                redirectUrl = "/servicio/dashboard";
+            } else {
+                redirectUrl = "/cliente/index";
+            }
+
+            // Log para debugging
             logger.info("Autenticación exitosa: usuario='{}', authorities={} -> redirigiendo a {}",
                     authentication.getName(), auth, redirectUrl);
 

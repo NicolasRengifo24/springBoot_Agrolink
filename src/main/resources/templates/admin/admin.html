@@ -1,0 +1,1084 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Dashboard Admin — Agrolink Premium</title>
+
+  <!-- Bootstrap -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet"/>
+
+  <!-- Google Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet"/>
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    :root{
+      --green: #2f6b31;
+      --green-light: #3f8a41;
+      --green-dark: #1d4820;
+      --accent: #5cb85c;
+      --muted: #7e8b7e;
+      --glass: rgba(255,255,255,0.92);
+      --shadow: rgba(47,107,49,0.12);
+      --border: rgba(47,107,49,0.08);
+    }
+
+    *{
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body{
+      font-family: "Inter", sans-serif;
+      background: linear-gradient(135deg, #f0f9f4 0%, #e3f2e8 100%);
+      color: #1a1a1a;
+      min-height: 100vh;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* Patrón de fondo decorativo */
+    body::before{
+      content: '';
+      position: fixed;
+      top: -50%;
+      right: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle at 30% 50%, rgba(95,184,92,0.03) 0%, transparent 50%),
+                  radial-gradient(circle at 70% 50%, rgba(47,107,49,0.05) 0%, transparent 50%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* GRID LAYOUT - Mejorado */
+    .app{
+      display: grid;
+      grid-template-columns: 290px 1fr;
+      gap: 32px;
+      max-width: 1650px;
+      margin: 40px auto;
+      padding: 0 24px;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* UTILITY CLASSES */
+    .text-green{ color: var(--green); }
+    .text-muted{ color: var(--muted); }
+    .fw-bold{ font-weight: 700; }
+    .fw-semibold{ font-weight: 600; }
+
+    .mb-1{ margin-bottom: 0.25rem; }
+    .mb-2{ margin-bottom: 0.5rem; }
+    .mb-3{ margin-bottom: 1rem; }
+    .mb-4{ margin-bottom: 1.5rem; }
+
+    .d-flex{ display: flex; }
+    .align-items-center{ align-items: center; }
+    .justify-content-between{ justify-content: space-between; }
+    .gap-2{ gap: 0.5rem; }
+    .gap-3{ gap: 1rem; }
+
+    /* SIDEBAR ADMIN - Glassmorphism mejorado */
+    .sidebar{
+      background: rgba(255,255,255,0.75);
+      backdrop-filter: blur(20px) saturate(180%);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
+      border-radius: 28px;
+      border: 1px solid rgba(255,255,255,0.4);
+      height: calc(100vh - 80px);
+      padding: 32px 24px;
+      position: sticky;
+      top: 40px;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 24px 60px rgba(47,107,49,0.1),
+                  0 8px 16px rgba(0,0,0,0.06),
+                  inset 0 1px 0 rgba(255,255,255,0.8);
+      position: relative;
+      z-index: 10;
+    }
+
+    .sidebar::before{
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 100%;
+      background: linear-gradient(180deg, rgba(47,107,49,0.02) 0%, transparent 100%);
+      border-radius: 28px;
+      pointer-events: none;
+    }
+
+    .sidebar.collapsed{
+      width: 80px;
+      padding: 28px 16px;
+    }
+
+    .brand-admin{
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 40px;
+      padding-bottom: 24px;
+      border-bottom: 2px solid rgba(47,107,49,0.12);
+      position: relative;
+    }
+
+    .brand-admin img{
+      width: 56px;
+      height: 56px;
+      border-radius: 16px;
+      object-fit: cover;
+      box-shadow: 0 8px 20px rgba(47,107,49,0.2);
+      border: 3px solid white;
+    }
+
+    .brand-title-admin{
+      font-weight: 800;
+      background: linear-gradient(135deg, #2f6b31 0%, #5cb85c 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      font-size: 1.5rem;
+      letter-spacing: -0.5px;
+    }
+
+    .role-badge{
+      background: linear-gradient(135deg, var(--green) 0%, var(--green-light) 100%);
+      color: white;
+      padding: 6px 16px;
+      border-radius: 24px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      box-shadow: 0 4px 12px rgba(47,107,49,0.3);
+    }
+
+    .nav-item{
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 18px 22px;
+      margin-bottom: 10px;
+      border-radius: 18px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      color: #5a6a5a;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .nav-item::before{
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      height: 100%;
+      width: 4px;
+      background: linear-gradient(180deg, var(--green), var(--accent));
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .nav-item:hover{
+      background: linear-gradient(135deg, rgba(47,107,49,0.08) 0%, rgba(92,184,92,0.06) 100%);
+      color: var(--green);
+      transform: translateX(8px);
+      box-shadow: 0 4px 12px rgba(47,107,49,0.08);
+    }
+
+    .nav-item:hover::before{
+      opacity: 1;
+    }
+
+    .nav-item.active{
+      background: linear-gradient(135deg, #2f6b31 0%, #5cb85c 100%);
+      color: white;
+      box-shadow: 0 12px 28px rgba(47,107,49,0.35),
+                  0 4px 8px rgba(0,0,0,0.1);
+      transform: translateX(6px) scale(1.02);
+    }
+
+    .nav-item.active::before{
+      opacity: 0;
+    }
+
+    .nav-item .bi{
+      font-size: 1.3rem;
+      width: 28px;
+      opacity: 0.85;
+      transition: transform 0.3s;
+    }
+
+    .nav-item:hover .bi,
+    .nav-item.active .bi{
+      opacity: 1;
+      transform: scale(1.1);
+    }
+
+    .nav-label{
+      flex: 1;
+      white-space: nowrap;
+      font-weight: 600;
+    }
+
+    /* MAIN CONTENT */
+    .main-content{
+      min-height:calc(100vh - 80px);
+    }
+
+    /* TOPBAR ADMIN - Glassmorphism mejorado */
+    .topbar-admin{
+      background: rgba(255,255,255,0.85);
+      backdrop-filter: blur(20px) saturate(180%);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
+      border-radius: 24px;
+      border: 1px solid rgba(255,255,255,0.5);
+      padding: 28px 36px;
+      margin-bottom: 32px;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.08),
+                  0 4px 8px rgba(0,0,0,0.04),
+                  inset 0 1px 0 rgba(255,255,255,0.9);
+      position: relative;
+      z-index: 5;
+    }
+
+    .searchbar-admin{
+      flex: 1;
+      max-width: 520px;
+      padding: 18px 28px;
+      border-radius: 24px;
+      background: white;
+      border: 2px solid #e8f4ea;
+      box-shadow: 0 8px 24px rgba(47,107,49,0.08);
+      transition: all 0.3s;
+    }
+
+    .searchbar-admin:focus-within{
+      border-color: var(--green);
+      box-shadow: 0 12px 32px rgba(47,107,49,0.15);
+      transform: translateY(-2px);
+    }
+
+    .searchbar-admin input{
+      border: none;
+      outline: none;
+      width: 100%;
+      font-size: 0.95rem;
+      color: #1a1a1a;
+    }
+
+    .searchbar-admin input::placeholder{
+      color: #9aa99a;
+    }
+
+    /* ADMIN KPI CARDS - Diseño mejorado */
+    .kpi-admin{
+      padding: 32px 30px;
+      border-radius: 24px;
+      background: white;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.08),
+                  0 4px 8px rgba(0,0,0,0.04);
+      border: 1px solid rgba(47,107,49,0.08);
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      height: 100%;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .kpi-admin::before{
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 5px;
+      background: linear-gradient(90deg, var(--green), var(--accent));
+      opacity: 0.8;
+    }
+
+    .kpi-admin::after{
+      content: '';
+      position: absolute;
+      top: -50%;
+      right: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(92,184,92,0.03) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .kpi-admin:hover{
+      transform: translateY(-10px) scale(1.02);
+      box-shadow: 0 28px 56px rgba(47,107,49,0.18),
+                  0 8px 16px rgba(0,0,0,0.08);
+    }
+
+    .kpi-icon-admin{
+      width: 80px;
+      height: 80px;
+      border-radius: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      color: white;
+      box-shadow: 0 12px 28px rgba(0,0,0,0.2);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .kpi-icon-admin::before{
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,0.2) 0%, transparent 100%);
+    }
+
+    .kpi-value{
+      font-size: 2.2rem;
+      font-weight: 800;
+      color: #1a1a1a;
+      margin: 16px 0 8px;
+      letter-spacing: -1px;
+    }
+
+    .kpi-label{
+      font-size: 0.95rem;
+      color: #6b7b6b;
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+
+    .kpi-trend{
+      font-size: 0.875rem;
+      font-weight: 700;
+      padding: 6px 14px;
+      border-radius: 20px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .kpi-trend.up{
+      background: linear-gradient(135deg, #d4f1d8, #e6f7ec);
+      color: #0d6930;
+    }
+
+    .kpi-trend.down{
+      background: linear-gradient(135deg, #ffe6e6, #ffcccc);
+      color: #c41e3a;
+    }
+
+    /* CHARTS - Contenedor mejorado */
+    .chart-container-admin{
+      background: white;
+      border-radius: 28px;
+      padding: 36px;
+      border: 1px solid rgba(47,107,49,0.08);
+      box-shadow: 0 16px 48px rgba(0,0,0,0.08),
+                  0 4px 12px rgba(0,0,0,0.04);
+      height: 400px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .chart-container-admin::before{
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--green), var(--accent));
+    }
+
+    .chart-container-admin h5{
+      font-weight: 700;
+      color: var(--green);
+      margin-bottom: 24px;
+      font-size: 1.1rem;
+    }
+
+    /* TABLES ADMIN - Diseño moderno */
+    .table-admin{
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+    }
+
+    .table-admin thead th{
+      background: linear-gradient(135deg, #f8faf7, #e8f4ea);
+      border: none;
+      font-weight: 700;
+      color: var(--green);
+      padding: 24px 20px;
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+
+    .table-admin thead th:first-child{
+      border-top-left-radius: 16px;
+    }
+
+    .table-admin thead th:last-child{
+      border-top-right-radius: 16px;
+    }
+
+    .table-admin tbody tr{
+      transition: all 0.3s;
+      background: white;
+    }
+
+    .table-admin tbody tr:hover{
+      background: linear-gradient(90deg, #f8fdf9, white);
+      transform: scale(1.01);
+      box-shadow: 0 4px 12px rgba(47,107,49,0.08);
+    }
+
+    .table-admin tbody td{
+      padding: 20px;
+      border-bottom: 1px solid #f0f5f2;
+      font-size: 0.9rem;
+      color: #2a2a2a;
+    }
+
+    .badge-admin{
+      padding: 8px 18px;
+      border-radius: 20px;
+      font-weight: 700;
+      font-size: 0.8rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .status-ready{
+      background: linear-gradient(135deg, #d4f1d8, #e6f7ec);
+      color: #0d6930;
+      box-shadow: 0 4px 12px rgba(13,105,48,0.15);
+    }
+
+    .status-low{
+      background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+      color: #8a6d00;
+      box-shadow: 0 4px 12px rgba(138,109,0,0.15);
+    }
+
+    .status-warning{
+      background: linear-gradient(135deg, #e7e7e7, #f8f9fa);
+      color: #555;
+      box-shadow: 0 4px 12px rgba(85,85,85,0.1);
+    }
+
+    /* FAB - Botón flotante mejorado */
+    .fab-admin{
+      position: fixed;
+      right: 60px;
+      bottom: 60px;
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #2f6b31 0%, #5cb85c 100%);
+      border: none;
+      color: white;
+      font-size: 2rem;
+      box-shadow: 0 16px 48px rgba(47,107,49,0.35),
+                  0 8px 16px rgba(0,0,0,0.12);
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      cursor: pointer;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .fab-admin::before{
+      content: '';
+      position: absolute;
+      inset: -2px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), var(--green));
+      opacity: 0;
+      transition: opacity 0.3s;
+      z-index: -1;
+    }
+
+    .fab-admin:hover{
+      transform: translateY(-12px) scale(1.08) rotate(90deg);
+      box-shadow: 0 24px 60px rgba(47,107,49,0.4),
+                  0 12px 24px rgba(0,0,0,0.15);
+    }
+
+    .fab-admin:hover::before{
+      opacity: 1;
+    }
+
+    .fab-admin:active{
+      transform: translateY(-8px) scale(1.02) rotate(90deg);
+    }
+
+    /* ANIMACIONES */
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+
+    .animate-in{
+      animation: slideIn 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    }
+
+    /* Stagger animation para cards */
+    .kpi-admin:nth-child(1){ animation-delay: 0.1s; }
+    .kpi-admin:nth-child(2){ animation-delay: 0.2s; }
+    .kpi-admin:nth-child(3){ animation-delay: 0.3s; }
+    .kpi-admin:nth-child(4){ animation-delay: 0.4s; }
+
+    /* SCROLLBAR PERSONALIZADO */
+    ::-webkit-scrollbar {
+      width: 10px;
+      height: 10px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: #f1f5f2;
+      border-radius: 10px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: linear-gradient(180deg, var(--green), var(--accent));
+      border-radius: 10px;
+      border: 2px solid #f1f5f2;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: linear-gradient(180deg, var(--green-dark), var(--green));
+    }
+
+    /* BOTONES DE ACCIÓN */
+    .btn-action{
+      padding: 10px 16px;
+      border-radius: 12px;
+      border: none;
+      font-weight: 600;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.3s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-edit{
+      background: linear-gradient(135deg, #4a90e2, #357abd);
+      color: white;
+      box-shadow: 0 4px 12px rgba(74,144,226,0.3);
+    }
+
+    .btn-edit:hover{
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(74,144,226,0.4);
+    }
+
+    @media (max-width:1200px){
+      .app{ grid-template-columns:1fr; }
+      .sidebar{ display:none; }
+    }
+
+    @keyframes fadeUp{
+      from{opacity:0;transform:translateY(20px);}
+      to{opacity:1;transform:translateY(0);}
+    }
+
+    .fade-admin{ animation:fadeUp .5s ease both; }
+  </style>
+</head>
+
+<body>
+  <div class="app">
+    <!-- SIDEBAR ADMIN -->
+    <aside id="sidebar" class="sidebar">
+      <div class="brand-admin">
+        <i class="bi bi-shield-check fs-2 text-success"></i>
+        <div>
+          <div class="brand-title-admin">Agrolink Admin</div>
+          <div class="role-badge">Super Admin</div>
+        </div>
+      </div>
+
+      <nav>
+        <div class="nav-item active" onclick="window.location.href='/admin'" style="cursor: pointer;">
+          <i class="bi bi-speedometer2"></i><span class="nav-label">Dashboard</span>
+        </div>
+        <div class="nav-item" onclick="window.location.href='/admin/usuarios'" style="cursor: pointer;">
+          <i class="bi bi-people"></i><span class="nav-label">Usuarios</span>
+        </div>
+        <div class="nav-item" onclick="window.location.href='/productos'" style="cursor: pointer;">
+          <i class="bi bi-box-seam"></i><span class="nav-label">Productos</span>
+        </div>
+        <div class="nav-item" onclick="mostrarEnDesarrollo('Pedidos')" style="cursor: pointer;">
+          <i class="bi bi-cart-check"></i><span class="nav-label">Pedidos</span>
+        </div>
+        <div class="nav-item" onclick="mostrarEnDesarrollo('Envíos')" style="cursor: pointer;">
+          <i class="bi bi-truck"></i><span class="nav-label">Envíos</span>
+        </div>
+        <div class="nav-item" onclick="mostrarEnDesarrollo('Analíticas')" style="cursor: pointer;">
+          <i class="bi bi-graph-up"></i><span class="nav-label">Analíticas</span>
+        </div>
+        <div class="nav-item" onclick="window.location.href='/logout'" style="cursor: pointer;">
+          <i class="bi bi-box-arrow-right"></i><span class="nav-label">Cerrar Sesión</span>
+        </div>
+      </nav>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+      <!-- TOPBAR ADMIN -->
+      <div class="topbar-admin">
+        <div class="d-flex align-items-center gap-3 flex-wrap">
+          <div class="searchbar-admin">
+            <i class="bi bi-search fs-5 me-3 text-muted"></i>
+            <input class="form-control border-0 fs-6" placeholder="Buscar productores, productos..."/>
+          </div>
+          <div class="text-muted small">
+            <i class="bi bi-calendar3 me-1"></i> 05 Dic 2025
+          </div>
+        </div>
+
+        <div class="d-flex align-items-center gap-3">
+          <div class="dropdown">
+            <button class="btn btn-outline-success dropdown-toggle p-2" data-bs-toggle="dropdown">
+              <i class="bi bi-bell fs-5"></i>
+              <span class="badge bg-danger rounded-pill ms-1">3</span>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end">
+              <li><a class="dropdown-item">Nuevo pedido #OR-1234</a></li>
+              <li><a class="dropdown-item">Stock bajo: Tomates</a></li>
+            </ul>
+          </div>
+          <img src="https://i.pravatar.cc/44?img=1" class="rounded-circle" width="44" height="44" data-bs-toggle="tooltip" title="Admin">
+        </div>
+      </div>
+
+      <!-- KPI ADMIN CARDS -->
+      <div class="row g-4 mb-5 fade-admin">
+        <div class="col-xl-3 col-lg-6">
+          <div class="kpi-admin">
+            <div class="d-flex align-items-start justify-content-between">
+              <div class="flex-grow-1">
+                <div class="kpi-number fs-2 fw-800 text-dark mb-1" th:text="${totalPedidos}">0</div>
+                <div class="kpi-label fw-600">Pedidos Totales</div>
+                <div class="kpi-trend"><i class="bi bi-arrow-up-circle text-success me-1"></i>Sistema activo</div>
+              </div>
+              <div class="kpi-icon-admin" style="background:linear-gradient(135deg,#2f6b31,#3f8a41);">
+                <i class="bi bi-truck"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-xl-3 col-lg-6">
+          <div class="kpi-admin">
+            <div class="d-flex align-items-start justify-content-between">
+              <div class="flex-grow-1">
+                <div class="kpi-number fs-2 fw-800 text-success mb-1" th:text="${inventarioTotal + ' kg'}">0 kg</div>
+                <div class="kpi-label fw-600">Inventario Total</div>
+                <div class="kpi-trend text-warning">
+                  <i class="bi bi-exclamation-triangle me-1"></i>
+                  <span th:text="${productosStockBajo} + ' productos bajos'">0 productos bajos</span>
+                </div>
+              </div>
+              <div class="kpi-icon-admin" style="background:linear-gradient(135deg,#28a745,#20c997);">
+                <i class="bi bi-box-seam"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-xl-3 col-lg-6">
+          <div class="kpi-admin">
+            <div class="d-flex align-items-start justify-content-between">
+              <div class="flex-grow-1">
+                <div class="kpi-number fs-2 fw-800 text-primary mb-1"
+                     th:text="'$' + ${#numbers.formatDecimal(ventasMes / 1000000, 0, 'COMMA', 1, 'POINT')} + 'M'">$0M</div>
+                <div class="kpi-label fw-600">Ventas Mes</div>
+                <div class="kpi-trend"><i class="bi bi-graph-up text-success me-1"></i>En crecimiento</div>
+              </div>
+              <div class="kpi-icon-admin" style="background:linear-gradient(135deg,#007bff,#0056b3);">
+                <i class="bi bi-currency-dollar"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-xl-3 col-lg-6">
+          <div class="kpi-admin">
+            <div class="d-flex align-items-start justify-content-between">
+              <div class="flex-grow-1">
+                <div class="kpi-number fs-2 fw-800 text-success mb-1" th:text="${totalProductos}">0</div>
+                <div class="kpi-label fw-600">Productos Activos</div>
+                <div class="kpi-trend">
+                  <i class="bi bi-people-fill text-success me-1"></i>
+                  <span th:text="${totalProductores} + ' productores'">0 productores</span>
+                </div>
+              </div>
+              <div class="kpi-icon-admin" style="background:linear-gradient(135deg,#ffc107,#e0a800);">
+                <i class="bi bi-box-seam-fill"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CHARTS ROW -->
+      <div class="row g-4 mb-5">
+        <div class="col-lg-8">
+          <div class="chart-container-admin fade-admin">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+              <h5 class="fw-800 mb-0" style="color:var(--green);">📈 Ventas Semanales</h5>
+              <select class="form-select form-select-sm" style="width:160px;">
+                <option>Esta semana</option>
+                <option>Este mes</option>
+              </select>
+            </div>
+            <canvas id="salesChart"></canvas>
+          </div>
+        </div>
+        <div class="col-lg-4">
+          <div class="chart-container-admin fade-admin">
+            <h5 class="fw-800 mb-4" style="color:var(--green);">🚚 Pedidos Recientes</h5>
+            <div class="list-group list-group-flush">
+              <div class="list-group-item px-0 py-4 border-0">
+                <div class="d-flex justify-content-between align-items-center">
+                  <div>
+                    <div class="fw-bold">#OR-1247 Tomates</div>
+                    <small class="text-muted">Carlos R. - 15:30</small>
+                  </div>
+                  <span class="badge-admin status-ready">En Ruta</span>
+                </div>
+              </div>
+              <div class="list-group-item px-0 py-4 border-0">
+                <div class="d-flex justify-content-between align-items-center">
+                  <div>
+                    <div class="fw-bold">#OR-1246 Maíz</div>
+                    <small class="text-muted">Sandra L. - 14:20</small>
+                  </div>
+                  <span class="badge-admin status-low">Bajo Stock</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- INVENTARIO TABLE -->
+      <div class="card-glass fade-admin" style="background:white; border-radius:24px; padding:32px; border:1px solid rgba(0,0,0,0.05); box-shadow:0 16px 40px rgba(0,0,0,0.08);">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <h5 class="fw-800 mb-0" style="color:var(--green);">📦 Inventario Crítico</h5>
+          <button class="btn btn-success" onclick="window.location.href='/productos/crear'">
+            <i class="bi bi-plus-lg me-2"></i>Agregar Producto
+          </button>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-admin align-middle">
+            <thead>
+              <tr>
+                <th>Producto</th>
+                <th>Productor</th>
+                <th>Stock</th>
+                <th>Precio</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="tablaInventario">
+              <tr>
+                <td colspan="6" class="text-center py-5">
+                  <div class="spinner-border text-success" role="status">
+                    <span class="visually-hidden">Cargando...</span>
+                  </div>
+                  <p class="mt-3 text-muted">Cargando productos con stock crítico...</p>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- FAB ADMIN -->
+  <button class="fab-admin" title="Panel rápido">
+    <i class="bi bi-speedometer2"></i>
+  </button>
+
+  <!-- SCRIPTS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  
+  <script>
+    // ============================================
+    // INICIALIZACIÓN AL CARGAR LA PÁGINA
+    // ============================================
+    document.addEventListener('DOMContentLoaded', function() {
+      // Cargar datos dinámicos
+      cargarVentasSemanales();
+      cargarProductosCriticos();
+
+      // Inicializar tooltips
+      var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+      tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+      });
+    });
+
+    // ============================================
+    // CARGAR VENTAS SEMANALES (GRÁFICO)
+    // ============================================
+    function cargarVentasSemanales() {
+      fetch('/admin/ventas-semanales')
+        .then(response => response.json())
+        .then(data => {
+          const ctx = document.getElementById('salesChart');
+          if (ctx && typeof Chart !== 'undefined') {
+            new Chart(ctx, {
+              type: 'line',
+              data: {
+                labels: data.labels || ['Lun', 'Mar', 'Mié', 'Jue', 'Vie'],
+                datasets: [{
+                  label: 'Ventas COP',
+                  data: data.data || [12000, 22000, 18000, 32000, 45000],
+                  borderColor: '#2f6b31',
+                  backgroundColor: 'rgba(47,107,49,0.12)',
+                  borderWidth: 4,
+                  tension: 0.4,
+                  fill: true,
+                  pointBackgroundColor: '#fff',
+                  pointBorderColor: '#2f6b31',
+                  pointBorderWidth: 3,
+                  pointRadius: 8
+                }]
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                  y: {
+                    beginAtZero: true,
+                    grid: { color: 'rgba(47,107,49,0.08)' },
+                    ticks: {
+                      color: '#666',
+                      callback: function(value) {
+                        return '$' + value.toLocaleString('es-CO');
+                      }
+                    }
+                  },
+                  x: {
+                    grid: { display: false },
+                    ticks: { color: '#666' }
+                  }
+                }
+              }
+            });
+          }
+        })
+        .catch(error => {
+          console.error('Error al cargar ventas:', error);
+          // Cargar con datos por defecto si falla
+          const ctx = document.getElementById('salesChart');
+          if (ctx) {
+            new Chart(ctx, {
+              type: 'line',
+              data: {
+                labels: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie'],
+                datasets: [{
+                  label: 'Ventas COP',
+                  data: [12000, 22000, 18000, 32000, 45000],
+                  borderColor: '#2f6b31',
+                  backgroundColor: 'rgba(47,107,49,0.12)',
+                  borderWidth: 4,
+                  tension: 0.4,
+                  fill: true
+                }]
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } }
+              }
+            });
+          }
+        });
+    }
+
+    // ============================================
+    // CARGAR PRODUCTOS CON STOCK CRÍTICO
+    // ============================================
+    function cargarProductosCriticos() {
+      const tbody = document.getElementById('tablaInventario');
+
+      fetch('/admin/productos-criticos')
+        .then(response => response.json())
+        .then(productos => {
+          if (!productos || productos.length === 0) {
+            tbody.innerHTML = `
+              <tr>
+                <td colspan="6" class="text-center py-5 text-muted">
+                  <i class="bi bi-check-circle fs-1 d-block mb-3 text-success"></i>
+                  <h5>¡Excelente!</h5>
+                  <p>No hay productos con stock crítico en este momento</p>
+                </td>
+              </tr>
+            `;
+            return;
+          }
+
+          let html = '';
+          productos.forEach(producto => {
+            const iconos = {
+              'Tomate': 'bi-flower1 text-danger',
+              'Queso': 'bi-box text-warning',
+              'Café': 'bi-cup text-brown',
+              'Plátano': 'bi-leaf text-success',
+              'Papa': 'bi-circle-fill text-warning',
+              'Carne': 'bi-shop text-danger'
+            };
+
+            let icono = 'bi-box-seam text-success';
+            for (let key in iconos) {
+              if (producto.nombreProducto.includes(key)) {
+                icono = iconos[key];
+                break;
+              }
+            }
+
+            const esStockBajo = producto.stock < 300;
+            const estadoClase = esStockBajo ? 'status-low' : 'status-ready';
+            const estadoTexto = esStockBajo ? 'Bajo Stock' : 'Disponible';
+            const precioFormateado = new Intl.NumberFormat('es-CO', {
+              style: 'currency',
+              currency: 'COP',
+              minimumFractionDigits: 0
+            }).format(producto.precio);
+
+            html += `
+              <tr>
+                <td>
+                  <div class="d-flex align-items-center">
+                    <i class="bi ${icono} fs-3 me-3"></i>
+                    <div><strong>${producto.nombreProducto}</strong></div>
+                  </div>
+                </td>
+                <td>${producto.productor}</td>
+                <td><strong class="${esStockBajo ? 'text-warning' : ''}">${producto.stock} unidades</strong></td>
+                <td>${precioFormateado}</td>
+                <td><span class="badge-admin ${estadoClase}">${estadoTexto}</span></td>
+                <td>
+                  <button class="btn btn-sm btn-outline-primary me-1" onclick="editarProducto(${producto.idProducto})" title="Editar">
+                    <i class="bi bi-pencil"></i>
+                  </button>
+                  <button class="btn btn-sm btn-outline-danger" onclick="eliminarProducto(${producto.idProducto})" title="Eliminar">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </td>
+              </tr>
+            `;
+          });
+
+          tbody.innerHTML = html;
+        })
+        .catch(error => {
+          console.error('Error al cargar productos:', error);
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="6" class="text-center py-5 text-danger">
+                <i class="bi bi-exclamation-triangle fs-1 d-block mb-3"></i>
+                <p>Error al cargar productos. Por favor recargue la página.</p>
+              </td>
+            </tr>
+          `;
+        });
+    }
+
+    // ============================================
+    // FUNCIONES DE ACCIÓN
+    // ============================================
+    function editarProducto(idProducto) {
+      window.location.href = '/productos/editar/' + idProducto;
+    }
+
+    function eliminarProducto(idProducto) {
+      if (confirm('¿Está seguro de que desea eliminar este producto?')) {
+        // Implementar lógica de eliminación
+        alert('Funcionalidad de eliminación en desarrollo');
+      }
+    }
+
+    // Función para recargar datos
+    function refrescarDatos() {
+      cargarVentasSemanales();
+      cargarProductosCriticos();
+    }
+
+    // ============================================
+    // FUNCIÓN PARA MOSTRAR NOTIFICACIONES
+    // ============================================
+    function mostrarEnDesarrollo(seccion) {
+      const toast = document.createElement('div');
+      toast.style.cssText = 'position:fixed;top:20px;right:20px;background:linear-gradient(135deg,#ff9800,#ff6b00);color:white;padding:20px 30px;border-radius:12px;box-shadow:0 8px 24px rgba(255,107,0,0.3);z-index:9999;animation:slideIn 0.3s ease;font-weight:500;';
+      toast.innerHTML = '<i class="bi bi-info-circle me-2"></i>Sección de ' + seccion + ' en desarrollo';
+      document.body.appendChild(toast);
+
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateX(400px)';
+        toast.style.transition = 'all 0.3s ease';
+        setTimeout(() => toast.remove(), 300);
+      }, 2500);
+    }
+
+    // Agregar estilos para animación
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes slideIn {
+        from { transform: translateX(400px); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+      }
+    `;
+    document.head.appendChild(style);
+  </script>
+</body>
+</html>
