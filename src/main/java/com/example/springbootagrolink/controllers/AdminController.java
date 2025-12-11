@@ -7,9 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -25,15 +23,18 @@ public class AdminController {
     private final CompraRepository compraRepository;
     private final TransportistaRepository transportistaRepository;
     private final ProductorRepository productorRepository;
+    private final CategoriaProductoRepository categoriaProductoRepository;
 
     public AdminController(ProductoRepository productoRepository,
                            CompraRepository compraRepository,
                            TransportistaRepository transportistaRepository,
-                           ProductorRepository productorRepository) {
+                           ProductorRepository productorRepository,
+                           CategoriaProductoRepository categoriaProductoRepository) {
         this.productoRepository = productoRepository;
         this.compraRepository = compraRepository;
         this.transportistaRepository = transportistaRepository;
         this.productorRepository = productorRepository;
+        this.categoriaProductoRepository = categoriaProductoRepository;
     }
 
     /**
@@ -199,6 +200,30 @@ public class AdminController {
         } catch (Exception e) {
             log.error("Error al calcular ventas del mes: {}", e.getMessage());
             return BigDecimal.valueOf(248000000); // Valor por defecto
+        }
+    }
+
+    // ==================== GESTIÓN DE PRODUCTOS ====================
+
+    /**
+     * Vista de gestión de productos para administrador
+     * Carga los productos directamente desde la base de datos y los pasa a la vista
+     */
+    @GetMapping("/productos")
+    public String gestionProductos(Model model) {
+        try {
+            List<Producto> productos = productoRepository.findAll();
+
+            model.addAttribute("productos", productos);
+
+            log.info("Cargando gestión de productos - Total: {}", productos.size());
+            return "admin/productos";
+
+        } catch (Exception e) {
+            log.error("Error al cargar gestión de productos: {}", e.getMessage(), e);
+            model.addAttribute("productos", new ArrayList<>());
+            model.addAttribute("error", "Error al cargar productos: " + e.getMessage());
+            return "admin/productos";
         }
     }
 }

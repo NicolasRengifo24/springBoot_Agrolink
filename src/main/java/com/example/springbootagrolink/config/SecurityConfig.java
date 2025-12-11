@@ -67,11 +67,11 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
             .authorizeHttpRequests(authorize -> authorize
-                .requestMatchers("/css/**", "/static/**", "/js/**", "/images/**", "/login", "/register", "/").permitAll()
+                .requestMatchers("/css/**", "/static/**", "/js/**", "/images/**", "/imag/**", "/login", "/register", "/").permitAll()
                 .requestMatchers("/admin/**").hasRole("ADMIN")
                 .requestMatchers("/transportista/**").hasRole("TRANSPORTISTA")
                 .requestMatchers("/servicio/**").hasRole("SERVICIO")
-                .requestMatchers("/productos/**").hasRole("PRODUCTOR")
+                .requestMatchers("/productos/**").hasAnyRole("PRODUCTOR", "ADMIN")
                 .requestMatchers("/cliente/**").hasRole("CLIENTE")
                 .requestMatchers("/compras/**").hasRole("CLIENTE")
                 .requestMatchers("/pago/**").hasRole("CLIENTE")
