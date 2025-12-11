@@ -7,7 +7,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -23,18 +26,24 @@ public class AdminController {
     private final CompraRepository compraRepository;
     private final TransportistaRepository transportistaRepository;
     private final ProductorRepository productorRepository;
-    private final CategoriaProductoRepository categoriaProductoRepository;
+    private final UsuarioRepository usuarioRepository;
+    private final ClienteRepository clienteRepository;
+    private final ServicioRepository servicioRepository;
 
     public AdminController(ProductoRepository productoRepository,
                            CompraRepository compraRepository,
                            TransportistaRepository transportistaRepository,
                            ProductorRepository productorRepository,
-                           CategoriaProductoRepository categoriaProductoRepository) {
+                           UsuarioRepository usuarioRepository,
+                           ClienteRepository clienteRepository,
+                           ServicioRepository servicioRepository) {
         this.productoRepository = productoRepository;
         this.compraRepository = compraRepository;
         this.transportistaRepository = transportistaRepository;
         this.productorRepository = productorRepository;
-        this.categoriaProductoRepository = categoriaProductoRepository;
+        this.usuarioRepository = usuarioRepository;
+        this.clienteRepository = clienteRepository;
+        this.servicioRepository = servicioRepository;
     }
 
     /**
@@ -72,6 +81,22 @@ public class AdminController {
             model.addAttribute("productosStockBajo", productosStockBajo);
             model.addAttribute("totalProductores", totalProductores);
             model.addAttribute("totalTransportistas", totalTransportistas);
+
+            // Agregar datos de usuarios para la vista integrada
+            List<Cliente> clientes = clienteRepository.findAll();
+            List<Productor> productores = productorRepository.findAll();
+            List<Transportista> transportistas = transportistaRepository.findAll();
+            List<Servicio> servicios = servicioRepository.findAll();
+
+            model.addAttribute("clientes", clientes);
+            model.addAttribute("productores", productores);
+            model.addAttribute("transportistas", transportistas);
+            model.addAttribute("servicios", servicios);
+
+            model.addAttribute("totalClientes", clientes.size());
+            model.addAttribute("totalProductoresUsuarios", productores.size());
+            model.addAttribute("totalTransportistasUsuarios", transportistas.size());
+            model.addAttribute("totalServicios", servicios.size());
 
             log.info("Dashboard admin cargado - Pedidos: {}, Inventario: {} kg", totalPedidos, inventarioTotal);
 
@@ -185,6 +210,75 @@ public class AdminController {
     }
 
 
+    /**
+     * Vista de gestión de usuarios con tabs para cada rol
+     */
+    @GetMapping("/usuarios")
+    public String gestionUsuarios(Model model) {
+        try {
+            // Obtener todos los usuarios por rol
+            List<Usuario> todosUsuarios = usuarioRepository.findAll();
+
+            List<Cliente> clientes = clienteRepository.findAll();
+            List<Productor> productores = productorRepository.findAll();
+            List<Transportista> transportistas = transportistaRepository.findAll();
+            List<Servicio> servicios = servicioRepository.findAll();
+
+            model.addAttribute("todosUsuarios", todosUsuarios);
+            model.addAttribute("clientes", clientes);
+            model.addAttribute("productores", productores);
+            model.addAttribute("transportistas", transportistas);
+            model.addAttribute("servicios", servicios);
+
+            model.addAttribute("totalUsuarios", todosUsuarios.size());
+            model.addAttribute("totalClientes", clientes.size());
+            model.addAttribute("totalProductores", productores.size());
+            model.addAttribute("totalTransportistas", transportistas.size());
+            model.addAttribute("totalServicios", servicios.size());
+
+            return "admin/usuarios";
+        } catch (Exception e) {
+            log.error("Error al cargar usuarios: {}", e.getMessage(), e);
+            model.addAttribute("error", "Error al cargar usuarios");
+            return "redirect:/admin";
+        }
+    }
+
+    /**
+     * Endpoint JSON para obtener usuarios por rol
+     */
+    @GetMapping("/usuarios/por-rol/{rol}")
+    @ResponseBody
+    public ResponseEntity<List<Map<String, Object>>> obtenerUsuariosPorRol(@PathVariable String rol) {
+        try {
+            List<Usuario> usuarios = usuarioRepository.findAll().stream()
+                .filter(u -> u.getRol() != null && u.getRol().name().equals(rol))
+                .toList();
+
+            List<Map<String, Object>> usuariosData = new ArrayList<>();
+
+            for (Usuario u : usuarios) {
+                Map<String, Object> userData = new HashMap<>();
+                userData.put("idUsuario", u.getIdUsuario());
+                userData.put("nombre", u.getNombre());
+                userData.put("apellido", u.getApellido());
+                userData.put("correo", u.getCorreo());
+                userData.put("nombreUsuario", u.getNombreUsuario());
+                userData.put("ciudad", u.getCiudad());
+                userData.put("departamento", u.getDepartamento());
+                userData.put("telefono", u.getTelefono());
+                userData.put("rol", u.getRol() != null ? u.getRol().name() : "");
+
+                usuariosData.add(userData);
+            }
+
+            return ResponseEntity.ok(usuariosData);
+        } catch (Exception e) {
+            log.error("Error al obtener usuarios por rol: {}", e.getMessage(), e);
+            return ResponseEntity.status(500).body(new ArrayList<>());
+        }
+    }
+
     // ==================== MÉTODOS AUXILIARES ====================
 
     private BigDecimal calcularVentasMes() {
@@ -200,30 +294,6 @@ public class AdminController {
         } catch (Exception e) {
             log.error("Error al calcular ventas del mes: {}", e.getMessage());
             return BigDecimal.valueOf(248000000); // Valor por defecto
-        }
-    }
-
-    // ==================== GESTIÓN DE PRODUCTOS ====================
-
-    /**
-     * Vista de gestión de productos para administrador
-     * Carga los productos directamente desde la base de datos y los pasa a la vista
-     */
-    @GetMapping("/productos")
-    public String gestionProductos(Model model) {
-        try {
-            List<Producto> productos = productoRepository.findAll();
-
-            model.addAttribute("productos", productos);
-
-            log.info("Cargando gestión de productos - Total: {}", productos.size());
-            return "admin/productos";
-
-        } catch (Exception e) {
-            log.error("Error al cargar gestión de productos: {}", e.getMessage(), e);
-            model.addAttribute("productos", new ArrayList<>());
-            model.addAttribute("error", "Error al cargar productos: " + e.getMessage());
-            return "admin/productos";
         }
     }
 }

@@ -100,7 +100,6 @@
       box-shadow: 0 24px 60px rgba(47,107,49,0.1),
                   0 8px 16px rgba(0,0,0,0.06),
                   inset 0 1px 0 rgba(255,255,255,0.8);
-      position: relative;
       z-index: 10;
     }
 
@@ -244,24 +243,30 @@
       -webkit-backdrop-filter: blur(20px) saturate(180%);
       border-radius: 24px;
       border: 1px solid rgba(255,255,255,0.5);
-      padding: 28px 36px;
+      padding: 20px 32px;
       margin-bottom: 32px;
       box-shadow: 0 12px 40px rgba(0,0,0,0.08),
                   0 4px 8px rgba(0,0,0,0.04),
                   inset 0 1px 0 rgba(255,255,255,0.9);
       position: relative;
       z-index: 5;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
     }
 
     .searchbar-admin{
       flex: 1;
-      max-width: 520px;
-      padding: 18px 28px;
-      border-radius: 24px;
+      max-width: 480px;
+      padding: 16px 24px;
+      border-radius: 20px;
       background: white;
       border: 2px solid #e8f4ea;
       box-shadow: 0 8px 24px rgba(47,107,49,0.08);
       transition: all 0.3s;
+      display: flex;
+      align-items: center;
     }
 
     .searchbar-admin:focus-within{
@@ -280,6 +285,224 @@
 
     .searchbar-admin input::placeholder{
       color: #9aa99a;
+    }
+
+    /* BOTÓN DE NOTIFICACIONES */
+    .btn-notification{
+      position: relative;
+      width: 48px;
+      height: 48px;
+      border-radius: 14px;
+      border: none;
+      background: white;
+      color: var(--muted);
+      font-size: 1.3rem;
+      cursor: pointer;
+      transition: all 0.3s;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .btn-notification:hover{
+      background: var(--green);
+      color: white;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(47,107,49,0.2);
+    }
+
+    .notification-badge{
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      background: linear-gradient(135deg, #e74c3c, #c0392b);
+      color: white;
+      font-size: 0.65rem;
+      font-weight: 700;
+      padding: 3px 6px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(231,76,60,0.4);
+      min-width: 18px;
+      text-align: center;
+    }
+
+    /* DROPDOWN DE NOTIFICACIONES */
+    .notification-dropdown{
+      width: 380px;
+      border-radius: 16px;
+      border: 1px solid rgba(0,0,0,0.08);
+      padding: 0;
+      margin-top: 12px;
+    }
+
+    .notification-dropdown .dropdown-header{
+      padding: 16px 20px;
+      background: linear-gradient(135deg, #f8faf7, #e8f4ea);
+      border-radius: 16px 16px 0 0;
+    }
+
+    .notification-item{
+      padding: 14px 20px;
+      transition: all 0.3s;
+    }
+
+    .notification-item:hover{
+      background: linear-gradient(90deg, #f8fdf9, white);
+    }
+
+    .notification-icon{
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 1.1rem;
+      flex-shrink: 0;
+    }
+
+    /* SEPARADOR VERTICAL */
+    .topbar-divider{
+      width: 1px;
+      height: 36px;
+      background: linear-gradient(180deg, transparent, rgba(47,107,49,0.2), transparent);
+    }
+
+    /* BOTÓN DE PERFIL */
+    .btn-profile{
+      background: white;
+      border: none;
+      border-radius: 16px;
+      padding: 8px 16px 8px 8px;
+      cursor: pointer;
+      transition: all 0.3s;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+    }
+
+    .btn-profile:hover{
+      background: linear-gradient(135deg, #f8faf7, #e8f4ea);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(47,107,49,0.15);
+    }
+
+    .profile-avatar{
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      border: 3px solid white;
+      box-shadow: 0 4px 12px rgba(47,107,49,0.2);
+      object-fit: cover;
+    }
+
+    .profile-info{
+      line-height: 1.3;
+    }
+
+    .profile-name{
+      font-weight: 700;
+      font-size: 0.95rem;
+      color: #1a1a1a;
+    }
+
+    .profile-role{
+      color: var(--muted);
+      font-size: 0.8rem;
+    }
+
+    /* DROPDOWN DE PERFIL */
+    .profile-dropdown{
+      width: 280px;
+      border-radius: 16px;
+      border: 1px solid rgba(0,0,0,0.08);
+      padding: 0;
+      margin-top: 12px;
+    }
+
+    .profile-dropdown .dropdown-header{
+      padding: 12px 16px;
+      background: linear-gradient(135deg, #f8faf7, #e8f4ea);
+      border-radius: 16px 16px 0 0;
+    }
+
+    .profile-menu-item{
+      padding: 12px 20px;
+      font-weight: 600;
+      transition: all 0.3s;
+      display: flex;
+      align-items: center;
+    }
+
+    .profile-menu-item:hover{
+      background: linear-gradient(90deg, #f8fdf9, white);
+      padding-left: 28px;
+    }
+
+    .profile-menu-item i{
+      font-size: 1.1rem;
+      width: 24px;
+    }
+
+    .profile-menu-item.text-danger:hover{
+      background: linear-gradient(90deg, #fff5f5, white);
+      color: #e74c3c !important;
+    }
+
+    /* RESPONSIVE TOPBAR */
+    @media (max-width: 992px){
+      .searchbar-admin{
+        max-width: 300px;
+      }
+
+      .profile-info{
+        display: none !important;
+      }
+
+      .btn-profile{
+        padding: 8px;
+      }
+    }
+
+    @media (max-width: 768px){
+      .topbar-admin{
+        gap: 12px;
+        padding: 20px 20px;
+      }
+
+      .searchbar-admin{
+        max-width: 200px;
+      }
+
+      .btn-notification,
+      .btn-profile{
+        width: 42px;
+        height: 42px;
+      }
+
+      .profile-avatar{
+        width: 42px;
+        height: 42px;
+      }
+
+      .topbar-divider{
+        display: none;
+      }
+
+      .notification-dropdown,
+      .profile-dropdown{
+        width: 300px;
+      }
+    }
+
+    @media (max-width: 576px){
+      .searchbar-admin{
+        max-width: 160px;
+      }
+
+      .searchbar-admin input{
+        font-size: 0.85rem;
+      }
     }
 
     /* ADMIN KPI CARDS - Diseño mejorado */
@@ -643,7 +866,7 @@
         <div class="nav-item active" onclick="window.location.href='/admin'" style="cursor: pointer;">
           <i class="bi bi-speedometer2"></i><span class="nav-label">Dashboard</span>
         </div>
-        <div class="nav-item" onclick="window.location.href='/admin/usuarios'" style="cursor: pointer;">
+        <div class="nav-item" onclick="mostrarUsuarios()" style="cursor: pointer;">
           <i class="bi bi-people"></i><span class="nav-label">Usuarios</span>
         </div>
         <div class="nav-item" onclick="window.location.href='/admin/productos'" style="cursor: pointer;">
@@ -668,33 +891,131 @@
     <main class="main-content">
       <!-- TOPBAR ADMIN -->
       <div class="topbar-admin">
-        <div class="d-flex align-items-center gap-3 flex-wrap">
+        <!-- Barra unificada: búsqueda + notificaciones + perfil -->
+        <div class="d-flex align-items-center gap-4 flex-grow-1">
           <div class="searchbar-admin">
             <i class="bi bi-search fs-5 me-3 text-muted"></i>
-            <input class="form-control border-0 fs-6" placeholder="Buscar productores, productos..."/>
-          </div>
-          <div class="text-muted small">
-            <i class="bi bi-calendar3 me-1"></i> 05 Dic 2025
+            <input class="form-control border-0 fs-6" placeholder="Buscar productores, productos..." aria-label="Buscar en el sistema"/>
           </div>
         </div>
 
+        <!-- Sección de acciones (notificaciones y perfil) -->
         <div class="d-flex align-items-center gap-3">
+
+          <!-- Notificaciones -->
           <div class="dropdown">
-            <button class="btn btn-outline-success dropdown-toggle p-2" data-bs-toggle="dropdown">
-              <i class="bi bi-bell fs-5"></i>
-              <span class="badge bg-danger rounded-pill ms-1">3</span>
+            <button class="btn-notification" data-bs-toggle="dropdown" aria-expanded="false">
+              <i class="bi bi-bell"></i>
+              <span class="notification-badge">3</span>
             </button>
-            <ul class="dropdown-menu dropdown-menu-end">
-              <li><a class="dropdown-item">Nuevo pedido #OR-1234</a></li>
-              <li><a class="dropdown-item">Stock bajo: Tomates</a></li>
+            <ul class="dropdown-menu dropdown-menu-end notification-dropdown shadow-lg">
+              <li class="dropdown-header d-flex justify-content-between align-items-center">
+                <span class="fw-bold">Notificaciones</span>
+                <span class="badge bg-success rounded-pill">3 nuevas</span>
+              </li>
+              <li><hr class="dropdown-divider"></li>
+              <li>
+                <a class="dropdown-item notification-item" href="#">
+                  <div class="d-flex align-items-start gap-3">
+                    <div class="notification-icon bg-success">
+                      <i class="bi bi-cart-check"></i>
+                    </div>
+                    <div class="flex-grow-1">
+                      <div class="fw-600">Nuevo pedido #OR-1234</div>
+                      <small class="text-muted">Hace 5 minutos</small>
+                    </div>
+                  </div>
+                </a>
+              </li>
+              <li>
+                <a class="dropdown-item notification-item" href="#">
+                  <div class="d-flex align-items-start gap-3">
+                    <div class="notification-icon bg-warning">
+                      <i class="bi bi-exclamation-triangle"></i>
+                    </div>
+                    <div class="flex-grow-1">
+                      <div class="fw-600">Stock bajo: Tomates</div>
+                      <small class="text-muted">Hace 15 minutos</small>
+                    </div>
+                  </div>
+                </a>
+              </li>
+              <li>
+                <a class="dropdown-item notification-item" href="#">
+                  <div class="d-flex align-items-start gap-3">
+                    <div class="notification-icon bg-info">
+                      <i class="bi bi-truck"></i>
+                    </div>
+                    <div class="flex-grow-1">
+                      <div class="fw-600">Envío en camino #ENV-458</div>
+                      <small class="text-muted">Hace 1 hora</small>
+                    </div>
+                  </div>
+                </a>
+              </li>
+              <li><hr class="dropdown-divider"></li>
+              <li>
+                <a class="dropdown-item text-center text-success fw-600" href="#">
+                  Ver todas las notificaciones
+                </a>
+              </li>
             </ul>
           </div>
-          <img src="https://i.pravatar.cc/44?img=1" class="rounded-circle" width="44" height="44" data-bs-toggle="tooltip" title="Admin">
+
+          <!-- Separador vertical -->
+          <div class="topbar-divider"></div>
+
+          <!-- Perfil del usuario -->
+          <div class="dropdown">
+            <button class="btn-profile d-flex align-items-center gap-3" data-bs-toggle="dropdown" aria-expanded="false">
+              <span class="profile-info text-end d-none d-md-block">
+                <span class="profile-name d-block">Administrador</span>
+                <small class="profile-role">Super Admin</small>
+              </span>
+              <img src="https://i.pravatar.cc/48?img=1" class="profile-avatar" alt="Admin">
+              <i class="bi bi-chevron-down text-muted" style="font-size: 0.8rem;"></i>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end profile-dropdown shadow-lg">
+              <li class="dropdown-header">
+                <div class="d-flex align-items-center gap-3 py-2">
+                  <img src="https://i.pravatar.cc/56?img=1" class="rounded-circle" width="56" height="56" alt="Admin">
+                  <div>
+                    <div class="fw-bold">Administrador</div>
+                    <small class="text-muted">admin@agrolink.com</small>
+                  </div>
+                </div>
+              </li>
+              <li><hr class="dropdown-divider"></li>
+              <li>
+                <a class="dropdown-item profile-menu-item" href="#">
+                  <i class="bi bi-person me-3"></i>Mi Perfil
+                </a>
+              </li>
+              <li>
+                <a class="dropdown-item profile-menu-item" href="#">
+                  <i class="bi bi-gear me-3"></i>Configuración
+                </a>
+              </li>
+              <li>
+                <a class="dropdown-item profile-menu-item" href="#">
+                  <i class="bi bi-bell me-3"></i>Preferencias
+                </a>
+              </li>
+              <li><hr class="dropdown-divider"></li>
+              <li>
+                <a class="dropdown-item profile-menu-item text-danger" href="/logout">
+                  <i class="bi bi-box-arrow-right me-3"></i>Cerrar Sesión
+                </a>
+              </li>
+            </ul>
+          </div>
         </div>
       </div>
 
-      <!-- KPI ADMIN CARDS -->
-      <div class="row g-4 mb-5 fade-admin">
+      <!-- CONTENEDOR DINÁMICO: DASHBOARD o USUARIOS -->
+      <div id="dashboard-view">
+        <!-- KPI ADMIN CARDS -->
+        <div class="row g-4 mb-5 fade-admin">
         <div class="col-xl-3 col-lg-6">
           <div class="kpi-admin">
             <div class="d-flex align-items-start justify-content-between">
@@ -769,10 +1090,15 @@
           <div class="chart-container-admin fade-admin">
             <div class="d-flex justify-content-between align-items-center mb-4">
               <h5 class="fw-800 mb-0" style="color:var(--green);">📈 Ventas Semanales</h5>
-              <select class="form-select form-select-sm" style="width:160px;">
-                <option>Esta semana</option>
-                <option>Este mes</option>
-              </select>
+              <div class="d-flex gap-2">
+                <button class="btn btn-sm btn-outline-success" onclick="refrescarDatos()" title="Refrescar datos">
+                  <i class="bi bi-arrow-clockwise"></i>
+                </button>
+                <select class="form-select form-select-sm" style="width:160px;" aria-label="Filtro de periodo">
+                  <option>Esta semana</option>
+                  <option>Este mes</option>
+                </select>
+              </div>
             </div>
             <canvas id="salesChart"></canvas>
           </div>
@@ -837,6 +1163,213 @@
           </table>
         </div>
       </div>
+      </div>
+      <!-- FIN DASHBOARD VIEW -->
+
+      <!-- VISTA DE USUARIOS (oculta por defecto) -->
+      <div id="usuarios-view" style="display: none;">
+        <!-- Header de Usuarios -->
+        <div class="mb-4 d-flex justify-content-between align-items-center">
+          <div>
+            <h2 class="fw-800 mb-2" style="background: linear-gradient(135deg, #2f6b31 0%, #5cb85c 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;">
+              Gestión de Usuarios
+            </h2>
+            <p class="text-muted mb-0">Administra clientes, productores, transportistas y asesores</p>
+          </div>
+          <button class="btn btn-success" onclick="mostrarDashboard()">
+            <i class="bi bi-arrow-left me-2"></i>Volver al Dashboard
+          </button>
+        </div>
+
+        <!-- Stats Cards de Usuarios -->
+        <div class="row g-4 mb-4">
+          <div class="col-md-3 col-6">
+            <div class="kpi-admin">
+              <div class="kpi-icon-admin" style="background: linear-gradient(135deg, #4a90e2, #357abd);">
+                <i class="bi bi-people-fill"></i>
+              </div>
+              <div class="kpi-value" id="totalClientes">0</div>
+              <div class="kpi-label">Clientes</div>
+            </div>
+          </div>
+          <div class="col-md-3 col-6">
+            <div class="kpi-admin">
+              <div class="kpi-icon-admin" style="background: linear-gradient(135deg, #5cb85c, #3f8a41);">
+                <i class="bi bi-person-badge"></i>
+              </div>
+              <div class="kpi-value" id="totalProductores">0</div>
+              <div class="kpi-label">Productores</div>
+            </div>
+          </div>
+          <div class="col-md-3 col-6">
+            <div class="kpi-admin">
+              <div class="kpi-icon-admin" style="background: linear-gradient(135deg, #f39c12, #e67e22);">
+                <i class="bi bi-truck"></i>
+              </div>
+              <div class="kpi-value" id="totalTransportistas">0</div>
+              <div class="kpi-label">Transportistas</div>
+            </div>
+          </div>
+          <div class="col-md-3 col-6">
+            <div class="kpi-admin">
+              <div class="kpi-icon-admin" style="background: linear-gradient(135deg, #9b59b6, #8e44ad);">
+                <i class="bi bi-briefcase-fill"></i>
+              </div>
+              <div class="kpi-value" id="totalServicios">0</div>
+              <div class="kpi-label">Asesores</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tabs de Usuarios -->
+        <div class="card-glass fade-admin" style="background:white; border-radius:24px; padding:32px; border:1px solid rgba(0,0,0,0.05); box-shadow:0 16px 40px rgba(0,0,0,0.08);">
+          <ul class="nav nav-pills mb-4" id="usuariosTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+              <button class="nav-link active" id="clientes-tab" data-bs-toggle="pill" data-bs-target="#clientes-panel" type="button" role="tab">
+                <i class="bi bi-people-fill me-2"></i>Clientes
+              </button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link" id="productores-tab" data-bs-toggle="pill" data-bs-target="#productores-panel" type="button" role="tab">
+                <i class="bi bi-person-badge me-2"></i>Productores
+              </button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link" id="transportistas-tab" data-bs-toggle="pill" data-bs-target="#transportistas-panel" type="button" role="tab">
+                <i class="bi bi-truck me-2"></i>Transportistas
+              </button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link" id="servicios-tab" data-bs-toggle="pill" data-bs-target="#servicios-panel" type="button" role="tab">
+                <i class="bi bi-briefcase-fill me-2"></i>Asesores
+              </button>
+            </li>
+          </ul>
+
+          <div class="tab-content" id="usuariosTabContent">
+            <!-- Tab Clientes -->
+            <div class="tab-pane fade show active" id="clientes-panel" role="tabpanel">
+              <h5 class="fw-700 mb-3" style="color: var(--green);">
+                <i class="bi bi-people-fill me-2"></i>Lista de Clientes
+              </h5>
+              <div class="table-responsive">
+                <table class="table table-admin align-middle">
+                  <thead>
+                    <tr>
+                      <th>Usuario</th>
+                      <th>Nombre Completo</th>
+                      <th>Email</th>
+                      <th>Ciudad</th>
+                      <th>Teléfono</th>
+                      <th>Rol</th>
+                      <th>Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody id="tablaClientes">
+                    <tr>
+                      <td colspan="7" class="text-center py-5">
+                        <div class="spinner-border text-success" role="status"></div>
+                        <p class="mt-3 text-muted">Cargando clientes...</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Tab Productores -->
+            <div class="tab-pane fade" id="productores-panel" role="tabpanel">
+              <h5 class="fw-700 mb-3" style="color: var(--green);">
+                <i class="bi bi-person-badge me-2"></i>Lista de Productores
+              </h5>
+              <div class="table-responsive">
+                <table class="table table-admin align-middle">
+                  <thead>
+                    <tr>
+                      <th>Usuario</th>
+                      <th>Nombre Completo</th>
+                      <th>Email</th>
+                      <th>Ciudad</th>
+                      <th>Tipo Cultivo</th>
+                      <th>Rol</th>
+                      <th>Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody id="tablaProductores">
+                    <tr>
+                      <td colspan="7" class="text-center py-5">
+                        <div class="spinner-border text-success" role="status"></div>
+                        <p class="mt-3 text-muted">Cargando productores...</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Tab Transportistas -->
+            <div class="tab-pane fade" id="transportistas-panel" role="tabpanel">
+              <h5 class="fw-700 mb-3" style="color: var(--green);">
+                <i class="bi bi-truck me-2"></i>Lista de Transportistas
+              </h5>
+              <div class="table-responsive">
+                <table class="table table-admin align-middle">
+                  <thead>
+                    <tr>
+                      <th>Usuario</th>
+                      <th>Nombre Completo</th>
+                      <th>Email</th>
+                      <th>Ciudad</th>
+                      <th>Teléfono</th>
+                      <th>Rol</th>
+                      <th>Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody id="tablaTransportistas">
+                    <tr>
+                      <td colspan="7" class="text-center py-5">
+                        <div class="spinner-border text-success" role="status"></div>
+                        <p class="mt-3 text-muted">Cargando transportistas...</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Tab Servicios/Asesores -->
+            <div class="tab-pane fade" id="servicios-panel" role="tabpanel">
+              <h5 class="fw-700 mb-3" style="color: var(--green);">
+                <i class="bi bi-briefcase-fill me-2"></i>Lista de Asesores/Servicios
+              </h5>
+              <div class="table-responsive">
+                <table class="table table-admin align-middle">
+                  <thead>
+                    <tr>
+                      <th>Usuario</th>
+                      <th>Nombre Completo</th>
+                      <th>Email</th>
+                      <th>Ciudad</th>
+                      <th>Tipo Servicio</th>
+                      <th>Rol</th>
+                      <th>Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody id="tablaServicios">
+                    <tr>
+                      <td colspan="7" class="text-center py-5">
+                        <div class="spinner-border text-success" role="status"></div>
+                        <p class="mt-3 text-muted">Cargando asesores...</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- FIN USUARIOS VIEW -->
     </main>
   </div>
 
@@ -1041,9 +1574,9 @@
     }
 
     function eliminarProducto(idProducto) {
-      if (confirm('¿Está seguro de que desea eliminar este producto?')) {
+      if (confirm('¿Está seguro de que desea eliminar este producto ID: ' + idProducto + '?')) {
         // Implementar lógica de eliminación
-        alert('Funcionalidad de eliminación en desarrollo');
+        alert('Funcionalidad de eliminación en desarrollo para producto ' + idProducto);
       }
     }
 
@@ -1070,12 +1603,322 @@
       }, 2500);
     }
 
+    // ============================================
+    // CAMBIO DE VISTAS: DASHBOARD <-> USUARIOS
+    // ============================================
+    function mostrarUsuarios() {
+      document.getElementById('dashboard-view').style.display = 'none';
+      document.getElementById('usuarios-view').style.display = 'block';
+
+      // Actualizar nav-item activo
+      document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+      document.querySelectorAll('.nav-item')[1].classList.add('active'); // Item "Usuarios"
+
+      // Cargar datos de usuarios
+      cargarUsuarios();
+    }
+
+    function mostrarDashboard() {
+      document.getElementById('dashboard-view').style.display = 'block';
+      document.getElementById('usuarios-view').style.display = 'none';
+
+      // Actualizar nav-item activo
+      document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+      document.querySelectorAll('.nav-item')[0].classList.add('active'); // Item "Dashboard"
+    }
+
+    // ============================================
+    // CARGAR DATOS DE USUARIOS (desde Thymeleaf)
+    // ============================================
+
+    // Datos inyectados desde el servidor (Thymeleaf)
+    const datosUsuarios = {
+      clientes: /*[[${clientes}]]*/ [],
+      productores: /*[[${productores}]]*/ [],
+      transportistas: /*[[${transportistas}]]*/ [],
+      servicios: /*[[${servicios}]]*/ [],
+      totalClientes: /*[[${totalClientes}]]*/ 0,
+      totalProductores: /*[[${totalProductoresUsuarios}]]*/ 0,
+      totalTransportistas: /*[[${totalTransportistasUsuarios}]]*/ 0,
+      totalServicios: /*[[${totalServicios}]]*/ 0
+    };
+
+    function cargarUsuarios() {
+      // Actualizar contadores
+      document.getElementById('totalClientes').textContent = datosUsuarios.totalClientes;
+      document.getElementById('totalProductores').textContent = datosUsuarios.totalProductores;
+      document.getElementById('totalTransportistas').textContent = datosUsuarios.totalTransportistas;
+      document.getElementById('totalServicios').textContent = datosUsuarios.totalServicios;
+
+      // Cargar todas las listas
+      cargarClientes();
+      cargarProductores();
+      cargarTransportistas();
+      cargarServicios();
+    }
+
+    function cargarClientes() {
+      const tbody = document.getElementById('tablaClientes');
+
+      if (!datosUsuarios.clientes || datosUsuarios.clientes.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="7" class="text-center py-4">
+              <i class="bi bi-inbox fs-1 text-muted"></i>
+              <p class="mt-2 text-muted">No hay clientes registrados</p>
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      let html = '';
+      datosUsuarios.clientes.forEach(cliente => {
+        const usuario = cliente.usuario || {};
+        const inicial = usuario.nombre ? usuario.nombre.charAt(0).toUpperCase() : 'C';
+
+        html += `
+          <tr>
+            <td>
+              <div class="d-flex align-items-center gap-2">
+                <div class="user-avatar">${inicial}</div>
+                <span class="fw-600">${usuario.nombreUsuario || 'N/A'}</span>
+              </div>
+            </td>
+            <td>${usuario.nombre || ''} ${usuario.apellido || ''}</td>
+            <td>${usuario.correo || 'N/A'}</td>
+            <td>${usuario.ciudad || 'N/A'}</td>
+            <td>${usuario.telefono || 'N/A'}</td>
+            <td><span class="badge-rol badge-cliente">Cliente</span></td>
+            <td>
+              <button class="btn btn-sm btn-outline-success" onclick="verDetalleUsuario(${usuario.idUsuario})">
+                <i class="bi bi-eye"></i>
+              </button>
+            </td>
+          </tr>
+        `;
+      });
+
+      tbody.innerHTML = html;
+    }
+
+    function cargarProductores() {
+      const tbody = document.getElementById('tablaProductores');
+
+      if (!datosUsuarios.productores || datosUsuarios.productores.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="7" class="text-center py-4">
+              <i class="bi bi-inbox fs-1 text-muted"></i>
+              <p class="mt-2 text-muted">No hay productores registrados</p>
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      let html = '';
+      datosUsuarios.productores.forEach(productor => {
+        const usuario = productor.usuario || {};
+        const inicial = usuario.nombre ? usuario.nombre.charAt(0).toUpperCase() : 'P';
+
+        html += `
+          <tr>
+            <td>
+              <div class="d-flex align-items-center gap-2">
+                <div class="user-avatar">${inicial}</div>
+                <span class="fw-600">${usuario.nombreUsuario || 'N/A'}</span>
+              </div>
+            </td>
+            <td>${usuario.nombre || ''} ${usuario.apellido || ''}</td>
+            <td>${usuario.correo || 'N/A'}</td>
+            <td>${usuario.ciudad || 'N/A'}</td>
+            <td><span class="badge-rol" style="background: linear-gradient(135deg, #27ae60, #229954); color: white; padding: 4px 12px; border-radius: 12px; font-size: 0.7rem;">${productor.tipoCultivo || 'N/A'}</span></td>
+            <td><span class="badge-rol badge-productor">Productor</span></td>
+            <td>
+              <button class="btn btn-sm btn-outline-success" onclick="verDetalleUsuario(${usuario.idUsuario})">
+                <i class="bi bi-eye"></i>
+              </button>
+            </td>
+          </tr>
+        `;
+      });
+
+      tbody.innerHTML = html;
+    }
+
+    function cargarTransportistas() {
+      const tbody = document.getElementById('tablaTransportistas');
+
+      if (!datosUsuarios.transportistas || datosUsuarios.transportistas.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="7" class="text-center py-4">
+              <i class="bi bi-inbox fs-1 text-muted"></i>
+              <p class="mt-2 text-muted">No hay transportistas registrados</p>
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      let html = '';
+      datosUsuarios.transportistas.forEach(transportista => {
+        const usuario = transportista.usuario || {};
+        const inicial = usuario.nombre ? usuario.nombre.charAt(0).toUpperCase() : 'T';
+
+        html += `
+          <tr>
+            <td>
+              <div class="d-flex align-items-center gap-2">
+                <div class="user-avatar">${inicial}</div>
+                <span class="fw-600">${usuario.nombreUsuario || 'N/A'}</span>
+              </div>
+            </td>
+            <td>${usuario.nombre || ''} ${usuario.apellido || ''}</td>
+            <td>${usuario.correo || 'N/A'}</td>
+            <td>${usuario.ciudad || 'N/A'}</td>
+            <td>${usuario.telefono || 'N/A'}</td>
+            <td><span class="badge-rol badge-transportista">Transportista</span></td>
+            <td>
+              <button class="btn btn-sm btn-outline-success" onclick="verDetalleUsuario(${usuario.idUsuario})">
+                <i class="bi bi-eye"></i>
+              </button>
+            </td>
+          </tr>
+        `;
+      });
+
+      tbody.innerHTML = html;
+    }
+
+    function cargarServicios() {
+      const tbody = document.getElementById('tablaServicios');
+
+      if (!datosUsuarios.servicios || datosUsuarios.servicios.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="7" class="text-center py-4">
+              <i class="bi bi-inbox fs-1 text-muted"></i>
+              <p class="mt-2 text-muted">No hay asesores registrados</p>
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      let html = '';
+      datosUsuarios.servicios.forEach(servicio => {
+        const usuario = servicio.usuario || {};
+        const inicial = usuario.nombre ? usuario.nombre.charAt(0).toUpperCase() : 'S';
+
+        html += `
+          <tr>
+            <td>
+              <div class="d-flex align-items-center gap-2">
+                <div class="user-avatar">${inicial}</div>
+                <span class="fw-600">${usuario.nombreUsuario || 'N/A'}</span>
+              </div>
+            </td>
+            <td>${usuario.nombre || ''} ${usuario.apellido || ''}</td>
+            <td>${usuario.correo || 'N/A'}</td>
+            <td>${usuario.ciudad || 'N/A'}</td>
+            <td><span class="badge-rol" style="background: linear-gradient(135deg, #16a085, #138d75); color: white; padding: 4px 12px; border-radius: 12px; font-size: 0.7rem;">${servicio.tipoServicio || 'N/A'}</span></td>
+            <td><span class="badge-rol badge-servicio">Asesor</span></td>
+            <td>
+              <button class="btn btn-sm btn-outline-success" onclick="verDetalleUsuario(${usuario.idUsuario})">
+                <i class="bi bi-eye"></i>
+              </button>
+            </td>
+          </tr>
+        `;
+      });
+
+      tbody.innerHTML = html;
+    }
+
+    function verDetalleUsuario(idUsuario) {
+      // TODO: Implementar modal o página de detalles
+      alert('Ver detalles del usuario ID: ' + idUsuario);
+    }
+
     // Agregar estilos para animación
     const style = document.createElement('style');
     style.textContent = `
       @keyframes slideIn {
         from { transform: translateX(400px); opacity: 0; }
         to { transform: translateX(0); opacity: 1; }
+      }
+
+      /* Estilos para nav-pills de usuarios */
+      #usuariosTabs .nav-link {
+        border-radius: 12px;
+        padding: 12px 24px;
+        font-weight: 600;
+        color: var(--muted);
+        transition: all 0.3s;
+        margin-right: 8px;
+      }
+
+      #usuariosTabs .nav-link:hover {
+        background: rgba(47,107,49,0.08);
+        color: var(--green);
+      }
+
+      #usuariosTabs .nav-link.active {
+        background: linear-gradient(135deg, #2f6b31 0%, #5cb85c 100%);
+        color: white;
+        box-shadow: 0 8px 20px rgba(47,107,49,0.3);
+      }
+
+      /* Avatar de usuario */
+      .user-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        background: linear-gradient(135deg, var(--green), var(--accent));
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 700;
+        font-size: 0.9rem;
+        box-shadow: 0 4px 12px rgba(47,107,49,0.2);
+      }
+
+      /* Badges de rol */
+      .badge-rol {
+        padding: 6px 14px;
+        border-radius: 16px;
+        font-weight: 700;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        display: inline-block;
+      }
+
+      .badge-cliente {
+        background: linear-gradient(135deg, #4a90e2, #357abd);
+        color: white;
+        box-shadow: 0 4px 12px rgba(74,144,226,0.3);
+      }
+
+      .badge-productor {
+        background: linear-gradient(135deg, #5cb85c, #3f8a41);
+        color: white;
+        box-shadow: 0 4px 12px rgba(92,184,92,0.3);
+      }
+
+      .badge-transportista {
+        background: linear-gradient(135deg, #f39c12, #e67e22);
+        color: white;
+        box-shadow: 0 4px 12px rgba(243,156,18,0.3);
+      }
+
+      .badge-servicio {
+        background: linear-gradient(135deg, #9b59b6, #8e44ad);
+        color: white;
+        box-shadow: 0 4px 12px rgba(155,89,182,0.3);
       }
     `;
     document.head.appendChild(style);
