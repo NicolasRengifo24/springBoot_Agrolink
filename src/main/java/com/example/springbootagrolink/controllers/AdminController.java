@@ -28,7 +28,7 @@ public class AdminController {
     private final ProductorRepository productorRepository;
     private final UsuarioRepository usuarioRepository;
     private final ClienteRepository clienteRepository;
-    private final ServicioRepository servicioRepository;
+    private final AsesorRepository asesorRepository;
 
     public AdminController(ProductoRepository productoRepository,
                            CompraRepository compraRepository,
@@ -36,14 +36,14 @@ public class AdminController {
                            ProductorRepository productorRepository,
                            UsuarioRepository usuarioRepository,
                            ClienteRepository clienteRepository,
-                           ServicioRepository servicioRepository) {
+                           AsesorRepository asesorRepository) {
         this.productoRepository = productoRepository;
         this.compraRepository = compraRepository;
         this.transportistaRepository = transportistaRepository;
         this.productorRepository = productorRepository;
         this.usuarioRepository = usuarioRepository;
         this.clienteRepository = clienteRepository;
-        this.servicioRepository = servicioRepository;
+        this.asesorRepository = asesorRepository;
     }
 
     /**
@@ -86,19 +86,41 @@ public class AdminController {
             List<Cliente> clientes = clienteRepository.findAll();
             List<Productor> productores = productorRepository.findAll();
             List<Transportista> transportistas = transportistaRepository.findAll();
-            List<Servicio> servicios = servicioRepository.findAll();
+            List<Asesor> asesores = asesorRepository.findAll();
 
             model.addAttribute("clientes", clientes);
             model.addAttribute("productores", productores);
             model.addAttribute("transportistas", transportistas);
-            model.addAttribute("servicios", servicios);
+            model.addAttribute("asesores", asesores);
 
             model.addAttribute("totalClientes", clientes.size());
             model.addAttribute("totalProductoresUsuarios", productores.size());
             model.addAttribute("totalTransportistasUsuarios", transportistas.size());
-            model.addAttribute("totalServicios", servicios.size());
+            model.addAttribute("totalAsesores", asesores.size());
 
-            log.info("Dashboard admin cargado - Pedidos: {}, Inventario: {} kg", totalPedidos, inventarioTotal);
+            // Agregar productos y categorías para la vista integrada de productos
+            model.addAttribute("productos", productos);
+
+            // Obtener categorías (si tienes un repositorio de categorías)
+            List<CategoriaProducto> categorias = new ArrayList<>();
+            try {
+                // Si tienes CategoriaProductoRepository, úsalo aquí
+                // categorias = categoriaProductoRepository.findAll();
+                // Por ahora, extraemos las categorías únicas de los productos
+                Set<CategoriaProducto> categoriasUnicas = new HashSet<>();
+                for (Producto p : productos) {
+                    if (p.getCategoria() != null) {
+                        categoriasUnicas.add(p.getCategoria());
+                    }
+                }
+                categorias = new ArrayList<>(categoriasUnicas);
+            } catch (Exception ex) {
+                log.warn("No se pudieron cargar las categorías: {}", ex.getMessage());
+            }
+            model.addAttribute("categorias", categorias);
+
+            log.info("Dashboard admin cargado - Pedidos: {}, Inventario: {} kg, Productos: {}",
+                totalPedidos, inventarioTotal, productos.size());
 
             return "admin/admin";
 
@@ -215,32 +237,70 @@ public class AdminController {
      */
     @GetMapping("/usuarios")
     public String gestionUsuarios(Model model) {
+        log.info("=== Accediendo a /admin/usuarios ===");
         try {
-            // Obtener todos los usuarios por rol
-            List<Usuario> todosUsuarios = usuarioRepository.findAll();
+            // Obtener todos los usuarios por rol con protección contra null
+            log.info("Cargando usuarios de la base de datos...");
 
-            List<Cliente> clientes = clienteRepository.findAll();
-            List<Productor> productores = productorRepository.findAll();
-            List<Transportista> transportistas = transportistaRepository.findAll();
-            List<Servicio> servicios = servicioRepository.findAll();
+            List<Usuario> todosUsuarios = Optional.ofNullable(usuarioRepository.findAll())
+                .orElseGet(Collections::emptyList);
+            log.info("Total usuarios en BD: {}", todosUsuarios.size());
 
+            List<Cliente> clientes = Optional.ofNullable(clienteRepository.findAll())
+                .orElseGet(Collections::emptyList);
+            log.info("Total clientes: {}", clientes.size());
+
+            List<Productor> productores = Optional.ofNullable(productorRepository.findAll())
+                .orElseGet(Collections::emptyList);
+            log.info("Total productores: {}", productores.size());
+
+            List<Transportista> transportistas = Optional.ofNullable(transportistaRepository.findAll())
+                .orElseGet(Collections::emptyList);
+            log.info("Total transportistas: {}", transportistas.size());
+
+            List<Asesor> asesores = Optional.ofNullable(asesorRepository.findAll())
+                .orElseGet(Collections::emptyList);
+            log.info("Total asesores: {}", asesores.size());
+
+            // Agregar al modelo con listas garantizadas no nulas
             model.addAttribute("todosUsuarios", todosUsuarios);
             model.addAttribute("clientes", clientes);
             model.addAttribute("productores", productores);
             model.addAttribute("transportistas", transportistas);
-            model.addAttribute("servicios", servicios);
+            model.addAttribute("asesores", asesores);
 
             model.addAttribute("totalUsuarios", todosUsuarios.size());
             model.addAttribute("totalClientes", clientes.size());
             model.addAttribute("totalProductores", productores.size());
             model.addAttribute("totalTransportistas", transportistas.size());
-            model.addAttribute("totalServicios", servicios.size());
+            model.addAttribute("totalAsesores", asesores.size());
+
+            log.info("✅ Vista admin/usuarios cargada exitosamente");
+            log.info("📊 Resumen: {} clientes, {} productores, {} transportistas, {} asesores",
+                     clientes.size(), productores.size(), transportistas.size(), asesores.size());
 
             return "admin/usuarios";
+
         } catch (Exception e) {
-            log.error("Error al cargar usuarios: {}", e.getMessage(), e);
-            model.addAttribute("error", "Error al cargar usuarios");
-            return "redirect:/admin";
+            log.error("=== ❌ ERROR AL CARGAR USUARIOS ===");
+            log.error("Tipo de error: {}", e.getClass().getName());
+            log.error("Mensaje: {}", e.getMessage());
+            log.error("Stack trace completo: ", e);
+
+            // En caso de error, enviar listas vacías para evitar errores en la vista
+            model.addAttribute("todosUsuarios", Collections.emptyList());
+            model.addAttribute("clientes", Collections.emptyList());
+            model.addAttribute("productores", Collections.emptyList());
+            model.addAttribute("transportistas", Collections.emptyList());
+            model.addAttribute("asesores", Collections.emptyList());
+            model.addAttribute("totalUsuarios", 0);
+            model.addAttribute("totalClientes", 0);
+            model.addAttribute("totalProductores", 0);
+            model.addAttribute("totalTransportistas", 0);
+            model.addAttribute("totalAsesores", 0);
+            model.addAttribute("error", "Error al cargar usuarios: " + e.getMessage());
+
+            return "admin/usuarios";
         }
     }
 
@@ -276,6 +336,45 @@ public class AdminController {
         } catch (Exception e) {
             log.error("Error al obtener usuarios por rol: {}", e.getMessage(), e);
             return ResponseEntity.status(500).body(new ArrayList<>());
+        }
+    }
+
+    /**
+     * Vista de gestión de productos
+     */
+    @GetMapping("/productos")
+    public String gestionProductos(Model model) {
+        try {
+            List<Producto> productos = productoRepository.findAll();
+
+            // Datos para la vista
+            model.addAttribute("productos", productos);
+
+            // Obtener categorías únicas
+            Set<CategoriaProducto> categoriasUnicas = new HashSet<>();
+            for (Producto p : productos) {
+                if (p.getCategoria() != null) {
+                    categoriasUnicas.add(p.getCategoria());
+                }
+            }
+            model.addAttribute("categorias", new ArrayList<>(categoriasUnicas));
+
+            // Stats para KPIs
+            model.addAttribute("totalProductos", productos.size());
+            model.addAttribute("productosBajoStock",
+                productos.stream().filter(p -> p.getStock() != null && p.getStock() < 10).count());
+            model.addAttribute("productosDisponibles",
+                productos.stream().filter(p -> p.getStock() != null && p.getStock() >= 10).count());
+            model.addAttribute("totalProductores", productorRepository.count());
+
+            log.info("Vista de productos admin cargada - Total productos: {}", productos.size());
+
+            return "admin/productos";
+
+        } catch (Exception e) {
+            log.error("Error al cargar productos: {}", e.getMessage(), e);
+            model.addAttribute("error", "Error al cargar productos");
+            return "redirect:/admin";
         }
     }
 

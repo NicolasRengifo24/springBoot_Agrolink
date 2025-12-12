@@ -1,0 +1,758 @@
+<!doctype html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Gestión de Usuarios — Agrolink Admin</title>
+
+  <!-- Bootstrap -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet"/>
+
+  <!-- Google Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet"/>
+
+  <style>
+    :root{
+      --green: #2f6b31;
+      --green-light: #3f8a41;
+      --green-dark: #1d4820;
+      --muted: #7e8b7e;
+      --glass: rgba(255,255,255,0.85);
+    }
+
+    body{
+      font-family: "Inter", sans-serif;
+      background: linear-gradient(180deg,#f8faf7,#f1f4ef);
+      color:#222;
+      min-height: 100vh;
+    }
+
+    /* GRID LAYOUT */
+    .app{
+      display:grid;
+      grid-template-columns:280px 1fr;
+      gap:30px;
+      max-width:1600px;
+      margin:40px auto;
+      padding:0 20px;
+    }
+
+    /* SIDEBAR ADMIN */
+    .sidebar{
+      background:var(--glass);
+      backdrop-filter:blur(16px);
+      border-radius:24px;
+      border:1px solid rgba(0,0,0,0.06);
+      height:calc(100vh - 80px);
+      padding:28px;
+      position:sticky;
+      top:40px;
+      transition:.3s;
+      box-shadow:0 20px 40px rgba(47,107,49,0.08);
+    }
+
+    .brand-admin{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      margin-bottom:32px;
+      padding-bottom:20px;
+      border-bottom:1px solid rgba(47,107,49,0.1);
+    }
+
+    .brand-title-admin{
+      font-weight:800;
+      background:linear-gradient(135deg,var(--green),var(--green-light));
+      -webkit-background-clip:text;
+      background-clip:text;
+      -webkit-text-fill-color:transparent;
+      font-size:1.4rem;
+    }
+
+    .role-badge{
+      background:var(--green);
+      color:white;
+      padding:4px 12px;
+      border-radius:20px;
+      font-size:0.75rem;
+      font-weight:600;
+    }
+
+    .nav-item{
+      display:flex;
+      align-items:center;
+      gap:14px;
+      padding:16px 20px;
+      margin-bottom:8px;
+      border-radius:16px;
+      font-weight:600;
+      cursor:pointer;
+      transition:.25s;
+      color:var(--muted);
+    }
+
+    .nav-item:hover{
+      background:rgba(47,107,49,0.08);
+      color:var(--green);
+      transform:translateX(6px);
+    }
+
+    .nav-item.active{
+      background:linear-gradient(135deg,var(--green),var(--green-light));
+      color:white;
+      box-shadow:0 12px 24px rgba(47,107,49,0.3);
+      transform:translateX(4px);
+    }
+
+    .nav-item .bi{
+      font-size:1.2rem;
+      width:24px;
+      opacity:0.8;
+    }
+
+    .nav-item.active .bi{
+      opacity:1;
+    }
+
+    /* MAIN CONTENT */
+    .main-content{
+      min-height:calc(100vh - 80px);
+    }
+
+    /* TOPBAR ADMIN */
+    .topbar-admin{
+      background:var(--glass);
+      backdrop-filter:blur(16px);
+      border-radius:24px;
+      border:1px solid rgba(0,0,0,0.05);
+      padding:24px 32px;
+      margin-bottom:32px;
+      box-shadow:0 12px 32px rgba(0,0,0,0.08);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+    }
+
+    .searchbar-admin{
+      flex:1;
+      max-width:600px;
+      display: flex;
+      align-items: center;
+      padding:16px 24px;
+      border-radius:20px;
+      background:white;
+      border:1px solid #e3e9e2;
+      box-shadow:0 6px 20px rgba(0,0,0,0.06);
+      transition: all 0.3s ease;
+    }
+
+    .searchbar-admin:focus-within {
+      border-color: var(--green);
+      box-shadow: 0 6px 24px rgba(47,107,49,0.15);
+    }
+
+    .searchbar-admin input {
+      flex: 1;
+      border: none;
+      outline: none;
+      background: transparent;
+      font-size: 0.95rem;
+    }
+
+    .searchbar-admin input::placeholder {
+      color: #999;
+    }
+
+    /* USUARIOS SECTION */
+    .user-avatar-sm {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--green), var(--green-light));
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 700;
+      font-size: 1rem;
+      box-shadow: 0 4px 12px rgba(47,107,49,0.2);
+      text-transform: uppercase;
+    }
+
+    /* Badges de Rol */
+    .badge-rol {
+      padding: 6px 14px;
+      border-radius: 16px;
+      font-weight: 700;
+      font-size: 0.8rem;
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+    }
+
+    .badge-cliente {
+      background: linear-gradient(135deg, #3498db, #2980b9);
+      color: white;
+      box-shadow: 0 4px 12px rgba(52,152,219,0.3);
+    }
+
+    .badge-productor {
+      background: linear-gradient(135deg, #2ecc71, #27ae60);
+      color: white;
+      box-shadow: 0 4px 12px rgba(46,204,113,0.3);
+    }
+
+    .badge-transportista {
+      background: linear-gradient(135deg, #f39c12, #e67e22);
+      color: white;
+      box-shadow: 0 4px 12px rgba(243,156,18,0.3);
+    }
+
+    .badge-servicio {
+      background: linear-gradient(135deg, #9b59b6, #8e44ad);
+      color: white;
+      box-shadow: 0 4px 12px rgba(155,89,182,0.3);
+    }
+
+    /* Nav Pills para Usuarios */
+    #usuariosTabs .nav-link {
+      border-radius: 12px;
+      padding: 12px 20px;
+      font-weight: 600;
+      color: var(--muted);
+      transition: all 0.3s;
+      margin-right: 8px;
+      border: 2px solid transparent;
+    }
+
+    #usuariosTabs .nav-link:hover {
+      background: rgba(47,107,49,0.08);
+      color: var(--green);
+    }
+
+    #usuariosTabs .nav-link.active {
+      background: linear-gradient(135deg, var(--green), var(--green-light));
+      color: white;
+      box-shadow: 0 8px 20px rgba(47,107,49,0.3);
+      border-color: transparent;
+    }
+
+    #usuariosTabs .nav-link .badge {
+      background: rgba(255,255,255,0.3) !important;
+    }
+
+    #usuariosTabs .nav-link.active .badge {
+      background: rgba(255,255,255,0.25) !important;
+    }
+
+    /* Table Hover Mejorado */
+    .table-hover tbody tr:hover {
+      background: rgba(47,107,49,0.04);
+      transform: scale(1.01);
+      transition: all 0.2s;
+    }
+
+    /* KPI Cards */
+    .kpi-admin{
+      padding:32px 28px;
+      border-radius:20px;
+      background:white;
+      box-shadow:0 12px 32px rgba(0,0,0,0.08);
+      border:1px solid rgba(47,107,49,0.1);
+      transition:.3s;
+      height:100%;
+      position:relative;
+      overflow:hidden;
+    }
+
+    .kpi-admin::before{
+      content:'';
+      position:absolute;
+      top:0;
+      left:0;
+      right:0;
+      height:4px;
+      background:linear-gradient(90deg,var(--green),var(--green-light));
+    }
+
+    .kpi-admin:hover{
+      transform:translateY(-8px);
+      box-shadow:0 24px 48px rgba(47,107,49,0.15);
+    }
+
+    .kpi-icon-admin{
+      width:72px;
+      height:72px;
+      border-radius:20px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:1.8rem;
+      color:white;
+      box-shadow:0 8px 24px rgba(0,0,0,0.15);
+    }
+
+    /* RESPONSIVE */
+    @media (max-width:1200px){
+      .app{ grid-template-columns:1fr; }
+      .sidebar{ display:none; }
+    }
+
+    @keyframes fadeUp{
+      from{opacity:0;transform:translateY(20px);}
+      to{opacity:1;transform:translateY(0);}
+    }
+
+    .fade-admin{ animation:fadeUp .5s ease both; }
+  </style>
+</head>
+
+<body>
+  <div class="app">
+    <!-- SIDEBAR ADMIN -->
+    <aside id="sidebar" class="sidebar">
+      <div class="brand-admin">
+        <i class="bi bi-shield-check fs-2 text-success"></i>
+        <div>
+          <div class="brand-title-admin">Agrolink Admin</div>
+          <div class="role-badge">Super Admin</div>
+        </div>
+      </div>
+
+      <nav>
+        <div class="nav-item" onclick="window.location.href='/admin'">
+          <i class="bi bi-speedometer2"></i><span class="nav-label">Dashboard</span>
+        </div>
+        <div class="nav-item active" onclick="window.location.href='/admin/usuarios'">
+          <i class="bi bi-people"></i><span class="nav-label">Usuarios</span>
+        </div>
+        <div class="nav-item" onclick="window.location.href='/admin/productos'">
+          <i class="bi bi-box-seam"></i><span class="nav-label">Productos</span>
+        </div>
+        <div class="nav-item" onclick="alert('Funcionalidad en desarrollo')">
+          <i class="bi bi-cart-check"></i><span class="nav-label">Pedidos</span>
+        </div>
+        <div class="nav-item" onclick="alert('Funcionalidad en desarrollo')">
+          <i class="bi bi-truck"></i><span class="nav-label">Envíos</span>
+        </div>
+        <div class="nav-item" onclick="alert('Funcionalidad en desarrollo')">
+          <i class="bi bi-graph-up"></i><span class="nav-label">Analíticas</span>
+        </div>
+        <div class="nav-item" onclick="window.location.href='/logout'">
+          <i class="bi bi-box-arrow-right"></i><span class="nav-label">Cerrar Sesión</span>
+        </div>
+      </nav>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+      <!-- TOPBAR ADMIN -->
+      <div class="topbar-admin">
+        <div class="searchbar-admin">
+          <i class="bi bi-search fs-5 me-3 text-muted"></i>
+          <input type="text" class="form-control border-0 fs-6" placeholder="Buscar usuarios..." id="searchInput"/>
+        </div>
+
+        <div class="d-flex align-items-center gap-3">
+          <div class="dropdown">
+            <button class="btn btn-outline-success dropdown-toggle p-2" data-bs-toggle="dropdown">
+              <i class="bi bi-bell fs-5"></i>
+              <span class="badge bg-danger rounded-pill ms-1">3</span>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end">
+              <li><a class="dropdown-item"><i class="bi bi-cart-check me-2 text-success"></i>Nuevo pedido #OR-1234</a></li>
+              <li><a class="dropdown-item"><i class="bi bi-exclamation-triangle me-2 text-warning"></i>Stock bajo: Tomates</a></li>
+              <li><a class="dropdown-item"><i class="bi bi-truck me-2 text-info"></i>Envío en camino</a></li>
+            </ul>
+          </div>
+
+          <div class="dropdown">
+            <img src="https://i.pravatar.cc/44?img=1" class="rounded-circle" width="44" height="44"
+                 style="cursor: pointer;" data-bs-toggle="dropdown" alt="Admin">
+            <ul class="dropdown-menu dropdown-menu-end">
+              <li><a class="dropdown-item" href="/admin/perfil"><i class="bi bi-person-circle me-2"></i>Mi Perfil</a></li>
+              <li><a class="dropdown-item" href="/admin/configuracion"><i class="bi bi-gear me-2"></i>Configuración</a></li>
+              <li><hr class="dropdown-divider"></li>
+              <li><a class="dropdown-item text-danger" href="/logout"><i class="bi bi-box-arrow-right me-2"></i>Cerrar Sesión</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mensaje de Error si existe -->
+      <div th:if="${error}" class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+        <strong>Error:</strong> <span th:text="${error}">Error al cargar datos</span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+
+      <!-- KPI CARDS -->
+      <div class="row g-4 mb-5 fade-admin">
+        <div class="col-xl-3 col-lg-6">
+          <div class="kpi-admin">
+            <div class="d-flex align-items-start justify-content-between">
+              <div class="flex-grow-1">
+                <div class="kpi-number fs-2 fw-800 text-primary mb-1" th:text="${totalClientes != null ? totalClientes : 0}">0</div>
+                <div class="kpi-label fw-600">Clientes</div>
+                <div class="kpi-trend"><i class="bi bi-people-fill text-primary me-1"></i>Total registrados</div>
+              </div>
+              <div class="kpi-icon-admin" style="background:linear-gradient(135deg,#3498db,#2980b9);">
+                <i class="bi bi-people-fill"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-xl-3 col-lg-6">
+          <div class="kpi-admin">
+            <div class="d-flex align-items-start justify-content-between">
+              <div class="flex-grow-1">
+                <div class="kpi-number fs-2 fw-800 text-success mb-1" th:text="${totalProductores != null ? totalProductores : 0}">0</div>
+                <div class="kpi-label fw-600">Productores</div>
+                <div class="kpi-trend"><i class="bi bi-person-badge text-success me-1"></i>Activos</div>
+              </div>
+              <div class="kpi-icon-admin" style="background:linear-gradient(135deg,#2ecc71,#27ae60);">
+                <i class="bi bi-person-badge"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-xl-3 col-lg-6">
+          <div class="kpi-admin">
+            <div class="d-flex align-items-start justify-content-between">
+              <div class="flex-grow-1">
+                <div class="kpi-number fs-2 fw-800 text-warning mb-1" th:text="${totalTransportistas != null ? totalTransportistas : 0}">0</div>
+                <div class="kpi-label fw-600">Transportistas</div>
+                <div class="kpi-trend"><i class="bi bi-truck text-warning me-1"></i>En servicio</div>
+              </div>
+              <div class="kpi-icon-admin" style="background:linear-gradient(135deg,#f39c12,#e67e22);">
+                <i class="bi bi-truck"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-xl-3 col-lg-6">
+          <div class="kpi-admin">
+            <div class="d-flex align-items-start justify-content-between">
+              <div class="flex-grow-1">
+                <div class="kpi-number fs-2 fw-800 mb-1" style="color:#9b59b6;" th:text="${totalAsesores != null ? totalAsesores : 0}">0</div>
+                <div class="kpi-label fw-600">Asesores</div>
+                <div class="kpi-trend"><i class="bi bi-briefcase-fill me-1" style="color:#9b59b6;"></i>Disponibles</div>
+              </div>
+              <div class="kpi-icon-admin" style="background:linear-gradient(135deg,#9b59b6,#8e44ad);">
+                <i class="bi bi-briefcase-fill"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- USUARIOS SECTION -->
+      <div class="card-glass fade-admin" style="background:white; border-radius:24px; padding:32px; border:1px solid rgba(0,0,0,0.05); box-shadow:0 16px 40px rgba(0,0,0,0.08);">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <h5 class="fw-800 mb-0" style="color:var(--green);">👥 Gestión de Usuarios</h5>
+          <button class="btn btn-success" onclick="window.location.href='/register'">
+            <i class="bi bi-person-plus me-2"></i>Agregar Usuario
+          </button>
+        </div>
+
+        <!-- Tabs de Usuarios -->
+        <ul class="nav nav-pills mb-4" id="usuariosTabs" role="tablist">
+          <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="clientes-tab" data-bs-toggle="pill"
+                    data-bs-target="#clientes-panel" type="button" role="tab">
+              <i class="bi bi-people-fill me-2"></i>Clientes
+              <span class="badge bg-success ms-2" th:text="${totalClientes != null ? totalClientes : 0}">0</span>
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" id="productores-tab" data-bs-toggle="pill"
+                    data-bs-target="#productores-panel" type="button" role="tab">
+              <i class="bi bi-person-badge me-2"></i>Productores
+              <span class="badge bg-success ms-2" th:text="${totalProductores != null ? totalProductores : 0}">0</span>
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" id="transportistas-tab" data-bs-toggle="pill"
+                    data-bs-target="#transportistas-panel" type="button" role="tab">
+              <i class="bi bi-truck me-2"></i>Transportistas
+              <span class="badge bg-success ms-2" th:text="${totalTransportistas != null ? totalTransportistas : 0}">0</span>
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" id="asesores-tab" data-bs-toggle="pill"
+                    data-bs-target="#asesores-panel" type="button" role="tab">
+              <i class="bi bi-briefcase-fill me-2"></i>Asesores
+              <span class="badge bg-success ms-2" th:text="${totalAsesores != null ? totalAsesores : 0}">0</span>
+            </button>
+          </li>
+        </ul>
+
+        <!-- Contenido de Tabs -->
+        <div class="tab-content" id="usuariosTabContent">
+
+          <!-- ====================== PANEL CLIENTES ====================== -->
+          <div class="tab-pane fade show active" id="clientes-panel" role="tabpanel">
+            <div class="table-responsive">
+              <table class="table table-hover align-middle">
+                <thead>
+                  <tr>
+                    <th>Usuario</th>
+                    <th>Correo</th>
+                    <th>Teléfono</th>
+                    <th>Ciudad</th>
+                    <th>Rol</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr th:if="${clientes == null or #lists.isEmpty(clientes)}">
+                    <td colspan="6" class="text-center py-5 text-muted">
+                      <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                      <p class="mb-0">No hay clientes registrados</p>
+                    </td>
+                  </tr>
+                  <tr th:each="cliente : ${clientes}" th:if="${cliente != null and cliente.usuario != null}">
+                    <td>
+                      <div class="d-flex align-items-center">
+                        <div class="user-avatar-sm me-3"
+                             th:text="${cliente.usuario.nombre != null and #strings.length(cliente.usuario.nombre) > 0 ? #strings.substring(cliente.usuario.nombre, 0, 1) : 'C'}">C</div>
+                        <div>
+                          <div class="fw-bold"
+                               th:text="${(cliente.usuario.nombre != null ? cliente.usuario.nombre : 'Cliente') + ' ' + (cliente.usuario.apellido != null ? cliente.usuario.apellido : '')}">Cliente</div>
+                          <small class="text-muted" th:text="${cliente.usuario.nombreUsuario != null ? cliente.usuario.nombreUsuario : '@usuario'}">@usuario</small>
+                        </div>
+                      </div>
+                    </td>
+                    <td th:text="${cliente.usuario.correo != null ? cliente.usuario.correo : 'N/A'}">correo@example.com</td>
+                    <td th:text="${cliente.usuario.telefono != null ? cliente.usuario.telefono : 'N/A'}">300-000-0000</td>
+                    <td th:text="${cliente.usuario.ciudad != null ? cliente.usuario.ciudad : 'N/A'}">Ciudad</td>
+                    <td><span class="badge-rol badge-cliente">Cliente</span></td>
+                    <td>
+                      <button class="btn btn-sm btn-outline-primary me-1"
+                              th:onclick="|verUsuario(${cliente.usuario.idUsuario})|"
+                              title="Ver detalles">
+                        <i class="bi bi-eye"></i>
+                      </button>
+                      <button class="btn btn-sm btn-outline-success"
+                              th:onclick="|editarUsuario(${cliente.usuario.idUsuario})|"
+                              title="Editar">
+                        <i class="bi bi-pencil"></i>
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- ====================== PANEL PRODUCTORES ====================== -->
+          <div class="tab-pane fade" id="productores-panel" role="tabpanel">
+            <div class="table-responsive">
+              <table class="table table-hover align-middle">
+                <thead>
+                  <tr>
+                    <th>Usuario</th>
+                    <th>Correo</th>
+                    <th>Teléfono</th>
+                    <th>Tipo Cultivo</th>
+                    <th>Rol</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr th:if="${productores == null or #lists.isEmpty(productores)}">
+                    <td colspan="6" class="text-center py-5 text-muted">
+                      <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                      <p class="mb-0">No hay productores registrados</p>
+                    </td>
+                  </tr>
+                  <tr th:each="productor : ${productores}" th:if="${productor != null and productor.usuario != null}">
+                    <td>
+                      <div class="d-flex align-items-center">
+                        <div class="user-avatar-sm me-3"
+                             th:text="${productor.usuario.nombre != null and #strings.length(productor.usuario.nombre) > 0 ? #strings.substring(productor.usuario.nombre, 0, 1) : 'P'}">P</div>
+                        <div>
+                          <div class="fw-bold"
+                               th:text="${(productor.usuario.nombre != null ? productor.usuario.nombre : 'Productor') + ' ' + (productor.usuario.apellido != null ? productor.usuario.apellido : '')}">Productor</div>
+                          <small class="text-muted" th:text="${productor.usuario.nombreUsuario != null ? productor.usuario.nombreUsuario : '@usuario'}">@usuario</small>
+                        </div>
+                      </div>
+                    </td>
+                    <td th:text="${productor.usuario.correo != null ? productor.usuario.correo : 'N/A'}">correo@example.com</td>
+                    <td th:text="${productor.usuario.telefono != null ? productor.usuario.telefono : 'N/A'}">300-000-0000</td>
+                    <td th:text="${productor.tipoCultivo != null ? productor.tipoCultivo : 'N/A'}">Tipo de cultivo</td>
+                    <td><span class="badge-rol badge-productor">Productor</span></td>
+                    <td>
+                      <button class="btn btn-sm btn-outline-primary me-1"
+                              th:onclick="|verUsuario(${productor.usuario.idUsuario})|"
+                              title="Ver detalles">
+                        <i class="bi bi-eye"></i>
+                      </button>
+                      <button class="btn btn-sm btn-outline-success"
+                              th:onclick="|editarUsuario(${productor.usuario.idUsuario})|"
+                              title="Editar">
+                        <i class="bi bi-pencil"></i>
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- ====================== PANEL TRANSPORTISTAS ====================== -->
+          <div class="tab-pane fade" id="transportistas-panel" role="tabpanel">
+            <div class="table-responsive">
+              <table class="table table-hover align-middle">
+                <thead>
+                  <tr>
+                    <th>Usuario</th>
+                    <th>Correo</th>
+                    <th>Teléfono</th>
+                    <th>Ciudad</th>
+                    <th>Rol</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr th:if="${transportistas == null or #lists.isEmpty(transportistas)}">
+                    <td colspan="6" class="text-center py-5 text-muted">
+                      <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                      <p class="mb-0">No hay transportistas registrados</p>
+                    </td>
+                  </tr>
+                  <tr th:each="transportista : ${transportistas}" th:if="${transportista != null and transportista.usuario != null}">
+                    <td>
+                      <div class="d-flex align-items-center">
+                        <div class="user-avatar-sm me-3"
+                             th:text="${transportista.usuario.nombre != null and #strings.length(transportista.usuario.nombre) > 0 ? #strings.substring(transportista.usuario.nombre, 0, 1) : 'T'}">T</div>
+                        <div>
+                          <div class="fw-bold"
+                               th:text="${(transportista.usuario.nombre != null ? transportista.usuario.nombre : 'Transportista') + ' ' + (transportista.usuario.apellido != null ? transportista.usuario.apellido : '')}">Transportista</div>
+                          <small class="text-muted" th:text="${transportista.usuario.nombreUsuario != null ? transportista.usuario.nombreUsuario : '@usuario'}">@usuario</small>
+                        </div>
+                      </div>
+                    </td>
+                    <td th:text="${transportista.usuario.correo != null ? transportista.usuario.correo : 'N/A'}">correo@example.com</td>
+                    <td th:text="${transportista.usuario.telefono != null ? transportista.usuario.telefono : 'N/A'}">300-000-0000</td>
+                    <td th:text="${transportista.usuario.ciudad != null ? transportista.usuario.ciudad : 'N/A'}">Ciudad</td>
+                    <td><span class="badge-rol badge-transportista">Transportista</span></td>
+                    <td>
+                      <button class="btn btn-sm btn-outline-primary me-1"
+                              th:onclick="|verUsuario(${transportista.usuario.idUsuario})|"
+                              title="Ver detalles">
+                        <i class="bi bi-eye"></i>
+                      </button>
+                      <button class="btn btn-sm btn-outline-success"
+                              th:onclick="|editarUsuario(${transportista.usuario.idUsuario})|"
+                              title="Editar">
+                        <i class="bi bi-pencil"></i>
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- ====================== PANEL ASESORES ====================== -->
+          <div class="tab-pane fade" id="asesores-panel" role="tabpanel">
+            <div class="table-responsive">
+              <table class="table table-hover align-middle">
+                <thead>
+                  <tr>
+                    <th>Usuario</th>
+                    <th>Correo</th>
+                    <th>Teléfono</th>
+                    <th>Tipo Asesoría</th>
+                    <th>Rol</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr th:if="${asesores == null or #lists.isEmpty(asesores)}">
+                    <td colspan="6" class="text-center py-5 text-muted">
+                      <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                      <p class="mb-0">No hay asesores registrados</p>
+                    </td>
+                  </tr>
+                  <tr th:each="asesor : ${asesores}" th:if="${asesor != null and asesor.usuario != null}">
+                    <td>
+                      <div class="d-flex align-items-center">
+                        <div class="user-avatar-sm me-3"
+                             th:text="${asesor.usuario.nombre != null and #strings.length(asesor.usuario.nombre) > 0 ? #strings.substring(asesor.usuario.nombre, 0, 1) : 'A'}">A</div>
+                        <div>
+                          <div class="fw-bold"
+                               th:text="${(asesor.usuario.nombre != null ? asesor.usuario.nombre : 'Asesor') + ' ' + (asesor.usuario.apellido != null ? asesor.usuario.apellido : '')}">Asesor</div>
+                          <small class="text-muted" th:text="${asesor.usuario.nombreUsuario != null ? asesor.usuario.nombreUsuario : '@usuario'}">@usuario</small>
+                        </div>
+                      </div>
+                    </td>
+                    <td th:text="${asesor.usuario.correo != null ? asesor.usuario.correo : 'N/A'}">correo@example.com</td>
+                    <td th:text="${asesor.usuario.telefono != null ? asesor.usuario.telefono : 'N/A'}">300-000-0000</td>
+                    <td th:text="${asesor.tipoAsesoria != null ? asesor.tipoAsesoria : 'N/A'}">Tipo de asesoría</td>
+                    <td><span class="badge-rol badge-servicio">Asesor</span></td>
+                    <td>
+                      <button class="btn btn-sm btn-outline-primary me-1"
+                              th:onclick="|verUsuario(${asesor.usuario.idUsuario})|"
+                              title="Ver detalles">
+                        <i class="bi bi-eye"></i>
+                      </button>
+                      <button class="btn btn-sm btn-outline-success"
+                              th:onclick="|editarUsuario(${asesor.usuario.idUsuario})|"
+                              title="Editar">
+                        <i class="bi bi-pencil"></i>
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        </div><!-- /tab-content -->
+      </div><!-- /card-glass -->
+
+    </main>
+  </div>
+
+  <!-- Bootstrap Bundle JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+  <script>
+    // Funciones de acciones (placeholders para funcionalidad futura)
+    function verUsuario(id) {
+      alert('Ver detalles del usuario #' + id + '\n\nFuncionalidad en desarrollo...');
+    }
+
+    function editarUsuario(id) {
+      alert('Editar usuario #' + id + '\n\nFuncionalidad en desarrollo...');
+    }
+
+    // Buscador simple
+    document.getElementById('searchInput')?.addEventListener('input', function(e) {
+      const searchTerm = e.target.value.toLowerCase();
+      const activeTab = document.querySelector('.tab-pane.active');
+      const rows = activeTab?.querySelectorAll('tbody tr');
+
+      rows?.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        row.style.display = text.includes(searchTerm) ? '' : 'none';
+      });
+    });
+
+    // Log de carga exitosa
+    console.log('✅ Vista de usuarios cargada correctamente');
+    console.log('Total clientes:', document.querySelector('#clientes-tab .badge')?.textContent || '0');
+    console.log('Total productores:', document.querySelector('#productores-tab .badge')?.textContent || '0');
+    console.log('Total transportistas:', document.querySelector('#transportistas-tab .badge')?.textContent || '0');
+    console.log('Total asesores:', document.querySelector('#asesores-tab .badge')?.textContent || '0');
+  </script>
+
+</body>
+</html>
+

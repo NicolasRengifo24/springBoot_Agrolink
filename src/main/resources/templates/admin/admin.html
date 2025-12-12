@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="es">
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
@@ -20,215 +20,106 @@
       --green: #2f6b31;
       --green-light: #3f8a41;
       --green-dark: #1d4820;
-      --accent: #5cb85c;
       --muted: #7e8b7e;
-      --glass: rgba(255,255,255,0.92);
-      --shadow: rgba(47,107,49,0.12);
-      --border: rgba(47,107,49,0.08);
-    }
-
-    *{
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
+      --glass: rgba(255,255,255,0.85);
     }
 
     body{
       font-family: "Inter", sans-serif;
-      background: linear-gradient(135deg, #f0f9f4 0%, #e3f2e8 100%);
-      color: #1a1a1a;
-      min-height: 100vh;
-      position: relative;
-      overflow-x: hidden;
+      background: linear-gradient(180deg,#f8faf7,#f1f4ef);
+      color:#222;
     }
 
-    /* Patrón de fondo decorativo */
-    body::before{
-      content: '';
-      position: fixed;
-      top: -50%;
-      right: -50%;
-      width: 200%;
-      height: 200%;
-      background: radial-gradient(circle at 30% 50%, rgba(95,184,92,0.03) 0%, transparent 50%),
-                  radial-gradient(circle at 70% 50%, rgba(47,107,49,0.05) 0%, transparent 50%);
-      pointer-events: none;
-      z-index: 0;
-    }
-
-    /* GRID LAYOUT - Mejorado */
+    /* GRID LAYOUT */
     .app{
-      display: grid;
-      grid-template-columns: 290px 1fr;
-      gap: 32px;
-      max-width: 1650px;
-      margin: 40px auto;
-      padding: 0 24px;
-      position: relative;
-      z-index: 1;
+      display:grid;
+      grid-template-columns:280px 1fr;
+      gap:30px;
+      max-width:1600px;
+      margin:40px auto;
+      padding:0 20px;
     }
 
-    /* UTILITY CLASSES */
-    .text-green{ color: var(--green); }
-    .text-muted{ color: var(--muted); }
-    .fw-bold{ font-weight: 700; }
-    .fw-semibold{ font-weight: 600; }
-
-    .mb-1{ margin-bottom: 0.25rem; }
-    .mb-2{ margin-bottom: 0.5rem; }
-    .mb-3{ margin-bottom: 1rem; }
-    .mb-4{ margin-bottom: 1.5rem; }
-
-    .d-flex{ display: flex; }
-    .align-items-center{ align-items: center; }
-    .justify-content-between{ justify-content: space-between; }
-    .gap-2{ gap: 0.5rem; }
-    .gap-3{ gap: 1rem; }
-
-    /* SIDEBAR ADMIN - Glassmorphism mejorado */
+    /* SIDEBAR ADMIN */
     .sidebar{
-      background: rgba(255,255,255,0.75);
-      backdrop-filter: blur(20px) saturate(180%);
-      -webkit-backdrop-filter: blur(20px) saturate(180%);
-      border-radius: 28px;
-      border: 1px solid rgba(255,255,255,0.4);
-      height: calc(100vh - 80px);
-      padding: 32px 24px;
-      position: sticky;
-      top: 40px;
-      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-      box-shadow: 0 24px 60px rgba(47,107,49,0.1),
-                  0 8px 16px rgba(0,0,0,0.06),
-                  inset 0 1px 0 rgba(255,255,255,0.8);
-      z-index: 10;
-    }
-
-    .sidebar::before{
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 100%;
-      background: linear-gradient(180deg, rgba(47,107,49,0.02) 0%, transparent 100%);
-      border-radius: 28px;
-      pointer-events: none;
+      background:var(--glass);
+      backdrop-filter:blur(16px);
+      border-radius:24px;
+      border:1px solid rgba(0,0,0,0.06);
+      height:calc(100vh - 80px);
+      padding:28px;
+      position:sticky;
+      top:40px;
+      transition:.3s;
+      box-shadow:0 20px 40px rgba(47,107,49,0.08);
     }
 
     .sidebar.collapsed{
-      width: 80px;
-      padding: 28px 16px;
+      width:80px;
+      padding:28px 16px;
     }
 
     .brand-admin{
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      margin-bottom: 40px;
-      padding-bottom: 24px;
-      border-bottom: 2px solid rgba(47,107,49,0.12);
-      position: relative;
-    }
-
-    .brand-admin img{
-      width: 56px;
-      height: 56px;
-      border-radius: 16px;
-      object-fit: cover;
-      box-shadow: 0 8px 20px rgba(47,107,49,0.2);
-      border: 3px solid white;
+      display:flex;
+      align-items:center;
+      gap:12px;
+      margin-bottom:32px;
+      padding-bottom:20px;
+      border-bottom:1px solid rgba(47,107,49,0.1);
     }
 
     .brand-title-admin{
-      font-weight: 800;
-      background: linear-gradient(135deg, #2f6b31 0%, #5cb85c 100%);
-      -webkit-background-clip: text;
-      background-clip: text;
-      -webkit-text-fill-color: transparent;
-      font-size: 1.5rem;
-      letter-spacing: -0.5px;
+      font-weight:800;
+      background:linear-gradient(135deg,var(--green),var(--green-light));
+      -webkit-background-clip:text;
+      background-clip:text;
+      -webkit-text-fill-color:transparent;
+      font-size:1.4rem;
     }
 
     .role-badge{
-      background: linear-gradient(135deg, var(--green) 0%, var(--green-light) 100%);
-      color: white;
-      padding: 6px 16px;
-      border-radius: 24px;
-      font-size: 0.75rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      box-shadow: 0 4px 12px rgba(47,107,49,0.3);
+      background:var(--green);
+      color:white;
+      padding:4px 12px;
+      border-radius:20px;
+      font-size:0.75rem;
+      font-weight:600;
     }
 
     .nav-item{
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      padding: 18px 22px;
-      margin-bottom: 10px;
-      border-radius: 18px;
-      font-weight: 600;
-      font-size: 0.95rem;
-      cursor: pointer;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      color: #5a6a5a;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .nav-item::before{
-      content: '';
-      position: absolute;
-      left: 0;
-      top: 0;
-      height: 100%;
-      width: 4px;
-      background: linear-gradient(180deg, var(--green), var(--accent));
-      opacity: 0;
-      transition: opacity 0.3s;
+      display:flex;
+      align-items:center;
+      gap:14px;
+      padding:16px 20px;
+      margin-bottom:8px;
+      border-radius:16px;
+      font-weight:600;
+      cursor:pointer;
+      transition:.25s;
+      color:var(--muted);
     }
 
     .nav-item:hover{
-      background: linear-gradient(135deg, rgba(47,107,49,0.08) 0%, rgba(92,184,92,0.06) 100%);
-      color: var(--green);
-      transform: translateX(8px);
-      box-shadow: 0 4px 12px rgba(47,107,49,0.08);
-    }
-
-    .nav-item:hover::before{
-      opacity: 1;
+      background:rgba(47,107,49,0.08);
+      color:var(--green);
+      transform:translateX(6px);
     }
 
     .nav-item.active{
-      background: linear-gradient(135deg, #2f6b31 0%, #5cb85c 100%);
-      color: white;
-      box-shadow: 0 12px 28px rgba(47,107,49,0.35),
-                  0 4px 8px rgba(0,0,0,0.1);
-      transform: translateX(6px) scale(1.02);
-    }
-
-    .nav-item.active::before{
-      opacity: 0;
+      background:linear-gradient(135deg,var(--green),var(--green-light));
+      color:white;
+      box-shadow:0 12px 24px rgba(47,107,49,0.3);
+      transform:translateX(4px);
     }
 
     .nav-item .bi{
-      font-size: 1.3rem;
-      width: 28px;
-      opacity: 0.85;
-      transition: transform 0.3s;
+      font-size:1.2rem;
+      width:24px;
+      opacity:0.8;
     }
 
-    .nav-item:hover .bi,
     .nav-item.active .bi{
-      opacity: 1;
-      transform: scale(1.1);
-    }
-
-    .nav-label{
-      flex: 1;
-      white-space: nowrap;
-      font-weight: 600;
+      opacity:1;
     }
 
     /* MAIN CONTENT */
@@ -236,20 +127,15 @@
       min-height:calc(100vh - 80px);
     }
 
-    /* TOPBAR ADMIN - Glassmorphism mejorado */
+    /* TOPBAR ADMIN */
     .topbar-admin{
-      background: rgba(255,255,255,0.85);
-      backdrop-filter: blur(20px) saturate(180%);
-      -webkit-backdrop-filter: blur(20px) saturate(180%);
-      border-radius: 24px;
-      border: 1px solid rgba(255,255,255,0.5);
-      padding: 20px 32px;
-      margin-bottom: 32px;
-      box-shadow: 0 12px 40px rgba(0,0,0,0.08),
-                  0 4px 8px rgba(0,0,0,0.04),
-                  inset 0 1px 0 rgba(255,255,255,0.9);
-      position: relative;
-      z-index: 5;
+      background:var(--glass);
+      backdrop-filter:blur(16px);
+      border-radius:24px;
+      border:1px solid rgba(0,0,0,0.05);
+      padding:24px 32px;
+      margin-bottom:32px;
+      box-shadow:0 12px 32px rgba(0,0,0,0.08);
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -257,585 +143,132 @@
     }
 
     .searchbar-admin{
-      flex: 1;
-      max-width: 480px;
-      padding: 16px 24px;
-      border-radius: 20px;
-      background: white;
-      border: 2px solid #e8f4ea;
-      box-shadow: 0 8px 24px rgba(47,107,49,0.08);
-      transition: all 0.3s;
+      flex:1;
+      max-width:600px;
       display: flex;
       align-items: center;
+      padding:16px 24px;
+      border-radius:20px;
+      background:white;
+      border:1px solid #e3e9e2;
+      box-shadow:0 6px 20px rgba(0,0,0,0.06);
+      transition: all 0.3s ease;
     }
 
-    .searchbar-admin:focus-within{
+    .searchbar-admin:focus-within {
       border-color: var(--green);
-      box-shadow: 0 12px 32px rgba(47,107,49,0.15);
-      transform: translateY(-2px);
+      box-shadow: 0 6px 24px rgba(47,107,49,0.15);
     }
 
-    .searchbar-admin input{
+    .searchbar-admin input {
+      flex: 1;
       border: none;
       outline: none;
-      width: 100%;
+      background: transparent;
       font-size: 0.95rem;
-      color: #1a1a1a;
     }
 
-    .searchbar-admin input::placeholder{
-      color: #9aa99a;
+    .searchbar-admin input::placeholder {
+      color: #999;
     }
 
-    /* BOTÓN DE NOTIFICACIONES */
-    .btn-notification{
-      position: relative;
-      width: 48px;
-      height: 48px;
-      border-radius: 14px;
-      border: none;
-      background: white;
-      color: var(--muted);
-      font-size: 1.3rem;
-      cursor: pointer;
-      transition: all 0.3s;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.06);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .btn-notification:hover{
-      background: var(--green);
-      color: white;
-      transform: translateY(-2px);
-      box-shadow: 0 8px 20px rgba(47,107,49,0.2);
-    }
-
-    .notification-badge{
-      position: absolute;
-      top: 6px;
-      right: 6px;
-      background: linear-gradient(135deg, #e74c3c, #c0392b);
-      color: white;
-      font-size: 0.65rem;
-      font-weight: 700;
-      padding: 3px 6px;
-      border-radius: 10px;
-      box-shadow: 0 2px 8px rgba(231,76,60,0.4);
-      min-width: 18px;
-      text-align: center;
-    }
-
-    /* DROPDOWN DE NOTIFICACIONES */
-    .notification-dropdown{
-      width: 380px;
-      border-radius: 16px;
-      border: 1px solid rgba(0,0,0,0.08);
-      padding: 0;
-      margin-top: 12px;
-    }
-
-    .notification-dropdown .dropdown-header{
-      padding: 16px 20px;
-      background: linear-gradient(135deg, #f8faf7, #e8f4ea);
-      border-radius: 16px 16px 0 0;
-    }
-
-    .notification-item{
-      padding: 14px 20px;
-      transition: all 0.3s;
-    }
-
-    .notification-item:hover{
-      background: linear-gradient(90deg, #f8fdf9, white);
-    }
-
-    .notification-icon{
-      width: 40px;
-      height: 40px;
-      border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      font-size: 1.1rem;
-      flex-shrink: 0;
-    }
-
-    /* SEPARADOR VERTICAL */
-    .topbar-divider{
-      width: 1px;
-      height: 36px;
-      background: linear-gradient(180deg, transparent, rgba(47,107,49,0.2), transparent);
-    }
-
-    /* BOTÓN DE PERFIL */
-    .btn-profile{
-      background: white;
-      border: none;
-      border-radius: 16px;
-      padding: 8px 16px 8px 8px;
-      cursor: pointer;
-      transition: all 0.3s;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.06);
-    }
-
-    .btn-profile:hover{
-      background: linear-gradient(135deg, #f8faf7, #e8f4ea);
-      transform: translateY(-2px);
-      box-shadow: 0 8px 20px rgba(47,107,49,0.15);
-    }
-
-    .profile-avatar{
-      width: 48px;
-      height: 48px;
-      border-radius: 12px;
-      border: 3px solid white;
-      box-shadow: 0 4px 12px rgba(47,107,49,0.2);
-      object-fit: cover;
-    }
-
-    .profile-info{
-      line-height: 1.3;
-    }
-
-    .profile-name{
-      font-weight: 700;
-      font-size: 0.95rem;
-      color: #1a1a1a;
-    }
-
-    .profile-role{
-      color: var(--muted);
-      font-size: 0.8rem;
-    }
-
-    /* DROPDOWN DE PERFIL */
-    .profile-dropdown{
-      width: 280px;
-      border-radius: 16px;
-      border: 1px solid rgba(0,0,0,0.08);
-      padding: 0;
-      margin-top: 12px;
-    }
-
-    .profile-dropdown .dropdown-header{
-      padding: 12px 16px;
-      background: linear-gradient(135deg, #f8faf7, #e8f4ea);
-      border-radius: 16px 16px 0 0;
-    }
-
-    .profile-menu-item{
-      padding: 12px 20px;
-      font-weight: 600;
-      transition: all 0.3s;
-      display: flex;
-      align-items: center;
-    }
-
-    .profile-menu-item:hover{
-      background: linear-gradient(90deg, #f8fdf9, white);
-      padding-left: 28px;
-    }
-
-    .profile-menu-item i{
-      font-size: 1.1rem;
-      width: 24px;
-    }
-
-    .profile-menu-item.text-danger:hover{
-      background: linear-gradient(90deg, #fff5f5, white);
-      color: #e74c3c !important;
-    }
-
-    /* RESPONSIVE TOPBAR */
-    @media (max-width: 992px){
-      .searchbar-admin{
-        max-width: 300px;
-      }
-
-      .profile-info{
-        display: none !important;
-      }
-
-      .btn-profile{
-        padding: 8px;
-      }
-    }
-
-    @media (max-width: 768px){
-      .topbar-admin{
-        gap: 12px;
-        padding: 20px 20px;
-      }
-
-      .searchbar-admin{
-        max-width: 200px;
-      }
-
-      .btn-notification,
-      .btn-profile{
-        width: 42px;
-        height: 42px;
-      }
-
-      .profile-avatar{
-        width: 42px;
-        height: 42px;
-      }
-
-      .topbar-divider{
-        display: none;
-      }
-
-      .notification-dropdown,
-      .profile-dropdown{
-        width: 300px;
-      }
-    }
-
-    @media (max-width: 576px){
-      .searchbar-admin{
-        max-width: 160px;
-      }
-
-      .searchbar-admin input{
-        font-size: 0.85rem;
-      }
-    }
-
-    /* ADMIN KPI CARDS - Diseño mejorado */
+    /* ADMIN KPI CARDS */
     .kpi-admin{
-      padding: 32px 30px;
-      border-radius: 24px;
-      background: white;
-      box-shadow: 0 12px 40px rgba(0,0,0,0.08),
-                  0 4px 8px rgba(0,0,0,0.04);
-      border: 1px solid rgba(47,107,49,0.08);
-      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-      height: 100%;
-      position: relative;
-      overflow: hidden;
+      padding:32px 28px;
+      border-radius:20px;
+      background:white;
+      box-shadow:0 12px 32px rgba(0,0,0,0.08);
+      border:1px solid rgba(47,107,49,0.1);
+      transition:.3s;
+      height:100%;
+      position:relative;
+      overflow:hidden;
     }
 
     .kpi-admin::before{
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 5px;
-      background: linear-gradient(90deg, var(--green), var(--accent));
-      opacity: 0.8;
-    }
-
-    .kpi-admin::after{
-      content: '';
-      position: absolute;
-      top: -50%;
-      right: -50%;
-      width: 200%;
-      height: 200%;
-      background: radial-gradient(circle, rgba(92,184,92,0.03) 0%, transparent 70%);
-      pointer-events: none;
+      content:'';
+      position:absolute;
+      top:0;
+      left:0;
+      right:0;
+      height:4px;
+      background:linear-gradient(90deg,var(--green),var(--green-light));
     }
 
     .kpi-admin:hover{
-      transform: translateY(-10px) scale(1.02);
-      box-shadow: 0 28px 56px rgba(47,107,49,0.18),
-                  0 8px 16px rgba(0,0,0,0.08);
+      transform:translateY(-8px);
+      box-shadow:0 24px 48px rgba(47,107,49,0.15);
     }
 
     .kpi-icon-admin{
-      width: 80px;
-      height: 80px;
-      border-radius: 22px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 2rem;
-      color: white;
-      box-shadow: 0 12px 28px rgba(0,0,0,0.2);
-      position: relative;
-      overflow: hidden;
-    }
-
-    .kpi-icon-admin::before{
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: linear-gradient(135deg, rgba(255,255,255,0.2) 0%, transparent 100%);
-    }
-
-    .kpi-value{
-      font-size: 2.2rem;
-      font-weight: 800;
-      color: #1a1a1a;
-      margin: 16px 0 8px;
-      letter-spacing: -1px;
-    }
-
-    .kpi-label{
-      font-size: 0.95rem;
-      color: #6b7b6b;
-      font-weight: 600;
-      margin-bottom: 12px;
+      width:72px;
+      height:72px;
+      border-radius:20px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:1.8rem;
+      color:white;
+      box-shadow:0 8px 24px rgba(0,0,0,0.15);
     }
 
     .kpi-trend{
-      font-size: 0.875rem;
-      font-weight: 700;
-      padding: 6px 14px;
-      border-radius: 20px;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
+      font-size:0.85rem;
+      font-weight:600;
     }
 
-    .kpi-trend.up{
-      background: linear-gradient(135deg, #d4f1d8, #e6f7ec);
-      color: #0d6930;
-    }
-
-    .kpi-trend.down{
-      background: linear-gradient(135deg, #ffe6e6, #ffcccc);
-      color: #c41e3a;
-    }
-
-    /* CHARTS - Contenedor mejorado */
+    /* CHARTS */
     .chart-container-admin{
-      background: white;
-      border-radius: 28px;
-      padding: 36px;
-      border: 1px solid rgba(47,107,49,0.08);
-      box-shadow: 0 16px 48px rgba(0,0,0,0.08),
-                  0 4px 12px rgba(0,0,0,0.04);
-      height: 400px;
-      position: relative;
-      overflow: hidden;
+      background:white;
+      border-radius:24px;
+      padding:32px;
+      border:1px solid rgba(0,0,0,0.05);
+      box-shadow:0 16px 40px rgba(0,0,0,0.08);
+      height:380px;
     }
 
-    .chart-container-admin::before{
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 4px;
-      background: linear-gradient(90deg, var(--green), var(--accent));
-    }
-
-    .chart-container-admin h5{
-      font-weight: 700;
-      color: var(--green);
-      margin-bottom: 24px;
-      font-size: 1.1rem;
-    }
-
-    /* TABLES ADMIN - Diseño moderno */
-    .table-admin{
-      width: 100%;
-      border-collapse: separate;
-      border-spacing: 0;
-    }
-
+    /* TABLES ADMIN */
     .table-admin thead th{
-      background: linear-gradient(135deg, #f8faf7, #e8f4ea);
-      border: none;
-      font-weight: 700;
-      color: var(--green);
-      padding: 24px 20px;
-      font-size: 0.9rem;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      position: sticky;
-      top: 0;
-      z-index: 1;
-    }
-
-    .table-admin thead th:first-child{
-      border-top-left-radius: 16px;
-    }
-
-    .table-admin thead th:last-child{
-      border-top-right-radius: 16px;
-    }
-
-    .table-admin tbody tr{
-      transition: all 0.3s;
-      background: white;
-    }
-
-    .table-admin tbody tr:hover{
-      background: linear-gradient(90deg, #f8fdf9, white);
-      transform: scale(1.01);
-      box-shadow: 0 4px 12px rgba(47,107,49,0.08);
-    }
-
-    .table-admin tbody td{
-      padding: 20px;
-      border-bottom: 1px solid #f0f5f2;
-      font-size: 0.9rem;
-      color: #2a2a2a;
+      background:linear-gradient(135deg,#f8faf7,#f1f4ef);
+      border:none;
+      font-weight:700;
+      color:var(--green);
+      padding:24px 20px;
+      font-size:0.95rem;
     }
 
     .badge-admin{
-      padding: 8px 18px;
-      border-radius: 20px;
-      font-weight: 700;
-      font-size: 0.8rem;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
+      padding:8px 16px;
+      border-radius:25px;
+      font-weight:600;
+      font-size:0.85rem;
     }
 
-    .status-ready{
-      background: linear-gradient(135deg, #d4f1d8, #e6f7ec);
-      color: #0d6930;
-      box-shadow: 0 4px 12px rgba(13,105,48,0.15);
-    }
+    .status-ready{ background:linear-gradient(135deg,#e6f7ec,#d4f1d8); color:#0d6930; }
+    .status-low{ background:linear-gradient(135deg,#fff3cd,#ffeaa7); color:#8a6d00; }
+    .status-warning{ background:linear-gradient(135deg,#e7e7e7,#f8f9fa); color:#555; }
 
-    .status-low{
-      background: linear-gradient(135deg, #fff3cd, #ffeaa7);
-      color: #8a6d00;
-      box-shadow: 0 4px 12px rgba(138,109,0,0.15);
-    }
-
-    .status-warning{
-      background: linear-gradient(135deg, #e7e7e7, #f8f9fa);
-      color: #555;
-      box-shadow: 0 4px 12px rgba(85,85,85,0.1);
-    }
-
-    /* FAB - Botón flotante mejorado */
+    /* FAB */
     .fab-admin{
-      position: fixed;
-      right: 60px;
-      bottom: 60px;
-      width: 80px;
-      height: 80px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, #2f6b31 0%, #5cb85c 100%);
-      border: none;
-      color: white;
-      font-size: 2rem;
-      box-shadow: 0 16px 48px rgba(47,107,49,0.35),
-                  0 8px 16px rgba(0,0,0,0.12);
-      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-      cursor: pointer;
-      z-index: 100;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .fab-admin::before{
-      content: '';
-      position: absolute;
-      inset: -2px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, var(--accent), var(--green));
-      opacity: 0;
-      transition: opacity 0.3s;
-      z-index: -1;
+      position:fixed;
+      right:60px;
+      bottom:60px;
+      width:80px;
+      height:80px;
+      border-radius:50%;
+      background:linear-gradient(135deg,var(--green),var(--green-light));
+      border:none;
+      color:white;
+      font-size:2rem;
+      box-shadow:0 16px 40px rgba(47,107,49,0.3);
+      transition:.3s;
     }
 
     .fab-admin:hover{
-      transform: translateY(-12px) scale(1.08) rotate(90deg);
-      box-shadow: 0 24px 60px rgba(47,107,49,0.4),
-                  0 12px 24px rgba(0,0,0,0.15);
+      transform:translateY(-10px) scale(1.05);
     }
 
-    .fab-admin:hover::before{
-      opacity: 1;
-    }
-
-    .fab-admin:active{
-      transform: translateY(-8px) scale(1.02) rotate(90deg);
-    }
-
-    /* ANIMACIONES */
-    @keyframes slideIn {
-      from {
-        opacity: 0;
-        transform: translateY(30px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-
-    @keyframes pulse {
-      0%, 100% { transform: scale(1); }
-      50% { transform: scale(1.05); }
-    }
-
-    .animate-in{
-      animation: slideIn 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-    }
-
-    /* Stagger animation para cards */
-    .kpi-admin:nth-child(1){ animation-delay: 0.1s; }
-    .kpi-admin:nth-child(2){ animation-delay: 0.2s; }
-    .kpi-admin:nth-child(3){ animation-delay: 0.3s; }
-    .kpi-admin:nth-child(4){ animation-delay: 0.4s; }
-
-    /* SCROLLBAR PERSONALIZADO */
-    ::-webkit-scrollbar {
-      width: 10px;
-      height: 10px;
-    }
-
-    ::-webkit-scrollbar-track {
-      background: #f1f5f2;
-      border-radius: 10px;
-    }
-
-    ::-webkit-scrollbar-thumb {
-      background: linear-gradient(180deg, var(--green), var(--accent));
-      border-radius: 10px;
-      border: 2px solid #f1f5f2;
-    }
-
-    ::-webkit-scrollbar-thumb:hover {
-      background: linear-gradient(180deg, var(--green-dark), var(--green));
-    }
-
-    /* BOTONES DE ACCIÓN */
-    .btn-action{
-      padding: 10px 16px;
-      border-radius: 12px;
-      border: none;
-      font-weight: 600;
-      font-size: 0.85rem;
-      cursor: pointer;
-      transition: all 0.3s;
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .btn-edit{
-      background: linear-gradient(135deg, #4a90e2, #357abd);
-      color: white;
-      box-shadow: 0 4px 12px rgba(74,144,226,0.3);
-    }
-
-    .btn-edit:hover{
-      transform: translateY(-2px);
-      box-shadow: 0 8px 20px rgba(74,144,226,0.4);
-    }
-
+    /* RESPONSIVE */
     @media (max-width:1200px){
       .app{ grid-template-columns:1fr; }
       .sidebar{ display:none; }
@@ -866,7 +299,7 @@
         <div class="nav-item active" onclick="window.location.href='/admin'" style="cursor: pointer;">
           <i class="bi bi-speedometer2"></i><span class="nav-label">Dashboard</span>
         </div>
-        <div class="nav-item" onclick="mostrarUsuarios()" style="cursor: pointer;">
+        <div class="nav-item" onclick="window.location.href='/admin/usuarios'" style="cursor: pointer;">
           <i class="bi bi-people"></i><span class="nav-label">Usuarios</span>
         </div>
         <div class="nav-item" onclick="window.location.href='/admin/productos'" style="cursor: pointer;">
@@ -891,141 +324,53 @@
     <main class="main-content">
       <!-- TOPBAR ADMIN -->
       <div class="topbar-admin">
-        <!-- Barra unificada: búsqueda + notificaciones + perfil -->
-        <div class="d-flex align-items-center gap-4 flex-grow-1">
-          <div class="searchbar-admin">
-            <i class="bi bi-search fs-5 me-3 text-muted"></i>
-            <input class="form-control border-0 fs-6" placeholder="Buscar productores, productos..." aria-label="Buscar en el sistema"/>
-          </div>
+        <!-- Barra de búsqueda -->
+        <div class="searchbar-admin">
+          <i class="bi bi-search fs-5 me-3 text-muted"></i>
+          <input class="form-control border-0 fs-6" placeholder="Buscar productores, productos..."/>
         </div>
 
-        <!-- Sección de acciones (notificaciones y perfil) -->
+        <!-- Notificaciones y Perfil -->
         <div class="d-flex align-items-center gap-3">
-
           <!-- Notificaciones -->
           <div class="dropdown">
-            <button class="btn-notification" data-bs-toggle="dropdown" aria-expanded="false">
-              <i class="bi bi-bell"></i>
-              <span class="notification-badge">3</span>
+            <button class="btn btn-outline-success dropdown-toggle p-2" data-bs-toggle="dropdown">
+              <i class="bi bi-bell fs-5"></i>
+              <span class="badge bg-danger rounded-pill ms-1">3</span>
             </button>
-            <ul class="dropdown-menu dropdown-menu-end notification-dropdown shadow-lg">
-              <li class="dropdown-header d-flex justify-content-between align-items-center">
-                <span class="fw-bold">Notificaciones</span>
-                <span class="badge bg-success rounded-pill">3 nuevas</span>
-              </li>
-              <li><hr class="dropdown-divider"></li>
-              <li>
-                <a class="dropdown-item notification-item" href="#">
-                  <div class="d-flex align-items-start gap-3">
-                    <div class="notification-icon bg-success">
-                      <i class="bi bi-cart-check"></i>
-                    </div>
-                    <div class="flex-grow-1">
-                      <div class="fw-600">Nuevo pedido #OR-1234</div>
-                      <small class="text-muted">Hace 5 minutos</small>
-                    </div>
-                  </div>
-                </a>
-              </li>
-              <li>
-                <a class="dropdown-item notification-item" href="#">
-                  <div class="d-flex align-items-start gap-3">
-                    <div class="notification-icon bg-warning">
-                      <i class="bi bi-exclamation-triangle"></i>
-                    </div>
-                    <div class="flex-grow-1">
-                      <div class="fw-600">Stock bajo: Tomates</div>
-                      <small class="text-muted">Hace 15 minutos</small>
-                    </div>
-                  </div>
-                </a>
-              </li>
-              <li>
-                <a class="dropdown-item notification-item" href="#">
-                  <div class="d-flex align-items-start gap-3">
-                    <div class="notification-icon bg-info">
-                      <i class="bi bi-truck"></i>
-                    </div>
-                    <div class="flex-grow-1">
-                      <div class="fw-600">Envío en camino #ENV-458</div>
-                      <small class="text-muted">Hace 1 hora</small>
-                    </div>
-                  </div>
-                </a>
-              </li>
-              <li><hr class="dropdown-divider"></li>
-              <li>
-                <a class="dropdown-item text-center text-success fw-600" href="#">
-                  Ver todas las notificaciones
-                </a>
-              </li>
+            <ul class="dropdown-menu dropdown-menu-end">
+              <li><a class="dropdown-item"><i class="bi bi-cart-check me-2 text-success"></i>Nuevo pedido #OR-1234</a></li>
+              <li><a class="dropdown-item"><i class="bi bi-exclamation-triangle me-2 text-warning"></i>Stock bajo: Tomates</a></li>
+              <li><a class="dropdown-item"><i class="bi bi-truck me-2 text-info"></i>Envío en camino</a></li>
             </ul>
           </div>
 
-          <!-- Separador vertical -->
-          <div class="topbar-divider"></div>
-
-          <!-- Perfil del usuario -->
+          <!-- Perfil -->
           <div class="dropdown">
-            <button class="btn-profile d-flex align-items-center gap-3" data-bs-toggle="dropdown" aria-expanded="false">
-              <span class="profile-info text-end d-none d-md-block">
-                <span class="profile-name d-block">Administrador</span>
-                <small class="profile-role">Super Admin</small>
-              </span>
-              <img src="https://i.pravatar.cc/48?img=1" class="profile-avatar" alt="Admin">
-              <i class="bi bi-chevron-down text-muted" style="font-size: 0.8rem;"></i>
-            </button>
-            <ul class="dropdown-menu dropdown-menu-end profile-dropdown shadow-lg">
-              <li class="dropdown-header">
-                <div class="d-flex align-items-center gap-3 py-2">
-                  <img src="https://i.pravatar.cc/56?img=1" class="rounded-circle" width="56" height="56" alt="Admin">
-                  <div>
-                    <div class="fw-bold">Administrador</div>
-                    <small class="text-muted">admin@agrolink.com</small>
-                  </div>
-                </div>
-              </li>
+            <img src="https://i.pravatar.cc/44?img=1" class="rounded-circle" width="44" height="44"
+                 style="cursor: pointer;" data-bs-toggle="dropdown" alt="Admin">
+            <ul class="dropdown-menu dropdown-menu-end">
+              <li><a class="dropdown-item" href="/admin/perfil"><i class="bi bi-person-circle me-2"></i>Mi Perfil</a></li>
+              <li><a class="dropdown-item" href="/admin/configuracion"><i class="bi bi-gear me-2"></i>Configuración</a></li>
               <li><hr class="dropdown-divider"></li>
-              <li>
-                <a class="dropdown-item profile-menu-item" href="#">
-                  <i class="bi bi-person me-3"></i>Mi Perfil
-                </a>
-              </li>
-              <li>
-                <a class="dropdown-item profile-menu-item" href="#">
-                  <i class="bi bi-gear me-3"></i>Configuración
-                </a>
-              </li>
-              <li>
-                <a class="dropdown-item profile-menu-item" href="#">
-                  <i class="bi bi-bell me-3"></i>Preferencias
-                </a>
-              </li>
-              <li><hr class="dropdown-divider"></li>
-              <li>
-                <a class="dropdown-item profile-menu-item text-danger" href="/logout">
-                  <i class="bi bi-box-arrow-right me-3"></i>Cerrar Sesión
-                </a>
-              </li>
+              <li><a class="dropdown-item text-danger" href="/logout"><i class="bi bi-box-arrow-right me-2"></i>Cerrar Sesión</a></li>
             </ul>
           </div>
         </div>
       </div>
 
-      <!-- CONTENEDOR DINÁMICO: DASHBOARD o USUARIOS -->
-      <div id="dashboard-view">
-        <!-- KPI ADMIN CARDS -->
-        <div class="row g-4 mb-5 fade-admin">
+      <!-- KPI ADMIN CARDS -->
+      <div class="row g-4 mb-5 fade-admin">
         <div class="col-xl-3 col-lg-6">
           <div class="kpi-admin">
             <div class="d-flex align-items-start justify-content-between">
               <div class="flex-grow-1">
                 <div class="kpi-number fs-2 fw-800 text-dark mb-1" th:text="${totalPedidos}">0</div>
-                <div class="kpi-label fw-600">Pedidos Totales</div>
-                <div class="kpi-trend"><i class="bi bi-arrow-up-circle text-success me-1"></i>Sistema activo</div>
+                <div class="kpi-label fw-600">Pedidos Activos</div>
+                <div class="kpi-trend"><i class="bi bi-arrow-up-circle text-success me-1"></i>Total registrados</div>
               </div>
               <div class="kpi-icon-admin" style="background:linear-gradient(135deg,#2f6b31,#3f8a41);">
-                <i class="bi bi-truck"></i>
+                <i class="bi bi-cart-check"></i>
               </div>
             </div>
           </div>
@@ -1035,11 +380,11 @@
           <div class="kpi-admin">
             <div class="d-flex align-items-start justify-content-between">
               <div class="flex-grow-1">
-                <div class="kpi-number fs-2 fw-800 text-success mb-1" th:text="${inventarioTotal + ' kg'}">0 kg</div>
+                <div class="kpi-number fs-2 fw-800 text-success mb-1" th:text="${inventarioTotal} + ' kg'">0 kg</div>
                 <div class="kpi-label fw-600">Inventario Total</div>
                 <div class="kpi-trend text-warning">
                   <i class="bi bi-exclamation-triangle me-1"></i>
-                  <span th:text="${productosStockBajo} + ' productos bajos'">0 productos bajos</span>
+                  <span th:text="${productosStockBajo}">0</span> productos bajos
                 </div>
               </div>
               <div class="kpi-icon-admin" style="background:linear-gradient(135deg,#28a745,#20c997);">
@@ -1053,10 +398,9 @@
           <div class="kpi-admin">
             <div class="d-flex align-items-start justify-content-between">
               <div class="flex-grow-1">
-                <div class="kpi-number fs-2 fw-800 text-primary mb-1"
-                     th:text="'$' + ${#numbers.formatDecimal(ventasMes / 1000000, 0, 'COMMA', 1, 'POINT')} + 'M'">$0M</div>
+                <div class="kpi-number fs-2 fw-800 text-primary mb-1" th:text="'$' + ${#numbers.formatDecimal(ventasMes, 0, 'COMMA', 0, 'POINT')}">$0</div>
                 <div class="kpi-label fw-600">Ventas Mes</div>
-                <div class="kpi-trend"><i class="bi bi-graph-up text-success me-1"></i>En crecimiento</div>
+                <div class="kpi-trend"><i class="bi bi-arrow-up-circle text-success me-1"></i>Este mes</div>
               </div>
               <div class="kpi-icon-admin" style="background:linear-gradient(135deg,#007bff,#0056b3);">
                 <i class="bi bi-currency-dollar"></i>
@@ -1070,10 +414,10 @@
             <div class="d-flex align-items-start justify-content-between">
               <div class="flex-grow-1">
                 <div class="kpi-number fs-2 fw-800 text-success mb-1" th:text="${totalProductos}">0</div>
-                <div class="kpi-label fw-600">Productos Activos</div>
+                <div class="kpi-label fw-600">Total Productos</div>
                 <div class="kpi-trend">
                   <i class="bi bi-people-fill text-success me-1"></i>
-                  <span th:text="${totalProductores} + ' productores'">0 productores</span>
+                  <span th:text="${totalProductores}">0</span> productores
                 </div>
               </div>
               <div class="kpi-icon-admin" style="background:linear-gradient(135deg,#ffc107,#e0a800);">
@@ -1090,15 +434,10 @@
           <div class="chart-container-admin fade-admin">
             <div class="d-flex justify-content-between align-items-center mb-4">
               <h5 class="fw-800 mb-0" style="color:var(--green);">📈 Ventas Semanales</h5>
-              <div class="d-flex gap-2">
-                <button class="btn btn-sm btn-outline-success" onclick="refrescarDatos()" title="Refrescar datos">
-                  <i class="bi bi-arrow-clockwise"></i>
-                </button>
-                <select class="form-select form-select-sm" style="width:160px;" aria-label="Filtro de periodo">
-                  <option>Esta semana</option>
-                  <option>Este mes</option>
-                </select>
-              </div>
+              <select class="form-select form-select-sm" style="width:160px;">
+                <option>Esta semana</option>
+                <option>Este mes</option>
+              </select>
             </div>
             <canvas id="salesChart"></canvas>
           </div>
@@ -1139,7 +478,7 @@
           </button>
         </div>
         <div class="table-responsive">
-          <table class="table table-admin align-middle">
+          <table class="table align-middle">
             <thead>
               <tr>
                 <th>Producto</th>
@@ -1150,7 +489,7 @@
                 <th>Acciones</th>
               </tr>
             </thead>
-            <tbody id="tablaInventario">
+            <tbody>
               <tr>
                 <td colspan="6" class="text-center py-5">
                   <div class="spinner-border text-success" role="status">
@@ -1163,213 +502,6 @@
           </table>
         </div>
       </div>
-      </div>
-      <!-- FIN DASHBOARD VIEW -->
-
-      <!-- VISTA DE USUARIOS (oculta por defecto) -->
-      <div id="usuarios-view" style="display: none;">
-        <!-- Header de Usuarios -->
-        <div class="mb-4 d-flex justify-content-between align-items-center">
-          <div>
-            <h2 class="fw-800 mb-2" style="background: linear-gradient(135deg, #2f6b31 0%, #5cb85c 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;">
-              Gestión de Usuarios
-            </h2>
-            <p class="text-muted mb-0">Administra clientes, productores, transportistas y asesores</p>
-          </div>
-          <button class="btn btn-success" onclick="mostrarDashboard()">
-            <i class="bi bi-arrow-left me-2"></i>Volver al Dashboard
-          </button>
-        </div>
-
-        <!-- Stats Cards de Usuarios -->
-        <div class="row g-4 mb-4">
-          <div class="col-md-3 col-6">
-            <div class="kpi-admin">
-              <div class="kpi-icon-admin" style="background: linear-gradient(135deg, #4a90e2, #357abd);">
-                <i class="bi bi-people-fill"></i>
-              </div>
-              <div class="kpi-value" id="totalClientes">0</div>
-              <div class="kpi-label">Clientes</div>
-            </div>
-          </div>
-          <div class="col-md-3 col-6">
-            <div class="kpi-admin">
-              <div class="kpi-icon-admin" style="background: linear-gradient(135deg, #5cb85c, #3f8a41);">
-                <i class="bi bi-person-badge"></i>
-              </div>
-              <div class="kpi-value" id="totalProductores">0</div>
-              <div class="kpi-label">Productores</div>
-            </div>
-          </div>
-          <div class="col-md-3 col-6">
-            <div class="kpi-admin">
-              <div class="kpi-icon-admin" style="background: linear-gradient(135deg, #f39c12, #e67e22);">
-                <i class="bi bi-truck"></i>
-              </div>
-              <div class="kpi-value" id="totalTransportistas">0</div>
-              <div class="kpi-label">Transportistas</div>
-            </div>
-          </div>
-          <div class="col-md-3 col-6">
-            <div class="kpi-admin">
-              <div class="kpi-icon-admin" style="background: linear-gradient(135deg, #9b59b6, #8e44ad);">
-                <i class="bi bi-briefcase-fill"></i>
-              </div>
-              <div class="kpi-value" id="totalServicios">0</div>
-              <div class="kpi-label">Asesores</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Tabs de Usuarios -->
-        <div class="card-glass fade-admin" style="background:white; border-radius:24px; padding:32px; border:1px solid rgba(0,0,0,0.05); box-shadow:0 16px 40px rgba(0,0,0,0.08);">
-          <ul class="nav nav-pills mb-4" id="usuariosTabs" role="tablist">
-            <li class="nav-item" role="presentation">
-              <button class="nav-link active" id="clientes-tab" data-bs-toggle="pill" data-bs-target="#clientes-panel" type="button" role="tab">
-                <i class="bi bi-people-fill me-2"></i>Clientes
-              </button>
-            </li>
-            <li class="nav-item" role="presentation">
-              <button class="nav-link" id="productores-tab" data-bs-toggle="pill" data-bs-target="#productores-panel" type="button" role="tab">
-                <i class="bi bi-person-badge me-2"></i>Productores
-              </button>
-            </li>
-            <li class="nav-item" role="presentation">
-              <button class="nav-link" id="transportistas-tab" data-bs-toggle="pill" data-bs-target="#transportistas-panel" type="button" role="tab">
-                <i class="bi bi-truck me-2"></i>Transportistas
-              </button>
-            </li>
-            <li class="nav-item" role="presentation">
-              <button class="nav-link" id="servicios-tab" data-bs-toggle="pill" data-bs-target="#servicios-panel" type="button" role="tab">
-                <i class="bi bi-briefcase-fill me-2"></i>Asesores
-              </button>
-            </li>
-          </ul>
-
-          <div class="tab-content" id="usuariosTabContent">
-            <!-- Tab Clientes -->
-            <div class="tab-pane fade show active" id="clientes-panel" role="tabpanel">
-              <h5 class="fw-700 mb-3" style="color: var(--green);">
-                <i class="bi bi-people-fill me-2"></i>Lista de Clientes
-              </h5>
-              <div class="table-responsive">
-                <table class="table table-admin align-middle">
-                  <thead>
-                    <tr>
-                      <th>Usuario</th>
-                      <th>Nombre Completo</th>
-                      <th>Email</th>
-                      <th>Ciudad</th>
-                      <th>Teléfono</th>
-                      <th>Rol</th>
-                      <th>Acciones</th>
-                    </tr>
-                  </thead>
-                  <tbody id="tablaClientes">
-                    <tr>
-                      <td colspan="7" class="text-center py-5">
-                        <div class="spinner-border text-success" role="status"></div>
-                        <p class="mt-3 text-muted">Cargando clientes...</p>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            <!-- Tab Productores -->
-            <div class="tab-pane fade" id="productores-panel" role="tabpanel">
-              <h5 class="fw-700 mb-3" style="color: var(--green);">
-                <i class="bi bi-person-badge me-2"></i>Lista de Productores
-              </h5>
-              <div class="table-responsive">
-                <table class="table table-admin align-middle">
-                  <thead>
-                    <tr>
-                      <th>Usuario</th>
-                      <th>Nombre Completo</th>
-                      <th>Email</th>
-                      <th>Ciudad</th>
-                      <th>Tipo Cultivo</th>
-                      <th>Rol</th>
-                      <th>Acciones</th>
-                    </tr>
-                  </thead>
-                  <tbody id="tablaProductores">
-                    <tr>
-                      <td colspan="7" class="text-center py-5">
-                        <div class="spinner-border text-success" role="status"></div>
-                        <p class="mt-3 text-muted">Cargando productores...</p>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            <!-- Tab Transportistas -->
-            <div class="tab-pane fade" id="transportistas-panel" role="tabpanel">
-              <h5 class="fw-700 mb-3" style="color: var(--green);">
-                <i class="bi bi-truck me-2"></i>Lista de Transportistas
-              </h5>
-              <div class="table-responsive">
-                <table class="table table-admin align-middle">
-                  <thead>
-                    <tr>
-                      <th>Usuario</th>
-                      <th>Nombre Completo</th>
-                      <th>Email</th>
-                      <th>Ciudad</th>
-                      <th>Teléfono</th>
-                      <th>Rol</th>
-                      <th>Acciones</th>
-                    </tr>
-                  </thead>
-                  <tbody id="tablaTransportistas">
-                    <tr>
-                      <td colspan="7" class="text-center py-5">
-                        <div class="spinner-border text-success" role="status"></div>
-                        <p class="mt-3 text-muted">Cargando transportistas...</p>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            <!-- Tab Servicios/Asesores -->
-            <div class="tab-pane fade" id="servicios-panel" role="tabpanel">
-              <h5 class="fw-700 mb-3" style="color: var(--green);">
-                <i class="bi bi-briefcase-fill me-2"></i>Lista de Asesores/Servicios
-              </h5>
-              <div class="table-responsive">
-                <table class="table table-admin align-middle">
-                  <thead>
-                    <tr>
-                      <th>Usuario</th>
-                      <th>Nombre Completo</th>
-                      <th>Email</th>
-                      <th>Ciudad</th>
-                      <th>Tipo Servicio</th>
-                      <th>Rol</th>
-                      <th>Acciones</th>
-                    </tr>
-                  </thead>
-                  <tbody id="tablaServicios">
-                    <tr>
-                      <td colspan="7" class="text-center py-5">
-                        <div class="spinner-border text-success" role="status"></div>
-                        <p class="mt-3 text-muted">Cargando asesores...</p>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <!-- FIN USUARIOS VIEW -->
     </main>
   </div>
 
@@ -1383,29 +515,29 @@
   
   <script>
     // ============================================
-    // INICIALIZACIÓN AL CARGAR LA PÁGINA
+    // INICIALIZACIÓN
     // ============================================
     document.addEventListener('DOMContentLoaded', function() {
-      // Cargar datos dinámicos
-      cargarVentasSemanales();
-      cargarProductosCriticos();
-
-      // Inicializar tooltips
+      // Inicializar tooltips de Bootstrap
       var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
       tooltipTriggerList.map(function (tooltipTriggerEl) {
         return new bootstrap.Tooltip(tooltipTriggerEl);
       });
+
+      // Cargar datos dinámicos
+      cargarVentasSemanales();
+      cargarProductosCriticos();
     });
 
     // ============================================
-    // CARGAR VENTAS SEMANALES (GRÁFICO)
+    // GRÁFICO DE VENTAS SEMANALES
     // ============================================
     function cargarVentasSemanales() {
       fetch('/admin/ventas-semanales')
         .then(response => response.json())
         .then(data => {
           const ctx = document.getElementById('salesChart');
-          if (ctx && typeof Chart !== 'undefined') {
+          if (ctx) {
             new Chart(ctx, {
               type: 'line',
               data: {
@@ -1432,12 +564,7 @@
                   y: {
                     beginAtZero: true,
                     grid: { color: 'rgba(47,107,49,0.08)' },
-                    ticks: {
-                      color: '#666',
-                      callback: function(value) {
-                        return '$' + value.toLocaleString('es-CO');
-                      }
-                    }
+                    ticks: { color: '#666' }
                   },
                   x: {
                     grid: { display: false },
@@ -1450,49 +577,25 @@
         })
         .catch(error => {
           console.error('Error al cargar ventas:', error);
-          // Cargar con datos por defecto si falla
-          const ctx = document.getElementById('salesChart');
-          if (ctx) {
-            new Chart(ctx, {
-              type: 'line',
-              data: {
-                labels: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie'],
-                datasets: [{
-                  label: 'Ventas COP',
-                  data: [12000, 22000, 18000, 32000, 45000],
-                  borderColor: '#2f6b31',
-                  backgroundColor: 'rgba(47,107,49,0.12)',
-                  borderWidth: 4,
-                  tension: 0.4,
-                  fill: true
-                }]
-              },
-              options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { legend: { display: false } }
-              }
-            });
-          }
         });
     }
 
     // ============================================
-    // CARGAR PRODUCTOS CON STOCK CRÍTICO
+    // TABLA DE PRODUCTOS CRÍTICOS
     // ============================================
     function cargarProductosCriticos() {
-      const tbody = document.getElementById('tablaInventario');
-
       fetch('/admin/productos-criticos')
         .then(response => response.json())
         .then(productos => {
+          const tbody = document.querySelector('.table tbody');
+          if (!tbody) return;
+
           if (!productos || productos.length === 0) {
             tbody.innerHTML = `
               <tr>
                 <td colspan="6" class="text-center py-5 text-muted">
-                  <i class="bi bi-check-circle fs-1 d-block mb-3 text-success"></i>
-                  <h5>¡Excelente!</h5>
-                  <p>No hay productos con stock crítico en este momento</p>
+                  <i class="bi bi-check-circle fs-1 text-success"></i>
+                  <p class="mt-2">No hay productos con stock crítico</p>
                 </td>
               </tr>
             `;
@@ -1501,31 +604,9 @@
 
           let html = '';
           productos.forEach(producto => {
-            const iconos = {
-              'Tomate': 'bi-flower1 text-danger',
-              'Queso': 'bi-box text-warning',
-              'Café': 'bi-cup text-brown',
-              'Plátano': 'bi-leaf text-success',
-              'Papa': 'bi-circle-fill text-warning',
-              'Carne': 'bi-shop text-danger'
-            };
-
-            let icono = 'bi-box-seam text-success';
-            for (let key in iconos) {
-              if (producto.nombreProducto.includes(key)) {
-                icono = iconos[key];
-                break;
-              }
-            }
-
-            const esStockBajo = producto.stock < 300;
-            const estadoClase = esStockBajo ? 'status-low' : 'status-ready';
-            const estadoTexto = esStockBajo ? 'Bajo Stock' : 'Disponible';
-            const precioFormateado = new Intl.NumberFormat('es-CO', {
-              style: 'currency',
-              currency: 'COP',
-              minimumFractionDigits: 0
-            }).format(producto.precio);
+            const icono = producto.stock < 300 ? 'bi-exclamation-triangle text-danger' : 'bi-box-seam text-success';
+            const estadoBadge = producto.stock < 300 ? 'status-low' : 'status-ready';
+            const estadoTexto = producto.stock < 300 ? 'Bajo Stock' : 'Disponible';
 
             html += `
               <tr>
@@ -1535,15 +616,15 @@
                     <div><strong>${producto.nombreProducto}</strong></div>
                   </div>
                 </td>
-                <td>${producto.productor}</td>
-                <td><strong class="${esStockBajo ? 'text-warning' : ''}">${producto.stock} unidades</strong></td>
-                <td>${precioFormateado}</td>
-                <td><span class="badge-admin ${estadoClase}">${estadoTexto}</span></td>
+                <td>${producto.productor || 'N/A'}</td>
+                <td><strong class="${producto.stock < 300 ? 'text-warning' : ''}">${producto.stock} kg</strong></td>
+                <td>$${producto.precio ? producto.precio.toLocaleString('es-CO') : '0'}</td>
+                <td><span class="badge-admin ${estadoBadge}">${estadoTexto}</span></td>
                 <td>
-                  <button class="btn btn-sm btn-outline-primary me-1" onclick="editarProducto(${producto.idProducto})" title="Editar">
+                  <button class="btn btn-sm btn-outline-primary me-1" onclick="window.location.href='/productos/editar/${producto.idProducto}'">
                     <i class="bi bi-pencil"></i>
                   </button>
-                  <button class="btn btn-sm btn-outline-danger" onclick="eliminarProducto(${producto.idProducto})" title="Eliminar">
+                  <button class="btn btn-sm btn-outline-danger" onclick="eliminarProducto(${producto.idProducto})">
                     <i class="bi bi-trash"></i>
                   </button>
                 </td>
@@ -1554,40 +635,12 @@
           tbody.innerHTML = html;
         })
         .catch(error => {
-          console.error('Error al cargar productos:', error);
-          tbody.innerHTML = `
-            <tr>
-              <td colspan="6" class="text-center py-5 text-danger">
-                <i class="bi bi-exclamation-triangle fs-1 d-block mb-3"></i>
-                <p>Error al cargar productos. Por favor recargue la página.</p>
-              </td>
-            </tr>
-          `;
+          console.error('Error al cargar productos críticos:', error);
         });
     }
 
     // ============================================
-    // FUNCIONES DE ACCIÓN
-    // ============================================
-    function editarProducto(idProducto) {
-      window.location.href = '/productos/editar/' + idProducto;
-    }
-
-    function eliminarProducto(idProducto) {
-      if (confirm('¿Está seguro de que desea eliminar este producto ID: ' + idProducto + '?')) {
-        // Implementar lógica de eliminación
-        alert('Funcionalidad de eliminación en desarrollo para producto ' + idProducto);
-      }
-    }
-
-    // Función para recargar datos
-    function refrescarDatos() {
-      cargarVentasSemanales();
-      cargarProductosCriticos();
-    }
-
-    // ============================================
-    // FUNCIÓN PARA MOSTRAR NOTIFICACIONES
+    // FUNCIONES AUXILIARES
     // ============================================
     function mostrarEnDesarrollo(seccion) {
       const toast = document.createElement('div');
@@ -1603,322 +656,29 @@
       }, 2500);
     }
 
-    // ============================================
-    // CAMBIO DE VISTAS: DASHBOARD <-> USUARIOS
-    // ============================================
-    function mostrarUsuarios() {
-      document.getElementById('dashboard-view').style.display = 'none';
-      document.getElementById('usuarios-view').style.display = 'block';
-
-      // Actualizar nav-item activo
-      document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
-      document.querySelectorAll('.nav-item')[1].classList.add('active'); // Item "Usuarios"
-
-      // Cargar datos de usuarios
-      cargarUsuarios();
-    }
-
-    function mostrarDashboard() {
-      document.getElementById('dashboard-view').style.display = 'block';
-      document.getElementById('usuarios-view').style.display = 'none';
-
-      // Actualizar nav-item activo
-      document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
-      document.querySelectorAll('.nav-item')[0].classList.add('active'); // Item "Dashboard"
-    }
-
-    // ============================================
-    // CARGAR DATOS DE USUARIOS (desde Thymeleaf)
-    // ============================================
-
-    // Datos inyectados desde el servidor (Thymeleaf)
-    const datosUsuarios = {
-      clientes: /*[[${clientes}]]*/ [],
-      productores: /*[[${productores}]]*/ [],
-      transportistas: /*[[${transportistas}]]*/ [],
-      servicios: /*[[${servicios}]]*/ [],
-      totalClientes: /*[[${totalClientes}]]*/ 0,
-      totalProductores: /*[[${totalProductoresUsuarios}]]*/ 0,
-      totalTransportistas: /*[[${totalTransportistasUsuarios}]]*/ 0,
-      totalServicios: /*[[${totalServicios}]]*/ 0
-    };
-
-    function cargarUsuarios() {
-      // Actualizar contadores
-      document.getElementById('totalClientes').textContent = datosUsuarios.totalClientes;
-      document.getElementById('totalProductores').textContent = datosUsuarios.totalProductores;
-      document.getElementById('totalTransportistas').textContent = datosUsuarios.totalTransportistas;
-      document.getElementById('totalServicios').textContent = datosUsuarios.totalServicios;
-
-      // Cargar todas las listas
-      cargarClientes();
-      cargarProductores();
-      cargarTransportistas();
-      cargarServicios();
-    }
-
-    function cargarClientes() {
-      const tbody = document.getElementById('tablaClientes');
-
-      if (!datosUsuarios.clientes || datosUsuarios.clientes.length === 0) {
-        tbody.innerHTML = `
-          <tr>
-            <td colspan="7" class="text-center py-4">
-              <i class="bi bi-inbox fs-1 text-muted"></i>
-              <p class="mt-2 text-muted">No hay clientes registrados</p>
-            </td>
-          </tr>
-        `;
-        return;
+    function eliminarProducto(id) {
+      if (confirm('¿Estás seguro de eliminar este producto?')) {
+        fetch(`/productos/eliminar/${id}`, { method: 'DELETE' })
+          .then(response => {
+            if (response.ok) {
+              location.reload();
+            } else {
+              alert('Error al eliminar el producto');
+            }
+          })
+          .catch(error => {
+            console.error('Error:', error);
+            alert('Error al eliminar el producto');
+          });
       }
-
-      let html = '';
-      datosUsuarios.clientes.forEach(cliente => {
-        const usuario = cliente.usuario || {};
-        const inicial = usuario.nombre ? usuario.nombre.charAt(0).toUpperCase() : 'C';
-
-        html += `
-          <tr>
-            <td>
-              <div class="d-flex align-items-center gap-2">
-                <div class="user-avatar">${inicial}</div>
-                <span class="fw-600">${usuario.nombreUsuario || 'N/A'}</span>
-              </div>
-            </td>
-            <td>${usuario.nombre || ''} ${usuario.apellido || ''}</td>
-            <td>${usuario.correo || 'N/A'}</td>
-            <td>${usuario.ciudad || 'N/A'}</td>
-            <td>${usuario.telefono || 'N/A'}</td>
-            <td><span class="badge-rol badge-cliente">Cliente</span></td>
-            <td>
-              <button class="btn btn-sm btn-outline-success" onclick="verDetalleUsuario(${usuario.idUsuario})">
-                <i class="bi bi-eye"></i>
-              </button>
-            </td>
-          </tr>
-        `;
-      });
-
-      tbody.innerHTML = html;
     }
 
-    function cargarProductores() {
-      const tbody = document.getElementById('tablaProductores');
-
-      if (!datosUsuarios.productores || datosUsuarios.productores.length === 0) {
-        tbody.innerHTML = `
-          <tr>
-            <td colspan="7" class="text-center py-4">
-              <i class="bi bi-inbox fs-1 text-muted"></i>
-              <p class="mt-2 text-muted">No hay productores registrados</p>
-            </td>
-          </tr>
-        `;
-        return;
-      }
-
-      let html = '';
-      datosUsuarios.productores.forEach(productor => {
-        const usuario = productor.usuario || {};
-        const inicial = usuario.nombre ? usuario.nombre.charAt(0).toUpperCase() : 'P';
-
-        html += `
-          <tr>
-            <td>
-              <div class="d-flex align-items-center gap-2">
-                <div class="user-avatar">${inicial}</div>
-                <span class="fw-600">${usuario.nombreUsuario || 'N/A'}</span>
-              </div>
-            </td>
-            <td>${usuario.nombre || ''} ${usuario.apellido || ''}</td>
-            <td>${usuario.correo || 'N/A'}</td>
-            <td>${usuario.ciudad || 'N/A'}</td>
-            <td><span class="badge-rol" style="background: linear-gradient(135deg, #27ae60, #229954); color: white; padding: 4px 12px; border-radius: 12px; font-size: 0.7rem;">${productor.tipoCultivo || 'N/A'}</span></td>
-            <td><span class="badge-rol badge-productor">Productor</span></td>
-            <td>
-              <button class="btn btn-sm btn-outline-success" onclick="verDetalleUsuario(${usuario.idUsuario})">
-                <i class="bi bi-eye"></i>
-              </button>
-            </td>
-          </tr>
-        `;
-      });
-
-      tbody.innerHTML = html;
-    }
-
-    function cargarTransportistas() {
-      const tbody = document.getElementById('tablaTransportistas');
-
-      if (!datosUsuarios.transportistas || datosUsuarios.transportistas.length === 0) {
-        tbody.innerHTML = `
-          <tr>
-            <td colspan="7" class="text-center py-4">
-              <i class="bi bi-inbox fs-1 text-muted"></i>
-              <p class="mt-2 text-muted">No hay transportistas registrados</p>
-            </td>
-          </tr>
-        `;
-        return;
-      }
-
-      let html = '';
-      datosUsuarios.transportistas.forEach(transportista => {
-        const usuario = transportista.usuario || {};
-        const inicial = usuario.nombre ? usuario.nombre.charAt(0).toUpperCase() : 'T';
-
-        html += `
-          <tr>
-            <td>
-              <div class="d-flex align-items-center gap-2">
-                <div class="user-avatar">${inicial}</div>
-                <span class="fw-600">${usuario.nombreUsuario || 'N/A'}</span>
-              </div>
-            </td>
-            <td>${usuario.nombre || ''} ${usuario.apellido || ''}</td>
-            <td>${usuario.correo || 'N/A'}</td>
-            <td>${usuario.ciudad || 'N/A'}</td>
-            <td>${usuario.telefono || 'N/A'}</td>
-            <td><span class="badge-rol badge-transportista">Transportista</span></td>
-            <td>
-              <button class="btn btn-sm btn-outline-success" onclick="verDetalleUsuario(${usuario.idUsuario})">
-                <i class="bi bi-eye"></i>
-              </button>
-            </td>
-          </tr>
-        `;
-      });
-
-      tbody.innerHTML = html;
-    }
-
-    function cargarServicios() {
-      const tbody = document.getElementById('tablaServicios');
-
-      if (!datosUsuarios.servicios || datosUsuarios.servicios.length === 0) {
-        tbody.innerHTML = `
-          <tr>
-            <td colspan="7" class="text-center py-4">
-              <i class="bi bi-inbox fs-1 text-muted"></i>
-              <p class="mt-2 text-muted">No hay asesores registrados</p>
-            </td>
-          </tr>
-        `;
-        return;
-      }
-
-      let html = '';
-      datosUsuarios.servicios.forEach(servicio => {
-        const usuario = servicio.usuario || {};
-        const inicial = usuario.nombre ? usuario.nombre.charAt(0).toUpperCase() : 'S';
-
-        html += `
-          <tr>
-            <td>
-              <div class="d-flex align-items-center gap-2">
-                <div class="user-avatar">${inicial}</div>
-                <span class="fw-600">${usuario.nombreUsuario || 'N/A'}</span>
-              </div>
-            </td>
-            <td>${usuario.nombre || ''} ${usuario.apellido || ''}</td>
-            <td>${usuario.correo || 'N/A'}</td>
-            <td>${usuario.ciudad || 'N/A'}</td>
-            <td><span class="badge-rol" style="background: linear-gradient(135deg, #16a085, #138d75); color: white; padding: 4px 12px; border-radius: 12px; font-size: 0.7rem;">${servicio.tipoServicio || 'N/A'}</span></td>
-            <td><span class="badge-rol badge-servicio">Asesor</span></td>
-            <td>
-              <button class="btn btn-sm btn-outline-success" onclick="verDetalleUsuario(${usuario.idUsuario})">
-                <i class="bi bi-eye"></i>
-              </button>
-            </td>
-          </tr>
-        `;
-      });
-
-      tbody.innerHTML = html;
-    }
-
-    function verDetalleUsuario(idUsuario) {
-      // TODO: Implementar modal o página de detalles
-      alert('Ver detalles del usuario ID: ' + idUsuario);
-    }
-
-    // Agregar estilos para animación
+    // Animación para las notificaciones
     const style = document.createElement('style');
     style.textContent = `
       @keyframes slideIn {
         from { transform: translateX(400px); opacity: 0; }
         to { transform: translateX(0); opacity: 1; }
-      }
-
-      /* Estilos para nav-pills de usuarios */
-      #usuariosTabs .nav-link {
-        border-radius: 12px;
-        padding: 12px 24px;
-        font-weight: 600;
-        color: var(--muted);
-        transition: all 0.3s;
-        margin-right: 8px;
-      }
-
-      #usuariosTabs .nav-link:hover {
-        background: rgba(47,107,49,0.08);
-        color: var(--green);
-      }
-
-      #usuariosTabs .nav-link.active {
-        background: linear-gradient(135deg, #2f6b31 0%, #5cb85c 100%);
-        color: white;
-        box-shadow: 0 8px 20px rgba(47,107,49,0.3);
-      }
-
-      /* Avatar de usuario */
-      .user-avatar {
-        width: 40px;
-        height: 40px;
-        border-radius: 10px;
-        background: linear-gradient(135deg, var(--green), var(--accent));
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        font-weight: 700;
-        font-size: 0.9rem;
-        box-shadow: 0 4px 12px rgba(47,107,49,0.2);
-      }
-
-      /* Badges de rol */
-      .badge-rol {
-        padding: 6px 14px;
-        border-radius: 16px;
-        font-weight: 700;
-        font-size: 0.75rem;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        display: inline-block;
-      }
-
-      .badge-cliente {
-        background: linear-gradient(135deg, #4a90e2, #357abd);
-        color: white;
-        box-shadow: 0 4px 12px rgba(74,144,226,0.3);
-      }
-
-      .badge-productor {
-        background: linear-gradient(135deg, #5cb85c, #3f8a41);
-        color: white;
-        box-shadow: 0 4px 12px rgba(92,184,92,0.3);
-      }
-
-      .badge-transportista {
-        background: linear-gradient(135deg, #f39c12, #e67e22);
-        color: white;
-        box-shadow: 0 4px 12px rgba(243,156,18,0.3);
-      }
-
-      .badge-servicio {
-        background: linear-gradient(135deg, #9b59b6, #8e44ad);
-        color: white;
-        box-shadow: 0 4px 12px rgba(155,89,182,0.3);
       }
     `;
     document.head.appendChild(style);

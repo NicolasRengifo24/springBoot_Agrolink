@@ -1,6 +1,7 @@
 package com.example.springbootagrolink.repository;
 
 import com.example.springbootagrolink.model.Productor;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -11,6 +12,12 @@ import java.util.List;
 
 @Repository
 public interface ProductorRepository extends JpaRepository<Productor, Integer> {
+
+    // Sobrescribir findAll para cargar el usuario junto con el productor
+    @Override
+    @EntityGraph(attributePaths = {"usuario"})
+    List<Productor> findAll();
+
     @Query("""
         SELECT DISTINCT p
         FROM Productor p
