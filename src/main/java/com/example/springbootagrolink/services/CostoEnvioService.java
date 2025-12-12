@@ -24,11 +24,15 @@ public class CostoEnvioService {
     private final RestTemplate restTemplate = new RestTemplate();
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    // Tarifas en COP (Pesos Colombianos)
-    private static final BigDecimal TARIFA_BASE_POR_KM = new BigDecimal("2500"); // $2,500 por km
-    private static final BigDecimal TARIFA_POR_KG = new BigDecimal("50"); // $50 por kg
-    private static final BigDecimal COSTO_MINIMO = new BigDecimal("20000"); // $20,000 mínimo
-    private static final BigDecimal COSTO_MAXIMO = new BigDecimal("500000"); // $500,000 máximo
+    // Tarifas en COP (Pesos Colombianos) — ahora configurables via properties
+    @Value("${costo.tarifaBasePorKm:2500}")
+    private BigDecimal tarifaBasePorKm;
+
+    @Value("${costo.tarifaPorKg:50}")
+    private BigDecimal tarifaPorKg;
+
+    @Value("${costo.minimo:20000}")
+    private BigDecimal costoMinimo;
 
     /**
      * Calcula la distancia entre dos puntos usando Google Maps Distance Matrix API
@@ -123,28 +127,26 @@ public class CostoEnvioService {
         }
 
         // Calcular costo base (por distancia)
-        BigDecimal costoBase = TARIFA_BASE_POR_KM.multiply(BigDecimal.valueOf(distanciaKm))
+        BigDecimal costoBase = tarifaBasePorKm.multiply(BigDecimal.valueOf(distanciaKm))
                 .setScale(2, RoundingMode.HALF_UP);
 
         // Calcular costo por peso
-        BigDecimal costoPeso = TARIFA_POR_KG.multiply(BigDecimal.valueOf(pesoKg))
+        BigDecimal costoPeso = tarifaPorKg.multiply(BigDecimal.valueOf(pesoKg))
                 .setScale(2, RoundingMode.HALF_UP);
 
         // Calcular total
         BigDecimal costoTotal = costoBase.add(costoPeso);
 
-        // Aplicar costo mínimo y máximo
-        if (costoTotal.compareTo(COSTO_MINIMO) < 0) {
-            costoTotal = COSTO_MINIMO;
-        } else if (costoTotal.compareTo(COSTO_MAXIMO) > 0) {
-            costoTotal = COSTO_MAXIMO;
+        // Aplicar costo mínimo (siempre aplicará el mínimo si corresponde)
+        if (costoTotal.compareTo(costoMinimo) < 0) {
+            costoTotal = costoMinimo;
         }
 
         costos.put("costoBase", costoBase);
         costos.put("costoPeso", costoPeso);
         costos.put("costoTotal", costoTotal);
-        costos.put("tarifaPorKm", TARIFA_BASE_POR_KM);
-        costos.put("tarifaPorKg", TARIFA_POR_KG);
+        costos.put("tarifaPorKm", tarifaBasePorKm);
+        costos.put("tarifaPorKg", tarifaPorKg);
 
         return costos;
     }
@@ -204,4 +206,3 @@ public class CostoEnvioService {
         return String.format("$%,.0f COP", valor);
     }
 }
-

@@ -18,6 +18,8 @@
         .sidebar-brand { padding: 0 25px 25px 25px; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 20px; }
         .sidebar-brand img { width: 50px; height: 50px; border-radius: 50%; margin-right: 12px; border: 2px solid #fff; }
         .sidebar-brand h4 { color: white; font-weight: 700; margin: 0; font-size: 1.5rem; }
+        .sidebar-brand small { color: rgba(255,255,255,0.7); }
+        .sidebar-brand div { color: rgba(255,255,255,0.9); margin-top: 6px; font-weight: 600; font-size: 0.95rem; }
         .sidebar-menu { list-style: none; padding: 0; }
         .sidebar-menu li { margin: 5px 15px; }
         .sidebar-menu a {
@@ -66,16 +68,19 @@
         <div>
             <h4>Agrolink</h4>
             <small style="color: rgba(255,255,255,0.7);">Transportista</small>
+            <div style="color: rgba(255,255,255,0.9); margin-top:6px; font-weight:600; font-size:0.95rem;">
+                <span th:text="${usuario != null ? (usuario.nombre != null ? usuario.nombre : usuario.nombreUsuario) : ''}"></span>
+            </div>
         </div>
     </div>
     <ul class="sidebar-menu">
-        <li><a th:href="@{/transportista/dashboard}"><i class="bi bi-speedometer2"></i><span>Dashboard</span></a></li>
         <li><a th:href="@{/transportista/envios}"><i class="bi bi-box-seam"></i><span>Envíos Disponibles</span></a></li>
-        <li><a href="#" class="active"><i class="bi bi-truck"></i><span>Mis Envíos</span></a></li>
+        <li><a th:href="@{/transportista/mis-envios}" class="active"><i class="bi bi-truck"></i><span>Mis Envíos</span></a></li>
         <li><a th:href="@{/transportista/vehiculos}"><i class="bi bi-car-front"></i><span>Mis Vehículos</span></a></li>
         <li><a th:href="@{/transportista/seguimiento}"><i class="bi bi-geo-alt"></i><span>Seguimiento</span></a></li>
         <li><a th:href="@{/transportista/perfil}"><i class="bi bi-person-circle"></i><span>Mi Perfil</span></a></li>
-    </ul>
+        <li><a th:href="@{/logout}"><i class="bi bi-box-arrow-right"></i><span>Cerrar sesión</span></a></li>
+     </ul>
 </aside>
 
 <main class="main-content">
@@ -106,7 +111,12 @@
                             <td th:text="${envio.direccionOrigen != null ? #strings.abbreviate(envio.direccionOrigen, 30) : 'N/A'}">Origen</td>
                             <td th:text="${envio.direccionDestino != null ? #strings.abbreviate(envio.direccionDestino, 30) : 'N/A'}">Destino</td>
                             <td>
-                                <span class="status-badge" th:classappend="${envio.estadoEnvio == 'Asignado' ? 'status-asignado' : envio.estadoEnvio == 'En_Transito' ? 'status-transito' : envio.estadoEnvio == 'Finalizado' ? 'status-finalizado' : 'status-cancelado'}" th:text="${envio.estadoEnvio}">Estado</span>
+                                <div th:switch="${envio.estadoEnvio}">
+                                    <span th:case="'Asignado'" class="status-badge status-asignado" th:text="${envio.estadoEnvio}">Estado</span>
+                                    <span th:case="'En_Transito'" class="status-badge status-transito" th:text="${envio.estadoEnvio}">Estado</span>
+                                    <span th:case="'Finalizado'" class="status-badge status-finalizado" th:text="${envio.estadoEnvio}">Estado</span>
+                                    <span th:case="*" class="status-badge status-cancelado" th:text="${envio.estadoEnvio}">Estado</span>
+                                </div>
                             </td>
                             <td><strong>$<span th:text="${envio.costoTotal != null ? #numbers.formatDecimal(envio.costoTotal, 0, 'POINT', 0, 'COMMA') : '0'}">0</span></strong></td>
                             <td>
@@ -129,4 +139,3 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
-
