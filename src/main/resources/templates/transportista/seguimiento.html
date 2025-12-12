@@ -7,386 +7,163 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: "Inter", sans-serif; background: linear-gradient(135deg, #f0f9f4 0%, #e3f2e8 100%); min-height: 100vh; padding: 20px; }
-        .container { max-width: 1600px; margin: 0 auto; }
-        .header { background: white; padding: 30px; border-radius: 16px; margin-bottom: 30px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-        .header h1 { color: #2f6b31; font-weight: 800; margin-bottom: 10px; font-size: 2rem; }
-        .header p { color: #6c757d; margin-bottom: 20px; }
-        .btn-back { background: linear-gradient(135deg, #2f6b31 0%, #5cb85c 100%); border: none; color: white; padding: 12px 24px; border-radius: 12px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; transition: all 0.3s ease; }
-        .btn-back:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(47,107,49,0.3); color: white; }
-        .filters-section { background: white; padding: 20px; border-radius: 16px; margin-bottom: 30px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
-        .filter-group { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }
-        .filter-item { display: flex; flex-direction: column; }
-        .filter-item label { font-size: 0.85rem; font-weight: 600; color: #2f6b31; margin-bottom: 8px; }
-        .filter-item select, .filter-item input { padding: 10px 15px; border: 2px solid #e3f2e8; border-radius: 10px; font-size: 0.95rem; transition: all 0.3s ease; }
-        .filter-item select:focus, .filter-item input:focus { outline: none; border-color: #2f6b31; }
-        .main-grid { display: grid; grid-template-columns: 1fr 450px; gap: 30px; margin-bottom: 30px; }
-        @media (max-width: 1200px) { .main-grid { grid-template-columns: 1fr; } }
-        .map-section { background: white; border-radius: 16px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-        .map-section h3 { color: #2f6b31; font-weight: 700; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; }
-        #map { width: 100%; height: 500px; border-radius: 12px; overflow: hidden; }
-        .tracking-info { background: white; border-radius: 16px; padding: 25px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); height: fit-content; }
-        .tracking-info h3 { color: #2f6b31; font-weight: 700; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
-        .envio-select { background: #f8faf7; padding: 15px; border-radius: 12px; margin-bottom: 20px; }
-        .envio-select select { width: 100%; padding: 12px; border: 2px solid #e3f2e8; border-radius: 10px; font-size: 0.95rem; font-weight: 600; color: #2f6b31; }
-        .envio-details { margin-bottom: 25px; }
-        .detail-card { background: linear-gradient(135deg, #f8faf7 0%, #e3f2e8 100%); padding: 15px; border-radius: 12px; margin-bottom: 15px; border-left: 4px solid #2f6b31; }
-        .detail-row { display: flex; justify-content: space-between; margin-bottom: 10px; }
-        .detail-row:last-child { margin-bottom: 0; }
-        .detail-label { font-size: 0.85rem; color: #6c757d; font-weight: 600; }
-        .detail-value { font-size: 0.95rem; color: #2a2a2a; font-weight: 600; }
-        .status-badge { display: inline-block; padding: 6px 14px; border-radius: 20px; font-weight: 600; font-size: 0.85rem; }
-        .badge-en-transito { background: #fff3cd; color: #856404; }
-        .badge-asignado { background: #cce5ff; color: #004085; }
-        .badge-finalizado { background: #d4edda; color: #155724; }
-        .badge-cancelado { background: #f8d7da; color: #721c24; }
-        .badge-buscando-transporte { background: #e7f3ff; color: #0066cc; }
-        .timeline { position: relative; padding-left: 35px; }
-        .timeline::before { content: ''; position: absolute; left: 10px; top: 10px; bottom: 10px; width: 3px; background: linear-gradient(180deg, #2f6b31 0%, #5cb85c 100%); border-radius: 10px; }
-        .timeline-item { position: relative; margin-bottom: 25px; padding-bottom: 20px; }
-        .timeline-item:last-child { margin-bottom: 0; padding-bottom: 0; }
-        .timeline-dot { position: absolute; left: -29px; top: 5px; width: 22px; height: 22px; border-radius: 50%; background: white; border: 4px solid #2f6b31; }
-        .timeline-dot.active { background: #2f6b31; box-shadow: 0 0 0 4px rgba(47,107,49,0.2); animation: pulse 2s infinite; }
-        @keyframes pulse { 0%, 100% { box-shadow: 0 0 0 4px rgba(47,107,49,0.2); } 50% { box-shadow: 0 0 0 8px rgba(47,107,49,0.1); } }
-        .timeline-content { background: #f8faf7; padding: 15px; border-radius: 12px; transition: all 0.3s ease; }
-        .timeline-item:hover .timeline-content { background: #e3f2e8; transform: translateX(5px); }
-        .timeline-title { font-weight: 700; color: #2f6b31; margin-bottom: 5px; font-size: 0.95rem; }
-        .timeline-time { font-size: 0.8rem; color: #6c757d; margin-bottom: 8px; display: flex; align-items: center; gap: 5px; }
-        .timeline-description { font-size: 0.9rem; color: #2a2a2a; line-height: 1.5; }
-        .actions-section { margin-top: 25px; padding-top: 20px; border-top: 2px solid #e3f2e8; }
-        .btn-action { width: 100%; padding: 12px; border: none; border-radius: 12px; font-weight: 600; font-size: 0.95rem; margin-bottom: 10px; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; }
-        .btn-update { background: linear-gradient(135deg, #2f6b31 0%, #5cb85c 100%); color: white; }
-        .btn-update:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(47,107,49,0.3); }
-        .btn-complete { background: linear-gradient(135deg, #28a745 0%, #34ce57 100%); color: white; }
-        .btn-complete:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(40,167,69,0.3); }
-        .btn-issue { background: linear-gradient(135deg, #ffc107 0%, #ffcd39 100%); color: #856404; }
-        .btn-issue:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(255,193,7,0.3); }
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 30px; }
-        .stat-card { background: white; padding: 25px; border-radius: 16px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); display: flex; align-items: center; gap: 20px; transition: all 0.3s ease; }
-        .stat-card:hover { transform: translateY(-5px); box-shadow: 0 8px 25px rgba(0,0,0,0.15); }
-        .stat-icon { width: 60px; height: 60px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; }
-        .stat-icon.green { background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%); color: #2f6b31; }
-        .stat-icon.blue { background: linear-gradient(135deg, #cce5ff 0%, #b8daff 100%); color: #004085; }
-        .stat-icon.yellow { background: linear-gradient(135deg, #fff3cd 0%, #ffe69c 100%); color: #856404; }
-        .stat-info h4 { font-size: 1.8rem; font-weight: 800; color: #2a2a2a; margin-bottom: 5px; }
-        .stat-info p { font-size: 0.9rem; color: #6c757d; margin: 0; font-weight: 600; }
-        .update-location-form { background: #f8faf7; padding: 20px; border-radius: 12px; margin-top: 20px; }
-        .update-location-form h4 { color: #2f6b31; font-weight: 700; margin-bottom: 15px; font-size: 1.1rem; }
-        .form-group { margin-bottom: 15px; }
-        .form-group label { font-size: 0.85rem; font-weight: 600; color: #2f6b31; margin-bottom: 8px; display: block; }
-        .form-group input, .form-group textarea { width: 100%; padding: 10px 15px; border: 2px solid #e3f2e8; border-radius: 10px; font-size: 0.95rem; }
-        .form-group textarea { resize: vertical; min-height: 80px; }
-        .form-group input:focus, .form-group textarea:focus { outline: none; border-color: #2f6b31; }
+        body { font-family: "Inter", sans-serif; background: #f8faf7; overflow-x: hidden; }
+        .sidebar {
+            position: fixed; top: 0; left: 0; height: 100vh; width: 280px;
+            background: linear-gradient(180deg, #2f6b31 0%, #1d4820 100%);
+            padding: 20px 0; z-index: 1000; box-shadow: 4px 0 15px rgba(0,0,0,0.1);
+        }
+        .sidebar-brand { padding: 0 25px 25px 25px; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 20px; }
+        .sidebar-brand img { width: 50px; height: 50px; border-radius: 50%; margin-right: 12px; border: 2px solid #fff; }
+        .sidebar-brand h4 { color: white; font-weight: 700; margin: 0; font-size: 1.5rem; }
+        .sidebar-menu { list-style: none; padding: 0; }
+        .sidebar-menu li { margin: 5px 15px; }
+        .sidebar-menu a {
+            display: flex; align-items: center; padding: 14px 18px; color: rgba(255,255,255,0.85);
+            text-decoration: none; border-radius: 12px; transition: all 0.3s ease; font-weight: 500; font-size: 0.95rem;
+        }
+        .sidebar-menu a:hover, .sidebar-menu a.active {
+            background: rgba(255,255,255,0.15); color: white; transform: translateX(5px);
+        }
+        .sidebar-menu a i { font-size: 1.3rem; margin-right: 15px; width: 25px; }
+        .main-content { margin-left: 280px; padding: 25px 30px; min-height: 100vh; }
+        .topbar {
+            background: white; padding: 20px 30px; border-radius: 16px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06); margin-bottom: 30px;
+        }
+        .topbar h2 { color: #2f6b31; font-weight: 700; margin: 0; font-size: 1.8rem; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 30px; }
+        .stat-card {
+            background: white; border-radius: 12px; padding: 20px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06); text-align: center; border-top: 3px solid #2f6b31;
+        }
+        .stat-number { font-size: 2rem; font-weight: 800; color: #2f6b31; }
+        .stat-text { font-size: 0.9rem; color: #6c757d; margin-top: 5px; }
+        .container-seguimiento { background: white; border-radius: 16px; padding: 25px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+        .envio-item {
+            padding: 20px; border: 2px solid #f0f8f0; border-radius: 12px; margin-bottom: 15px;
+            transition: all 0.3s ease;
+        }
+        .envio-item:hover { border-color: #2f6b31; box-shadow: 0 4px 12px rgba(47, 107, 49, 0.1); }
+        .envio-item-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .envio-id { font-size: 1.2rem; font-weight: 700; color: #2f6b31; }
+        .envio-status { padding: 6px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; }
+        .status-transito { background: #cfe2ff; color: #084298; }
+        .status-asignado { background: #fff3cd; color: #856404; }
+        .status-finalizado { background: #d1e7dd; color: #0f5132; }
+        .timeline { position: relative; padding-left: 30px; }
+        .timeline::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 2px; background: #2f6b31; }
+        .timeline-item { position: relative; margin-bottom: 20px; }
+        .timeline-item::before { content: ''; position: absolute; left: -35px; top: 5px; width: 14px; height: 14px; border-radius: 50%; background: #2f6b31; border: 3px solid white; box-shadow: 0 0 0 2px #2f6b31; }
+        .timeline-title { font-weight: 600; color: #2f6b31; margin-bottom: 5px; }
+        .timeline-desc { font-size: 0.9rem; color: #6c757d; }
+        .empty-state { text-align: center; padding: 60px 20px; }
+        .empty-state i { font-size: 4rem; color: #ccc; margin-bottom: 20px; display: block; }
+        .empty-state h3 { color: #6c757d; margin-bottom: 10px; }
+        @media (max-width: 768px) {
+            .sidebar { transform: translateX(-100%); }
+            .main-content { margin-left: 0; padding: 15px; }
+        }
     </style>
 </head>
 <body>
-<div class="container">
-    <div class="header">
-        <a href="/transportista/dashboard" class="btn-back"><i class="bi bi-arrow-left"></i> Volver al Dashboard</a>
-        <h1><i class="bi bi-geo-alt-fill"></i> Seguimiento de Envíos en Tiempo Real</h1>
-        <p>Monitorea y actualiza el estado de tus envíos activos</p>
+
+<aside class="sidebar">
+    <div class="sidebar-brand d-flex align-items-center">
+        <img th:src="@{/CSS/logo/logoAgro.jpeg}" alt="Logo">
+        <div>
+            <h4>Agrolink</h4>
+            <small style="color: rgba(255,255,255,0.7);">Transportista</small>
+        </div>
     </div>
+    <ul class="sidebar-menu">
+        <li><a th:href="@{/transportista/dashboard}"><i class="bi bi-speedometer2"></i><span>Dashboard</span></a></li>
+        <li><a th:href="@{/transportista/envios}"><i class="bi bi-box-seam"></i><span>Envíos Disponibles</span></a></li>
+        <li><a th:href="@{/transportista/mis-envios}"><i class="bi bi-truck"></i><span>Mis Envíos</span></a></li>
+        <li><a th:href="@{/transportista/vehiculos}"><i class="bi bi-car-front"></i><span>Mis Vehículos</span></a></li>
+        <li><a href="#" class="active"><i class="bi bi-geo-alt"></i><span>Seguimiento</span></a></li>
+        <li><a th:href="@{/transportista/perfil}"><i class="bi bi-person-circle"></i><span>Mi Perfil</span></a></li>
+    </ul>
+</aside>
+
+<main class="main-content">
+    <div class="topbar">
+        <h2>Seguimiento de Envíos</h2>
+        <p class="text-muted mb-0">Monitorea el estado de tus envíos en tiempo real</p>
+    </div>
+
     <div class="stats-grid">
         <div class="stat-card">
-            <div class="stat-icon green"><i class="bi bi-truck"></i></div>
-            <div class="stat-info">
-                <h4 th:text="${enTransito}">0</h4>
-                <p>En Tránsito</p>
-            </div>
+            <div class="stat-number" th:text="${enTransito}">0</div>
+            <div class="stat-text">En Tránsito</div>
         </div>
         <div class="stat-card">
-            <div class="stat-icon blue"><i class="bi bi-clock-history"></i></div>
-            <div class="stat-info">
-                <h4 th:text="${pendientes}">0</h4>
-                <p>Pendientes</p>
-            </div>
+            <div class="stat-number" th:text="${pendientes}">0</div>
+            <div class="stat-text">Asignados</div>
         </div>
         <div class="stat-card">
-            <div class="stat-icon yellow"><i class="bi bi-exclamation-triangle"></i></div>
-            <div class="stat-info">
-                <h4 th:text="${envios.size()}">0</h4>
-                <p>Envíos Activos</p>
-            </div>
+            <div class="stat-number" th:text="${finalizados}">0</div>
+            <div class="stat-text">Finalizados</div>
         </div>
         <div class="stat-card">
-            <div class="stat-icon green"><i class="bi bi-check-circle"></i></div>
-            <div class="stat-info">
-                <h4><span th:text="${tasaEntrega}">0</span>%</h4>
-                <p>Tasa de Entrega</p>
-            </div>
+            <div class="stat-number" th:text="${tasaEntrega + '%'}">0%</div>
+            <div class="stat-text">Tasa de Entrega</div>
         </div>
     </div>
-    <div class="filters-section">
-        <div class="filter-group">
-            <div class="filter-item"><label for="filterEstado"><i class="bi bi-funnel"></i> Estado</label><select id="filterEstado"><option value="">Todos los estados</option><option value="asignado">Asignado</option><option value="en-transito" selected>En Tránsito</option><option value="finalizado">Finalizado</option><option value="cancelado">Cancelado</option></select></div>
-            <div class="filter-item"><label for="filterFecha"><i class="bi bi-calendar"></i> Fecha</label><input type="date" id="filterFecha"></div>
-            <div class="filter-item"><label for="filterBuscar"><i class="bi bi-search"></i> Buscar ID</label><input type="text" id="filterBuscar" placeholder="ENV-2025-001"></div>
-            <div class="filter-item"><label for="filterDestino"><i class="bi bi-geo"></i> Destino</label><select id="filterDestino"><option value="">Todos los destinos</option><option value="bogota">Bogotá</option><option value="medellin">Medellín</option><option value="cali">Cali</option><option value="barranquilla">Barranquilla</option><option value="cartagena">Cartagena</option></select></div>
-        </div>
-    </div>
-    <div class="main-grid">
-        <div class="map-section"><h3><i class="bi bi-map"></i> Mapa de Seguimiento</h3><div id="map"></div></div>
-        <div class="tracking-info">
-            <h3><i class="bi bi-info-circle"></i> Detalles del Envío</h3>
 
-            <!-- Mostrar mensaje si no hay envíos -->
-            <div th:if="${envios.isEmpty()}" class="alert alert-info">
-                <i class="bi bi-info-circle"></i> No tienes envíos activos en este momento.
-                <a href="/transportista/envios" class="btn btn-sm btn-primary mt-2">Ver Envíos Disponibles</a>
-            </div>
+    <div class="container-seguimiento">
+        <h5 style="color: #2f6b31; margin-bottom: 20px;">Envíos en Proceso</h5>
 
-            <!-- Mostrar envíos si existen -->
-            <div th:if="${!envios.isEmpty()}">
-                <div class="envio-select">
-                    <select id="envioSelector">
-                        <option th:each="envio : ${envios}"
-                                th:value="${envio.idEnvio}"
-                                th:text="${'ENV-' + envio.idEnvio + ' - ' + (envio.compra.direccionEnvio != null ? envio.compra.direccionEnvio : 'Destino no especificado')}">
-                        </option>
-                    </select>
+        <div th:if="${!envios.isEmpty()}">
+            <div th:each="envio : ${envios}" class="envio-item">
+                <div class="envio-item-header">
+                    <div class="envio-id" th:text="'#ENV-' + ${envio.idEnvio}">#ENV-0</div>
+                    <span class="envio-status" th:classappend="${envio.estadoEnvio == 'En_Transito' ? 'status-transito' : 'status-asignado'}" th:text="${envio.estadoEnvio}">Estado</span>
                 </div>
 
-                <!-- Detalles del primer envío (se puede cambiar con JS) -->
-                <div th:if="${!envios.isEmpty()}" class="envio-details">
-                    <div class="detail-card">
-                        <div class="detail-row">
-                            <span class="detail-label">Estado:</span>
-                            <span th:class="'status-badge badge-' + ${envios[0].estadoEnvio.toString().toLowerCase().replace('_', '-')}">
-                                <i class="bi bi-truck"></i> <span th:text="${envios[0].estadoEnvio.toString().replace('_', ' ')}">Estado</span>
-                            </span>
-                        </div>
-                        <div class="detail-row">
-                            <span class="detail-label">Producto:</span>
-                            <span class="detail-value" th:text="${envios[0].compra.producto != null ? envios[0].compra.producto.nombreProducto : 'N/A'}">Producto</span>
-                        </div>
-                        <div class="detail-row">
-                            <span class="detail-label">Peso:</span>
-                            <span class="detail-value" th:text="${envios[0].compra.cantidad != null ? envios[0].compra.cantidad + ' kg' : 'N/A'}">Peso</span>
-                        </div>
-                        <div class="detail-row">
-                            <span class="detail-label">Valor:</span>
-                            <span class="detail-value" th:text="${envios[0].costoTotal != null ? '$' + #numbers.formatDecimal(envios[0].costoTotal, 1, 'POINT', 0, 'COMMA') : 'N/A'}">Valor</span>
-                        </div>
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <small style="color: #6c757d;">Origen</small>
+                        <p style="margin: 0; font-weight: 600;" th:text="${envio.direccionOrigen != null ? #strings.abbreviate(envio.direccionOrigen, 50) : 'N/A'}">Origen</p>
                     </div>
-
-                    <div class="detail-card">
-                        <div class="detail-row">
-                            <span class="detail-label">Origen:</span>
-                            <span class="detail-value" th:text="${envios[0].direccionOrigen != null ? envios[0].direccionOrigen : 'No especificado'}">Origen</span>
-                        </div>
-                        <div class="detail-row">
-                            <span class="detail-label">Destino:</span>
-                            <span class="detail-value" th:text="${envios[0].compra.direccionEnvio != null ? envios[0].compra.direccionEnvio : 'No especificado'}">Destino</span>
-                        </div>
-                        <div class="detail-row">
-                            <span class="detail-label">Distancia:</span>
-                            <span class="detail-value" th:text="${envios[0].distanciaKm != null ? envios[0].distanciaKm + ' km' : 'N/A'}">Distancia</span>
-                        </div>
-                        <div class="detail-row">
-                            <span class="detail-label">Fecha de envío:</span>
-                            <span class="detail-value" th:text="${envios[0].fechaEnvio != null ? #temporals.format(envios[0].fechaEnvio, 'dd/MM/yyyy') : 'N/A'}">Fecha</span>
-                        </div>
-                    </div>
-
-                    <div class="detail-card">
-                        <div class="detail-row">
-                            <span class="detail-label">Cliente:</span>
-                            <span class="detail-value" th:text="${envios[0].compra.cliente.usuario.nombre != null ? envios[0].compra.cliente.usuario.nombre : envios[0].compra.cliente.usuario.nombreUsuario}">Cliente</span>
-                        </div>
-                        <div class="detail-row">
-                            <span class="detail-label">Teléfono:</span>
-                            <span class="detail-value" th:text="${envios[0].compra.cliente.usuario.telefono != null ? envios[0].compra.cliente.usuario.telefono : 'No disponible'}">Teléfono</span>
-                        </div>
-                        <div class="detail-row">
-                            <span class="detail-label">Estado del envío:</span>
-                            <span class="detail-value" th:text="${envios[0].estadoEnvio.toString().replace('_', ' ')}">Estado</span>
-                        </div>
-                        <div class="detail-row">
-                            <span class="detail-label">ID Envío:</span>
-                            <span class="detail-value" th:text="'ENV-' + ${envios[0].idEnvio}">ID</span>
-                        </div>
+                    <div class="col-md-6">
+                        <small style="color: #6c757d;">Destino</small>
+                        <p style="margin: 0; font-weight: 600;" th:text="${envio.direccionDestino != null ? #strings.abbreviate(envio.direccionDestino, 50) : 'N/A'}">Destino</p>
                     </div>
                 </div>
 
-                <h4 style="color: #2f6b31; font-weight: 700; margin-bottom: 15px;">
-                    <i class="bi bi-clock-history"></i> Historial de Seguimiento
-                </h4>
-                <div class="timeline">
-                    <!-- Timeline simplificado basado en el estado actual -->
-                    <div class="timeline-item" th:if="${envios[0].estadoEnvio == T(com.example.springbootagrolink.model.Envio.EstadoEnvio).En_Transito}">
-                        <div class="timeline-dot active"></div>
-                        <div class="timeline-content">
-                            <div class="timeline-title">
-                                <i class="bi bi-truck"></i> En tránsito
-                            </div>
-                            <div class="timeline-time">
-                                <i class="bi bi-clock"></i> <span th:text="${envios[0].fechaEnvio != null ? #temporals.format(envios[0].fechaEnvio, 'dd/MM/yyyy') : 'Fecha no disponible'}">Fecha</span>
-                            </div>
-                            <div class="timeline-description">
-                                El envío está en camino hacia su destino.
-                            </div>
-                        </div>
+                <div class="row">
+                    <div class="col-md-3">
+                        <small style="color: #6c757d;">Distancia</small>
+                        <p style="margin: 0; font-weight: 600;" th:text="${envio.distanciaKm != null ? #numbers.formatDecimal(envio.distanciaKm, 0, 'POINT', 1, 'COMMA') + ' km' : 'N/A'}">0 km</p>
                     </div>
-
-                    <div class="timeline-item">
-                        <div class="timeline-dot" th:classappend="${envios[0].estadoEnvio == T(com.example.springbootagrolink.model.Envio.EstadoEnvio).Asignado ? 'active' : ''}"></div>
-                        <div class="timeline-content">
-                            <div class="timeline-title">
-                                <i class="bi bi-check-circle"></i> Envío asignado
-                            </div>
-                            <div class="timeline-time">
-                                <i class="bi bi-clock"></i> <span th:text="${envios[0].fechaEnvio != null ? #temporals.format(envios[0].fechaEnvio, 'dd/MM/yyyy') : 'Fecha no disponible'}">Fecha</span>
-                            </div>
-                            <div class="timeline-description">
-                                Envío asignado al transportista. Preparación de ruta y vehículo.
-                            </div>
-                        </div>
+                    <div class="col-md-3">
+                        <small style="color: #6c757d;">Peso</small>
+                        <p style="margin: 0; font-weight: 600;" th:text="${envio.pesoTotalKg != null ? #numbers.formatDecimal(envio.pesoTotalKg, 0, 'POINT', 0, 'COMMA') + ' kg' : 'N/A'}">0 kg</p>
                     </div>
-                </div>
-
-                <div class="update-location-form">
-                    <h4><i class="bi bi-geo-alt"></i> Actualizar Estado</h4>
-                    <form th:action="@{/transportista/envios/actualizar-estado/{id}(id=${envios[0].idEnvio})}" method="post" id="updateLocationForm">
-                        <div class="form-group">
-                            <label for="estadoNuevo">Cambiar Estado</label>
-                            <select id="estadoNuevo" name="estado" class="form-control" style="width: 100%; padding: 10px 15px; border: 2px solid #e3f2e8; border-radius: 10px;">
-                                <option value="Asignado">Asignado</option>
-                                <option value="En_Transito">En Tránsito</option>
-                                <option value="Finalizado">Finalizado</option>
-                            </select>
-                        </div>
-                        <button type="submit" class="btn-action btn-update">
-                            <i class="bi bi-arrow-clockwise"></i> Actualizar Estado
-                        </button>
-                    </form>
-                </div>
-
-                <div class="actions-section">
-                    <form th:action="@{/transportista/envios/actualizar-estado/{id}(id=${envios[0].idEnvio})}" method="post" style="display: inline-block; width: 100%;">
-                        <input type="hidden" name="estado" value="Finalizado">
-                        <button type="submit" class="btn-action btn-complete">
-                            <i class="bi bi-check-circle-fill"></i> Marcar como Entregado
-                        </button>
-                    </form>
+                    <div class="col-md-3">
+                        <small style="color: #6c757d;">Costo</small>
+                        <p style="margin: 0; font-weight: 600;">$<span th:text="${envio.costoTotal != null ? #numbers.formatDecimal(envio.costoTotal, 0, 'POINT', 0, 'COMMA') : '0'}">0</span></p>
+                    </div>
+                    <div class="col-md-3">
+                        <small style="color: #6c757d;">Cliente</small>
+                        <p style="margin: 0; font-weight: 600;" th:text="${envio.compra != null && envio.compra.cliente != null ? envio.compra.cliente.usuario.nombre : 'N/A'}">Cliente</p>
+                    </div>
                 </div>
             </div>
         </div>
+
+        <div th:if="${envios.isEmpty()}" class="empty-state">
+            <i class="bi bi-geo-alt"></i>
+            <h3>No tienes envíos en proceso</h3>
+            <p>Los envíos que aceptes aparecerán aquí para seguimiento</p>
+        </div>
     </div>
-</div>
+</main>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-<script>
-// Inicializar mapa
-let map = L.map('map').setView([4.5709, -74.2973], 6);
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '© OpenStreetMap contributors',
-    maxZoom: 18
-}).addTo(map);
-
-// Solo ejecutar si hay envíos
-const envioSelector = document.getElementById('envioSelector');
-const updateLocationForm = document.getElementById('updateLocationForm');
-
-if (envioSelector) {
-    // Rutas hardcodeadas para demo (se puede reemplazar con datos reales)
-    const routes = {
-        'ENV-2025-001': {origin: [4.7110, -74.0721], destination: [6.2442, -75.5812], current: [5.5, -75.0], color: '#2f6b31'},
-        'ENV-2025-002': {origin: [3.4516, -76.5320], destination: [4.7110, -74.0721], current: [4.0, -75.5], color: '#3498db'},
-        'ENV-2025-003': {origin: [10.9639, -74.7964], destination: [10.3910, -75.4794], current: [10.6, -75.1], color: '#e74c3c'},
-        'ENV-2025-004': {origin: [6.2442, -75.5812], destination: [3.4516, -76.5320], current: [4.8, -76.0], color: '#f39c12'},
-        'ENV-2025-005': {origin: [4.7110, -74.0721], destination: [7.1193, -73.1227], current: [5.5, -73.5], color: '#9b59b6'}
-    };
-
-    let currentRoute = routes['ENV-2025-001'];
-
-    function drawRoute(route) {
-        map.eachLayer((layer) => {
-            if (layer instanceof L.Polyline || layer instanceof L.Marker) {
-                map.removeLayer(layer);
-            }
-        });
-
-        const polyline = L.polyline([route.origin, route.current, route.destination], {
-            color: route.color,
-            weight: 4,
-            opacity: 0.7,
-            dashArray: '10, 5'
-        }).addTo(map);
-
-        L.marker(route.origin, {
-            icon: L.divIcon({
-                className: 'custom-marker',
-                html: '<div style="background: #28a745; color: white; padding: 8px 12px; border-radius: 20px; font-weight: bold; box-shadow: 0 2px 8px rgba(0,0,0,0.3);"><i class="bi bi-house-fill"></i> Origen</div>',
-                iconSize: [100, 40]
-            })
-        }).addTo(map);
-
-        L.marker(route.current, {
-            icon: L.divIcon({
-                className: 'custom-marker',
-                html: '<div style="background: #2f6b31; color: white; padding: 8px 12px; border-radius: 20px; font-weight: bold; box-shadow: 0 4px 12px rgba(47,107,49,0.4); animation: bounce 1s infinite;"><i class="bi bi-truck"></i> En Ruta</div>',
-                iconSize: [100, 40]
-            })
-        }).addTo(map);
-
-        L.marker(route.destination, {
-            icon: L.divIcon({
-                className: 'custom-marker',
-                html: '<div style="background: #dc3545; color: white; padding: 8px 12px; border-radius: 20px; font-weight: bold; box-shadow: 0 2px 8px rgba(0,0,0,0.3);"><i class="bi bi-geo-alt-fill"></i> Destino</div>',
-                iconSize: [100, 40]
-            })
-        }).addTo(map);
-
-        map.fitBounds(polyline.getBounds(), { padding: [50, 50] });
-    }
-
-    drawRoute(currentRoute);
-
-    envioSelector.addEventListener('change', function(e) {
-        const selectedEnvio = e.target.value;
-        if (routes[selectedEnvio]) {
-            currentRoute = routes[selectedEnvio];
-            drawRoute(currentRoute);
-        }
-    });
-}
-
-// Formulario de actualización solo si existe
-if (updateLocationForm) {
-    updateLocationForm.addEventListener('submit', function(e) {
-        e.preventDefault();
-        alert('Ubicación actualizada correctamente');
-        this.reset();
-    });
-}
-
-// Filtros
-const filterEstado = document.getElementById('filterEstado');
-const filterFecha = document.getElementById('filterFecha');
-const filterBuscar = document.getElementById('filterBuscar');
-const filterDestino = document.getElementById('filterDestino');
-
-if (filterEstado) {
-    filterEstado.addEventListener('change', function() { console.log('Filter by estado:', this.value); });
-}
-if (filterFecha) {
-    filterFecha.addEventListener('change', function() { console.log('Filter by fecha:', this.value); });
-}
-if (filterBuscar) {
-    filterBuscar.addEventListener('input', function() { console.log('Search:', this.value); });
-}
-if (filterDestino) {
-    filterDestino.addEventListener('change', function() { console.log('Filter by destino:', this.value); });
-}
-
-// Animación bounce
-const style = document.createElement('style');
-style.textContent = '@keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }';
-document.head.appendChild(style);
-</script>
 </body>
 </html>
 

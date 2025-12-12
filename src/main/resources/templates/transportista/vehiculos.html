@@ -4,307 +4,192 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mis Vehículos - Agrolink</title>
-
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
-
     <style>
-        body {
-            font-family: "Inter", sans-serif;
-            background: linear-gradient(135deg, #f0f9f4 0%, #e3f2e8 100%);
-            min-height: 100vh;
-            padding: 20px;
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: "Inter", sans-serif; background: #f8faf7; overflow-x: hidden; }
+        .sidebar {
+            position: fixed; top: 0; left: 0; height: 100vh; width: 280px;
+            background: linear-gradient(180deg, #2f6b31 0%, #1d4820 100%);
+            padding: 20px 0; z-index: 1000; box-shadow: 4px 0 15px rgba(0,0,0,0.1);
         }
-
-        .container { max-width: 1400px; margin: 0 auto; }
-
-        .header {
-            background: white;
-            padding: 30px;
-            border-radius: 16px;
-            margin-bottom: 30px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        .sidebar-brand { padding: 0 25px 25px 25px; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 20px; }
+        .sidebar-brand img { width: 50px; height: 50px; border-radius: 50%; margin-right: 12px; border: 2px solid #fff; }
+        .sidebar-brand h4 { color: white; font-weight: 700; margin: 0; font-size: 1.5rem; }
+        .sidebar-menu { list-style: none; padding: 0; }
+        .sidebar-menu li { margin: 5px 15px; }
+        .sidebar-menu a {
+            display: flex; align-items: center; padding: 14px 18px; color: rgba(255,255,255,0.85);
+            text-decoration: none; border-radius: 12px; transition: all 0.3s ease; font-weight: 500; font-size: 0.95rem;
         }
-
-        .header h1 { color: #2f6b31; font-weight: 800; }
-
-        .btn-primary {
-            background: linear-gradient(135deg, #2f6b31 0%, #5cb85c 100%);
-            border: none;
-            color: white;
-            padding: 12px 24px;
-            border-radius: 12px;
-            font-weight: 600;
+        .sidebar-menu a:hover, .sidebar-menu a.active {
+            background: rgba(255,255,255,0.15); color: white; transform: translateX(5px);
         }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(47,107,49,0.3);
+        .sidebar-menu a i { font-size: 1.3rem; margin-right: 15px; width: 25px; }
+        .main-content { margin-left: 280px; padding: 25px 30px; min-height: 100vh; }
+        .topbar {
+            background: white; padding: 20px 30px; border-radius: 16px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06); margin-bottom: 30px;
+            display: flex; justify-content: space-between; align-items: center;
         }
-
+        .topbar h2 { color: #2f6b31; font-weight: 700; margin: 0; font-size: 1.8rem; }
+        .topbar-right { display: flex; gap: 10px; }
+        .btn-custom { background: #2f6b31; color: white; border: none; padding: 10px 20px; border-radius: 10px; font-weight: 600; transition: all 0.3s ease; cursor: pointer; }
+        .btn-custom:hover { background: #1d4820; }
+        .vehiculos-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
         .vehiculo-card {
-            background: white;
-            border-radius: 16px;
-            padding: 25px;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            transition: all 0.3s;
+            background: white; border-radius: 16px; padding: 25px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06); transition: all 0.3s ease; border-left: 4px solid #2f6b31;
         }
-
-        .vehiculo-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 6px 20px rgba(0,0,0,0.12);
-        }
-
-        .vehiculo-info {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-        }
-
-        .vehiculo-icon {
-            width: 60px;
-            height: 60px;
-            border-radius: 12px;
-            background: linear-gradient(135deg, #2f6b31, #5cb85c);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 1.8rem;
-        }
-
-        .vehiculo-details h5 {
-            font-weight: 700;
-            color: #2f6b31;
-            margin-bottom: 5px;
-        }
-
-        .vehiculo-details p {
-            margin: 0;
-            color: #6c757d;
-            font-size: 0.9rem;
-        }
-
-        .vehiculo-actions {
-            display: flex;
-            gap: 10px;
-        }
-
-        .btn-action {
-            padding: 8px 16px;
-            border-radius: 10px;
-            border: none;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-size: 0.85rem;
-        }
-
-        .btn-delete {
-            background: linear-gradient(135deg, #e74c3c, #c0392b);
-            color: white;
-        }
-
-        .btn-delete:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(231,76,60,0.3);
-        }
-
-        .modal-content {
-            border-radius: 20px;
-            border: none;
-        }
-
-        .modal-header {
-            background: linear-gradient(135deg, #2f6b31 0%, #5cb85c 100%);
-            color: white;
-            border-radius: 20px 20px 0 0;
-        }
-
-        .form-label {
-            font-weight: 600;
-            color: #2f6b31;
-        }
-
-        .form-control {
-            border-radius: 10px;
-            border: 2px solid #e8f4ea;
-        }
-
-        .form-control:focus {
-            border-color: #2f6b31;
-            box-shadow: 0 0 0 0.2rem rgba(47,107,49,0.25);
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 60px 20px;
-            background: white;
-            border-radius: 16px;
-        }
-
-        .empty-state i {
-            font-size: 4rem;
-            color: #ccc;
-            margin-bottom: 20px;
+        .vehiculo-card:hover { transform: translateY(-5px); box-shadow: 0 8px 25px rgba(0,0,0,0.12); }
+        .vehiculo-icon { font-size: 2.5rem; color: #2f6b31; margin-bottom: 10px; }
+        .vehiculo-tipo { font-size: 1.3rem; font-weight: 700; color: #2f6b31; margin-bottom: 10px; }
+        .vehiculo-placa { font-size: 0.9rem; color: #6c757d; margin-bottom: 15px; font-family: monospace; background: #f8faf7; padding: 8px; border-radius: 6px; text-align: center; }
+        .vehiculo-detalles { margin: 15px 0; }
+        .detalle-item { margin-bottom: 12px; }
+        .detalle-label { font-size: 0.8rem; color: #6c757d; font-weight: 600; text-transform: uppercase; margin-bottom: 3px; }
+        .detalle-valor { font-size: 0.95rem; color: #2f6b31; font-weight: 600; }
+        .vehiculo-acciones { display: flex; gap: 10px; margin-top: 15px; }
+        .btn-action { flex: 1; background: white; border: 2px solid #2f6b31; color: #2f6b31; padding: 10px; border-radius: 10px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; }
+        .btn-action:hover { background: #2f6b31; color: white; }
+        .btn-eliminar { background: white; border: 2px solid #e63946; color: #e63946; }
+        .btn-eliminar:hover { background: #e63946; color: white; }
+        .empty-state { text-align: center; padding: 60px 20px; }
+        .empty-state i { font-size: 4rem; color: #ccc; margin-bottom: 20px; display: block; }
+        .empty-state h3 { color: #6c757d; margin-bottom: 10px; }
+        @media (max-width: 768px) {
+            .sidebar { transform: translateX(-100%); }
+            .main-content { margin-left: 0; padding: 15px; }
+            .vehiculos-grid { grid-template-columns: 1fr; }
+            .topbar { flex-direction: column; gap: 15px; align-items: flex-start; }
         }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <div class="header">
-        <div class="d-flex justify-content-between align-items-center">
-            <div>
-                <h1><i class="bi bi-car-front me-2"></i>Mis Vehículos</h1>
-                <p class="text-muted mb-0">Total: <strong th:text="${vehiculos.size()}">0</strong> vehículos registrados</p>
-            </div>
-            <div class="d-flex gap-2">
-                <button class="btn-primary" data-bs-toggle="modal" data-bs-target="#modalNuevoVehiculo">
-                    <i class="bi bi-plus-circle me-2"></i>Agregar Vehículo
-                </button>
-                <a href="/transportista/dashboard" class="btn btn-outline-secondary">
-                    <i class="bi bi-arrow-left me-2"></i>Volver
-                </a>
-            </div>
+<aside class="sidebar">
+    <div class="sidebar-brand d-flex align-items-center">
+        <img th:src="@{/CSS/logo/logoAgro.jpeg}" alt="Logo">
+        <div>
+            <h4>Agrolink</h4>
+            <small style="color: rgba(255,255,255,0.7);">Transportista</small>
+        </div>
+    </div>
+    <ul class="sidebar-menu">
+        <li><a th:href="@{/transportista/dashboard}"><i class="bi bi-speedometer2"></i><span>Dashboard</span></a></li>
+        <li><a th:href="@{/transportista/envios}"><i class="bi bi-box-seam"></i><span>Envíos Disponibles</span></a></li>
+        <li><a th:href="@{/transportista/mis-envios}"><i class="bi bi-truck"></i><span>Mis Envíos</span></a></li>
+        <li><a href="#" class="active"><i class="bi bi-car-front"></i><span>Mis Vehículos</span></a></li>
+        <li><a th:href="@{/transportista/seguimiento}"><i class="bi bi-geo-alt"></i><span>Seguimiento</span></a></li>
+        <li><a th:href="@{/transportista/perfil}"><i class="bi bi-person-circle"></i><span>Mi Perfil</span></a></li>
+    </ul>
+</aside>
+
+<main class="main-content">
+    <div class="topbar">
+        <div>
+            <h2>Mis Vehículos</h2>
+            <p class="text-muted mb-0">Gestiona tu flota de transporte</p>
+        </div>
+        <div class="topbar-right">
+            <button class="btn-custom" data-bs-toggle="modal" data-bs-target="#modalAgregar"><i class="bi bi-plus-circle"></i> Agregar Vehículo</button>
         </div>
     </div>
 
-    <!-- Lista de Vehículos -->
     <div th:if="${!vehiculos.isEmpty()}">
-        <div class="vehiculo-card" th:each="vehiculo : ${vehiculos}">
-            <div class="vehiculo-info">
+        <div class="vehiculos-grid">
+            <div class="vehiculo-card" th:each="vehiculo : ${vehiculos}">
                 <div class="vehiculo-icon">
-                    <i class="bi bi-truck"></i>
+                    <i class="bi bi-car-front"></i>
                 </div>
-                <div class="vehiculo-details">
-                    <h5 th:text="${vehiculo.tipoVehiculo}">Tipo de Vehículo</h5>
-                    <p><strong>Placa:</strong> <span th:text="${vehiculo.placaVehiculo}">ABC-123</span></p>
-                    <p><strong>Capacidad:</strong> <span th:text="${vehiculo.capacidadCarga != null ? #numbers.formatDecimal(vehiculo.capacidadCarga, 0, 'POINT', 0, 'COMMA') + ' kg' : 'N/A'}">0 kg</span></p>
+                <div class="vehiculo-tipo" th:text="${vehiculo.tipoVehiculo}">Tipo</div>
+                <div class="vehiculo-placa" th:text="${vehiculo.placaVehiculo}">ABC-123</div>
+
+                <div class="vehiculo-detalles">
+                    <div class="detalle-item">
+                        <div class="detalle-label">Capacidad de Carga</div>
+                        <div class="detalle-valor" th:text="${vehiculo.capacidadCarga != null ? #numbers.formatDecimal(vehiculo.capacidadCarga, 0, 'POINT', 1, 'COMMA') + ' kg' : 'N/A'}">0 kg</div>
+                    </div>
+                    <div class="detalle-item">
+                        <div class="detalle-label">Estado</div>
+                        <div class="detalle-valor" style="color: #28a745;">Activo</div>
+                    </div>
                 </div>
-            </div>
-            <div class="vehiculo-actions">
-                <button class="btn-action btn-delete" th:onclick="'eliminarVehiculo(' + ${vehiculo.idVehiculo} + ', \'' + ${vehiculo.placaVehiculo} + '\')'">
-                    <i class="bi bi-trash me-1"></i>Eliminar
-                </button>
+
+                <div class="vehiculo-acciones">
+                    <button class="btn-action">Editar</button>
+                    <button class="btn-action btn-eliminar">Eliminar</button>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Estado vacío -->
     <div th:if="${vehiculos.isEmpty()}" class="empty-state">
         <i class="bi bi-car-front"></i>
-        <h4>No tienes vehículos registrados</h4>
-        <p class="text-muted">Agrega tu primer vehículo para empezar a aceptar envíos.</p>
-        <button class="btn-primary mt-3" data-bs-toggle="modal" data-bs-target="#modalNuevoVehiculo">
-            <i class="bi bi-plus-circle me-2"></i>Agregar Vehículo
+        <h3>No tienes vehículos registrados</h3>
+        <p>Agrega tus vehículos para poder aceptar envíos</p>
+        <button class="btn-custom" data-bs-toggle="modal" data-bs-target="#modalAgregar">
+            <i class="bi bi-plus-circle"></i> Agregar Vehículo
         </button>
     </div>
-</div>
+</main>
 
-<!-- Modal Nuevo Vehículo -->
-<div class="modal fade" id="modalNuevoVehiculo" tabindex="-1">
+<!-- Modal Agregar Vehículo -->
+<div class="modal fade" id="modalAgregar" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title"><i class="bi bi-plus-circle me-2"></i>Agregar Nuevo Vehículo</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                <h5 class="modal-title">Agregar Vehículo</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <form id="formNuevoVehiculo">
+                <form id="formAgregarVehiculo">
                     <div class="mb-3">
-                        <label for="tipoVehiculo" class="form-label">Tipo de Vehículo *</label>
-                        <select class="form-control" id="tipoVehiculo" required>
-                            <option value="">Seleccionar...</option>
-                            <option value="Camión">Camión</option>
-                            <option value="Camioneta">Camioneta</option>
-                            <option value="Furgoneta">Furgoneta</option>
-                            <option value="Moto">Moto</option>
-                            <option value="Otro">Otro</option>
-                        </select>
+                        <label class="form-label">Tipo de Vehículo</label>
+                        <input type="text" class="form-control" name="tipoVehiculo" required>
                     </div>
-
                     <div class="mb-3">
-                        <label for="placaVehiculo" class="form-label">Placa del Vehículo *</label>
-                        <input type="text" class="form-control" id="placaVehiculo" placeholder="Ej: ABC-123" required>
+                        <label class="form-label">Placa del Vehículo</label>
+                        <input type="text" class="form-control" name="placaVehiculo" required>
                     </div>
-
                     <div class="mb-3">
-                        <label for="capacidadCarga" class="form-label">Capacidad de Carga (kg) *</label>
-                        <input type="number" class="form-control" id="capacidadCarga" placeholder="Ej: 1000" step="0.01" required>
-                    </div>
-
-                    <div class="text-end">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                        <button type="submit" class="btn-primary ms-2">
-                            <i class="bi bi-save me-2"></i>Guardar Vehículo
-                        </button>
+                        <label class="form-label">Capacidad de Carga (kg)</label>
+                        <input type="number" class="form-control" name="capacidadCarga" step="0.1" required>
                     </div>
                 </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-success" onclick="guardarVehiculo()">Guardar</button>
             </div>
         </div>
     </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-
 <script>
-    // Crear vehículo
-    document.getElementById('formNuevoVehiculo').addEventListener('submit', function(e) {
-        e.preventDefault();
+function guardarVehiculo() {
+    const form = document.getElementById('formAgregarVehiculo');
+    const formData = new FormData(form);
 
-        const formData = new FormData();
-        formData.append('tipoVehiculo', document.getElementById('tipoVehiculo').value);
-        formData.append('placaVehiculo', document.getElementById('placaVehiculo').value);
-        formData.append('capacidadCarga', document.getElementById('capacidadCarga').value);
-
-        fetch('/transportista/vehiculos/crear', {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                alert('¡Vehículo creado exitosamente!');
-                window.location.reload();
-            } else {
-                alert('Error: ' + (data.message || 'No se pudo crear el vehículo'));
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('Error al conectar con el servidor');
-        });
-    });
-
-    // Eliminar vehículo
-    function eliminarVehiculo(idVehiculo, placa) {
-        if (confirm('¿Estás seguro de eliminar el vehículo con placa ' + placa + '?')) {
-            fetch('/transportista/vehiculos/eliminar/' + idVehiculo, {
-                method: 'DELETE'
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    alert('¡Vehículo eliminado exitosamente!');
-                    window.location.reload();
-                } else {
-                    alert('Error: ' + (data.message || 'No se pudo eliminar el vehículo'));
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('Error al conectar con el servidor');
-            });
+    fetch('/transportista/vehiculos/crear', {
+        method: 'POST',
+        body: formData
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            alert('✅ Vehículo agregado correctamente');
+            location.reload();
+        } else {
+            alert('❌ ' + data.message);
         }
-    }
+    })
+    .catch(e => alert('❌ Error al agregar vehículo'));
+}
 </script>
-
 </body>
 </html>
 

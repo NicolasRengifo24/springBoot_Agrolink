@@ -5,24 +5,32 @@ import com.example.springbootagrolink.services.CompraService;
 import com.example.springbootagrolink.services.ProductoService;
 import com.example.springbootagrolink.repository.UsuarioRepository;
 import com.example.springbootagrolink.repository.ClienteRepository;
+import com.example.springbootagrolink.repository.EnvioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import jakarta.servlet.http.HttpSession;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.math.BigDecimal;
 import java.util.*;
 
 @Controller
 @RequestMapping("/compras")
 public class CompraController {
+
+    private static final Logger log = LoggerFactory.getLogger(CompraController.class);
 
     private final CompraService compraService;
 
@@ -34,6 +42,9 @@ public class CompraController {
 
     @Autowired
     private ClienteRepository clienteRepository;
+
+    @Autowired
+    private EnvioRepository envioRepository;
 
     public CompraController(CompraService compraService) {
         this.compraService = compraService;
@@ -351,6 +362,106 @@ public class CompraController {
     public String cancelarCompra(@PathVariable Integer idCompra) {
         compraService.cancelarCompra(idCompra);
         return "redirect:/compras";
+    }
+
+    // -----------------------------------------------------------
+    // POST - Eliminar compra y sus envíos asociados
+    // -----------------------------------------------------------
+    @PostMapping("/{idCompra}/eliminar")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> eliminarCompra(@PathVariable Integer idCompra) {
+        try {
+            log.info("▶ INICIANDO ELIMINACIÓN DE COMPRA");
+            log.info("  ID Compra: {}", idCompra);
+
+            // Validar que el ID sea válido
+            if (idCompra == null || idCompra <= 0) {
+                log.error("✗ ID de compra inválido: {}", idCompra);
+                return ResponseEntity.badRequest()
+                    .body(Map.of("success", false, "message", "ID de compra inválido"));
+            }
+
+            // Verificar que la compra exista
+            Optional<Compra> compraOpt = compraService.obtenerPorId(idCompra);
+            if (compraOpt.isEmpty()) {
+                log.error("✗ Compra no encontrada: {}", idCompra);
+                return ResponseEntity.badRequest()
+                    .body(Map.of("success", false, "message", "Compra no encontrada"));
+            }
+
+            Compra compra = compraOpt.get();
+            log.info("  ✓ Compra encontrada: ID={}, Cliente={}", compra.getIdCompra(),
+                    (compra.getCliente() != null ? compra.getCliente().getIdUsuario() : "NULL"));
+
+            // Eliminar todos los envíos asociados a esta compra (SIN IMPORTAR EL ESTADO)
+            log.info("  → Buscando envíos asociados...");
+            try {
+                // Obtener TODOS los envíos (sin filtrar por estado)
+                List<Envio> todosLosEnvios = envioRepository.findAll();
+                List<Envio> enviosAsociados = todosLosEnvios.stream()
+                    .filter(e -> {
+                        try {
+                            return e.getCompra() != null &&
+                                   e.getCompra().getIdCompra() != null &&
+                                   e.getCompra().getIdCompra().equals(idCompra);
+                        } catch (Exception ex) {
+                            log.warn("Error al filtrar envío: {}", ex.getMessage());
+                            return false;
+                        }
+                    })
+                    .toList();
+
+                if (!enviosAsociados.isEmpty()) {
+                    log.info("    Encontrados {} envío(s) asociado(s)", enviosAsociados.size());
+                    for (Envio envio : enviosAsociados) {
+                        try {
+                            log.info("    Eliminando envío: ID={}, Estado={}", envio.getIdEnvio(), envio.getEstadoEnvio());
+                            envioRepository.deleteById(envio.getIdEnvio());
+                            log.info("    ✓ Envío eliminado: ID={}", envio.getIdEnvio());
+                        } catch (Exception ex) {
+                            log.warn("    ⚠ Error al eliminar envío {}: {}", envio.getIdEnvio(), ex.getMessage());
+                            // Continuar con los siguientes envíos
+                        }
+                    }
+                } else {
+                    log.info("    No hay envíos asociados");
+                }
+            } catch (Exception ex) {
+                log.warn("  ⚠ Error buscando envíos: {}", ex.getMessage());
+                // Continuar incluso si hay error en envíos
+            }
+
+            // Eliminar la compra
+            log.info("  → Eliminando compra...");
+            try {
+                compraService.cancelarCompra(idCompra);
+                log.info("    ✓ Compra eliminada");
+            } catch (Exception ex) {
+                log.error("    ✗ Error al cancelar compra: {}", ex.getMessage());
+                throw ex; // Re-lanzar el error porque es crítico
+            }
+
+            log.info("✓ COMPRA ELIMINADA EXITOSAMENTE");
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "message", "Compra eliminada correctamente"
+            ));
+
+        } catch (Exception e) {
+            log.error("✗ ERROR AL ELIMINAR COMPRA: {}", e.getMessage());
+            log.error("  Tipo: {}", e.getClass().getSimpleName());
+
+            // Log del stack trace completo para debugging
+            StringWriter sw = new StringWriter();
+            e.printStackTrace(new PrintWriter(sw));
+            log.error("  Stack trace:\n{}", sw.toString());
+
+            return ResponseEntity.status(500)
+                .body(Map.of(
+                    "success", false,
+                    "message", "Error al eliminar la compra: " + e.getMessage()
+                ));
+        }
     }
 }
 

@@ -4,6 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="_csrf" th:content="${_csrf.token}">
+    <meta name="_csrf_header" th:content="${_csrf.headerName}">
     <title>Agrolink – Mis Pedidos</title>
 
     <!-- Bootstrap -->
@@ -452,9 +454,18 @@
                 </div>
 
                 <div class="info-item text-end">
-                    <a th:href="@{/compras/{id}(id=${pedido.idCompra})}" class="btn-outline-custom">
-                        <i class="bi bi-eye me-2"></i>Ver Detalles
-                    </a>
+                    <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                        <a th:href="@{/compras/{id}(id=${pedido.idCompra})}" class="btn-outline-custom">
+                            <i class="bi bi-eye me-2"></i>Ver Detalles
+                        </a>
+                        <form method="POST" th:action="@{/compras/{id}/eliminar(id=${pedido.idCompra})}" style="display: inline;">
+                            <button type="submit" class="btn-outline-custom" style="border-color: #e63946; color: #e63946; cursor: pointer; background: none; padding: 10px 24px; border: 2px solid #e63946; border-radius: 10px; font-weight: 600;"
+                                    onclick="return confirm('¿Estás seguro de que deseas eliminar Pedido #' + this.form.action.split('/')[3] + '?\\n\\nEsta acción no se puede deshacer.');"
+                                    title="Eliminar pedido">
+                                <i class="bi bi-trash me-2"></i>Eliminar
+                            </button>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>

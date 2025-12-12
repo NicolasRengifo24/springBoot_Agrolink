@@ -4,6 +4,7 @@ import com.example.springbootagrolink.model.Compra;
 import com.example.springbootagrolink.model.Usuario;
 import com.example.springbootagrolink.model.Envio;
 import com.example.springbootagrolink.services.CompraService;
+import com.example.springbootagrolink.services.EnvioService;
 import com.example.springbootagrolink.repository.UsuarioRepository;
 import com.example.springbootagrolink.repository.EnvioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +14,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import jakarta.servlet.http.HttpSession;
 import java.util.Map;
@@ -21,8 +24,13 @@ import java.util.Map;
 @RequestMapping("/pago")
 public class PagoController {
 
+    private static final Logger log = LoggerFactory.getLogger(PagoController.class);
+
     @Autowired
     private CompraService compraService;
+
+    @Autowired
+    private EnvioService envioService;
 
     @Autowired
     private UsuarioRepository usuarioRepository;
@@ -110,28 +118,68 @@ public class PagoController {
             RedirectAttributes redirectAttributes
     ) {
         try {
-            // Aquí iría la lógica real de procesamiento de pago con una pasarela de pago
-            // Por ahora, solo simulamos un pago exitoso
+            log.info("▶ INICIANDO PROCESAMIENTO DE PAGO");
+            log.info("  ID Compra: {}", idCompra);
 
-            // Crear el envío asociado a la compra
+            // Obtener la compra
             Compra compra = compraService.obtenerPorId(idCompra).orElse(null);
 
-            if (compra != null) {
-                Envio envio = new Envio();
-                envio.setCompra(compra);
-                envio.setDireccionDestino(compra.getDireccionEntrega());
-                envio.setEstadoEnvio(Envio.EstadoEnvio.Buscando_Transporte);
-                envio.setCostoTotal(compra.getValorEnvio());
-                envioRepository.save(envio);
+            if (compra == null) {
+                log.error("✗ Compra no encontrada: {}", idCompra);
+                redirectAttributes.addFlashAttribute("error", "Compra no encontrada");
+                return "redirect:/pago/index?idCompra=" + idCompra;
             }
+
+            log.info("  ✓ Compra obtenida: ID={}, Cliente={}", compra.getIdCompra(),
+                    (compra.getCliente() != null ? compra.getCliente().getIdUsuario() : "NULL"));
+
+            // Crear el envío con todos los datos correctamente capturados
+            log.info("  → Preparando datos para crear envío...");
+
+            Envio envio = new Envio();
+            envio.setCompra(compra);
+
+            // ASEGURAR que la dirección de destino esté seteada desde la compra
+            if (compra.getDireccionEntrega() != null && !compra.getDireccionEntrega().isEmpty()) {
+                envio.setDireccionDestino(compra.getDireccionEntrega());
+                log.info("  ✓ Dirección destino capturada: {}", compra.getDireccionEntrega());
+            } else {
+                log.warn("  ⚠ Advertencia: Dirección de entrega no definida en la compra");
+                envio.setDireccionDestino("Por confirmar");
+            }
+
+            envio.setEstadoEnvio(Envio.EstadoEnvio.Buscando_Transporte);
+
+            // Usar EnvioService.crear() que automáticamente:
+            // 1. Obtiene el peso total desde los detalles de la compra
+            // 2. Obtiene coordenadas de origen desde la finca del primer producto
+            // 3. Calcula la distancia
+            // 4. Calcula costo_base, costo_peso, costo_total
+            log.info("  → Llamando a EnvioService.crear() para cálculos automáticos...");
+            envio = envioService.crear(envio);
+
+            log.info("  ✓ Envío creado exitosamente:");
+            log.info("    - ID Envío: {}", envio.getIdEnvio());
+            log.info("    - Origen: {}", envio.getDireccionOrigen());
+            log.info("    - Destino: {}", envio.getDireccionDestino());
+            log.info("    - Distancia: {} km", envio.getDistanciaKm());
+            log.info("    - Peso Total: {} kg", envio.getPesoTotalKg());
+            log.info("    - Costo Base: ${}", envio.getCostoBase());
+            log.info("    - Costo Peso: ${}", envio.getCostoPeso());
+            log.info("    - Costo Total: ${}", envio.getCostoTotal());
 
             // Limpiar la sesión
             session.removeAttribute("idCompraActual");
 
+            log.info("✓ PAGO PROCESADO EXITOSAMENTE - Redirigiendo a confirmación");
             redirectAttributes.addFlashAttribute("success", "¡Pago procesado exitosamente! Tu pedido está en camino.");
             return "redirect:/pago/confirmacion?idCompra=" + idCompra;
 
         } catch (Exception e) {
+            log.error("✗ ERROR AL PROCESAR PAGO", e);
+            log.error("  Tipo: {}", e.getClass().getSimpleName());
+            log.error("  Mensaje: {}", e.getMessage());
+
             redirectAttributes.addFlashAttribute("error", "Error al procesar el pago: " + e.getMessage());
             return "redirect:/pago/index?idCompra=" + idCompra;
         }

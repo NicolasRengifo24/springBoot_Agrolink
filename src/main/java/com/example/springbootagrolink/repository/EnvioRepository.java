@@ -23,16 +23,34 @@ public interface EnvioRepository extends JpaRepository<Envio, Integer> {
            "WHERE e.transportista.idUsuario = :idUsuario")
     List<Envio> findByTransportista_IdUsuario(@Param("idUsuario") Integer idUsuario);
 
-    // Buscar envíos por estado con relaciones inicializadas
+    // Buscar envíos por estado - versión simple sin FETCH
+    @Query("SELECT e FROM Envio e WHERE e.estadoEnvio = :estado ORDER BY e.idEnvio DESC")
+    List<Envio> findByEstadoEnvio(@Param("estado") Envio.EstadoEnvio estado);
+
+    // Método alternativo con FETCH JOIN para cuando se necesitan relaciones
     @Query("SELECT DISTINCT e FROM Envio e " +
            "LEFT JOIN FETCH e.compra c " +
            "LEFT JOIN FETCH c.cliente cl " +
            "LEFT JOIN FETCH cl.usuario cu " +
            "WHERE e.estadoEnvio = :estado")
-    List<Envio> findByEstadoEnvio(@Param("estado") Envio.EstadoEnvio estado);
+    List<Envio> findByEstadoEnvioWithRelations(@Param("estado") Envio.EstadoEnvio estado);
 
-    // No es necesario declarar count() porque ya está heredado de JpaRepository
-    // El método count() devuelve long automáticamente
+    // Método nativo SQL como alternativa para debugging
+    @Query(value = "SELECT * FROM tb_envios WHERE estado_envio = ?1 ORDER BY id_envio DESC", nativeQuery = true)
+    List<Envio> findByEstadoEnvioNative(String estado);
+
+    // Obtener envíos disponibles con nombre del cliente usando SQL nativa
+    @Query(value = "SELECT e.id_envio, e.direccion_origen, e.direccion_destino, e.distancia_km, " +
+           "e.peso_total_kg, e.costo_total, e.estado_envio, e.id_compra, " +
+           "COALESCE(u.nombre, 'Por asignar') as nombre_cliente " +
+           "FROM tb_envios e " +
+           "LEFT JOIN tb_compras c ON e.id_compra = c.id_compra " +
+           "LEFT JOIN tb_clientes cl ON c.id_cliente = cl.id_cliente " +
+           "LEFT JOIN tb_usuarios u ON cl.id_usuario = u.id_usuario " +
+           "WHERE e.estado_envio = ?1 " +
+           "ORDER BY e.id_envio DESC", nativeQuery = true)
+    List<Object[]> findEnviosDisponiblesConCliente(String estado);
+
 }
 
 
