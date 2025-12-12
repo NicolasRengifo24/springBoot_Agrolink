@@ -234,12 +234,9 @@
 
       <!-- FORMULARIO DE EDICIÓN -->
       <div class="card-glass fade-admin">
-        <form th:action="@{/productos/actualizar/{id}(id=${producto.idProducto})}"
-              th:object="${producto}"
+        <form th:action="@{/admin/productos/actualizar/{id}(id=${producto.idProducto})}"
               method="post"
               enctype="multipart/form-data">
-
-          <input type="hidden" name="id" th:value="${producto.idProducto}" />
 
           <div class="row g-4">
             <!-- Nombre del Producto -->
@@ -248,8 +245,9 @@
                 <i class="bi bi-tag me-2"></i>Nombre del Producto *
               </label>
               <input id="nombreProducto"
+                     name="nombreProducto"
                      class="form-control"
-                     th:field="*{nombreProducto}"
+                     th:value="${producto.nombreProducto}"
                      placeholder="Ej: Tomate Cherry Orgánico"
                      required/>
             </div>
@@ -260,14 +258,14 @@
                 <i class="bi bi-bookmark me-2"></i>Categoría *
               </label>
               <select id="categoriaId"
-                      th:field="*{categoria.idCategoria}"
+                      name="categoria.idCategoria"
                       class="form-select"
                       required>
                 <option value="">Seleccione una categoría</option>
                 <option th:each="categoria : ${categorias}"
                         th:value="${categoria.idCategoria}"
                         th:text="${categoria.nombreCategoria}"
-                        th:selected="${categoria.idCategoria == producto.categoria?.idCategoria}">
+                        th:selected="${producto.categoria != null and categoria.idCategoria == producto.categoria.idCategoria}">
                   Categoría
                 </option>
               </select>
@@ -279,10 +277,11 @@
                 <i class="bi bi-text-paragraph me-2"></i>Descripción
               </label>
               <textarea id="descripcionProducto"
+                        name="descripcionProducto"
                         class="form-control"
-                        th:field="*{descripcionProducto}"
                         rows="4"
-                        placeholder="Describe las características del producto..."></textarea>
+                        placeholder="Describe las características del producto..."
+                        th:text="${producto.descripcionProducto}"></textarea>
             </div>
 
             <!-- Stock -->
@@ -291,8 +290,9 @@
                 <i class="bi bi-boxes me-2"></i>Stock (kg) *
               </label>
               <input id="stock"
+                     name="stock"
                      type="number"
-                     th:field="*{stock}"
+                     th:value="${producto.stock}"
                      class="form-control"
                      min="0"
                      placeholder="0"
@@ -305,8 +305,9 @@
                 <i class="bi bi-currency-dollar me-2"></i>Precio por kg (COP) *
               </label>
               <input id="precio"
+                     name="precio"
                      type="number"
-                     th:field="*{precio}"
+                     th:value="${producto.precio}"
                      class="form-control"
                      min="0"
                      step="0.01"
@@ -320,8 +321,9 @@
                 <i class="bi bi-dash-circle me-2"></i>Peso unitario (kg)
               </label>
               <input id="pesoKg"
+                     name="pesoKg"
                      type="number"
-                     th:field="*{pesoKg}"
+                     th:value="${producto.pesoKg}"
                      class="form-control"
                      min="0"
                      step="0.01"
@@ -334,7 +336,7 @@
                 <i class="bi bi-person-badge me-2"></i>Productor *
               </label>
               <select id="productorId"
-                      th:field="*{productor.idProductor}"
+                      name="productor.idProductor"
                       class="form-select"
                       required
                       onchange="cargarFincasDeProductor(this.value)">
@@ -342,7 +344,7 @@
                 <option th:each="productor : ${productores}"
                         th:value="${productor.idProductor}"
                         th:text="${productor.usuario != null ? productor.usuario.nombre + ' ' + (productor.usuario.apellido != null ? productor.usuario.apellido : '') : 'Productor ID: ' + productor.idProductor}"
-                        th:selected="${productor.idProductor == producto.productor?.idProductor}">
+                        th:selected="${producto.productor != null and productor.idProductor == producto.productor.idProductor}">
                   Productor
                 </option>
               </select>

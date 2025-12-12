@@ -450,6 +450,119 @@ public class AdminController {
     }
 
     /**
+     * Actualizar producto desde admin (POST desde formulario de edición)
+     */
+    @PostMapping("/productos/actualizar/{id}")
+    public String actualizarProducto(
+            @PathVariable("id") Integer id,
+            @RequestParam("nombreProducto") String nombreProducto,
+            @RequestParam(value = "descripcionProducto", required = false) String descripcionProducto,
+            @RequestParam("stock") Integer stock,
+            @RequestParam("precio") BigDecimal precio,
+            @RequestParam(value = "pesoKg", required = false) BigDecimal pesoKg,
+            @RequestParam("categoria.idCategoria") Integer categoriaId,
+            @RequestParam("productor.idProductor") Integer productorId,
+            @RequestParam(value = "imagenFile", required = false) org.springframework.web.multipart.MultipartFile imagenFile,
+            Model model) {
+
+        log.info("=== Admin: Actualizando producto ID: {} ===", id);
+        log.info("Archivo recibido: {}", imagenFile != null ? imagenFile.getOriginalFilename() : "ninguno");
+        log.info("Tamaño archivo: {}", imagenFile != null ? imagenFile.getSize() : 0);
+
+        try {
+            // Buscar el producto existente
+            Producto productoExistente = productoRepository.findById(id)
+                    .orElseThrow(() -> new RuntimeException("Producto no encontrado con ID: " + id));
+
+            log.info("Producto encontrado: {}", productoExistente.getNombreProducto());
+
+            // Actualizar campos básicos
+            productoExistente.setNombreProducto(nombreProducto);
+            productoExistente.setDescripcionProducto(descripcionProducto);
+            productoExistente.setStock(stock);
+            productoExistente.setPrecio(precio);
+            productoExistente.setPesoKg(pesoKg);
+
+            // Actualizar categoría
+            if (categoriaId != null) {
+                CategoriaProducto categoria = new CategoriaProducto();
+                categoria.setIdCategoria(categoriaId);
+                productoExistente.setCategoria(categoria);
+                log.info("Categoría actualizada: {}", categoriaId);
+            }
+
+            // Actualizar productor
+            if (productorId != null) {
+                Productor productor = productorRepository.findById(productorId)
+                        .orElse(null);
+                if (productor != null) {
+                    productoExistente.setProductor(productor);
+                    log.info("Productor actualizado: {}", productorId);
+                }
+            }
+
+            // Guardar el producto actualizado
+            Producto productoGuardado = productoRepository.save(productoExistente);
+            log.info("✅ Producto actualizado exitosamente: {} (ID: {})",
+                    productoGuardado.getNombreProducto(), productoGuardado.getIdProducto());
+
+            // Procesar imagen SOLO si se subió una nueva
+            if (imagenFile != null && !imagenFile.isEmpty() && imagenFile.getSize() > 0) {
+                try {
+                    log.info("📸 Procesando nueva imagen para el producto...");
+
+                    // Validar tipo de archivo
+                    String contentType = imagenFile.getContentType();
+                    if (contentType == null || !contentType.startsWith("image/")) {
+                        log.warn("⚠️ Archivo no es una imagen válida: {}", contentType);
+                        return "redirect:/admin/productos?success=actualizado&warning=imagen_invalida";
+                    }
+
+                    // Validar tamaño (máximo 5MB)
+                    long maxSize = 5 * 1024 * 1024; // 5MB
+                    if (imagenFile.getSize() > maxSize) {
+                        log.warn("⚠️ Archivo demasiado grande: {} bytes", imagenFile.getSize());
+                        return "redirect:/admin/productos?success=actualizado&warning=imagen_grande";
+                    }
+
+                    String nombreOriginal = imagenFile.getOriginalFilename();
+                    String extension = nombreOriginal != null && nombreOriginal.contains(".") ?
+                            nombreOriginal.substring(nombreOriginal.lastIndexOf(".")) : ".jpg";
+
+                    String nombreArchivo = "producto_" + productoGuardado.getIdProducto() + "_" +
+                            System.currentTimeMillis() + extension;
+
+                    // Guardar en directorio de imágenes
+                    String rutaImagen = "/images/" + nombreArchivo;
+                    java.nio.file.Path rutaCompleta = java.nio.file.Paths.get("src/main/resources/static" + rutaImagen);
+
+                    // Crear directorio si no existe
+                    java.nio.file.Files.createDirectories(rutaCompleta.getParent());
+                    imagenFile.transferTo(rutaCompleta.toFile());
+
+                    log.info("✅ Imagen guardada exitosamente en: {}", rutaImagen);
+
+                } catch (Exception imgEx) {
+                    log.error("⚠️ Error al guardar la imagen: {}", imgEx.getMessage(), imgEx);
+                    // Continuar sin fallar la actualización del producto
+                    return "redirect:/admin/productos?success=actualizado&warning=error_imagen";
+                }
+            } else {
+                log.info("ℹ️ No se subió nueva imagen, manteniendo la actual");
+            }
+
+            // Redirigir a la lista de productos con mensaje de éxito
+            log.info("✅ Redirigiendo a lista de productos con éxito");
+            return "redirect:/admin/productos?success=actualizado";
+
+        } catch (Exception e) {
+            log.error("❌ Error al actualizar producto ID {}: {}", id, e.getMessage(), e);
+            model.addAttribute("error", "Error al actualizar el producto: " + e.getMessage());
+            return "redirect:/admin/productos?error=actualizar";
+        }
+    }
+
+    /**
      * Eliminar producto desde admin
      */
     @DeleteMapping("/productos/eliminar/{id}")
@@ -573,18 +686,18 @@ public class AdminController {
             List<Envio> envios = envioRepository.findAll();
             log.info("Total envíos encontrados en BD: {}", envios.size());
 
-            // Forzar carga de relaciones lazy
+            // Forzar carga de relaciones lazy (solo transportista, no cliente para evitar fecha_hora_compra)
             for (Envio envio : envios) {
                 try {
                     // Cargar transportista
                     if (envio.getTransportista() != null && envio.getTransportista().getUsuario() != null) {
                         envio.getTransportista().getUsuario().getNombre();
                     }
-                    // Cargar compra y cliente
-                    if (envio.getCompra() != null && envio.getCompra().getCliente() != null) {
-                        if (envio.getCompra().getCliente().getUsuario() != null) {
-                            envio.getCompra().getCliente().getUsuario().getNombre();
-                        }
+                    // Solo cargar compra.idCompra y compra.total, NO cargar cliente
+                    if (envio.getCompra() != null) {
+                        envio.getCompra().getIdCompra();
+                        envio.getCompra().getTotal();
+                        // NO acceder a cliente para evitar lazy loading de fecha_hora_compra
                     }
                 } catch (Exception e) {
                     log.warn("Error cargando relaciones de envío {}: {}", envio.getIdEnvio(), e.getMessage());

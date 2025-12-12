@@ -467,16 +467,16 @@
                   <div th:if="${envio.compra != null}">
                     <strong th:text="'Pedido #' + ${envio.compra.idCompra}">Pedido #1</strong>
                     <br>
-                    <small class="text-muted" th:text="'$' + ${envio.compra.total != null ? #numbers.formatDecimal(envio.compra.total, 0, 'COMMA', 0, 'POINT') : '0'}">$50,000</small>
+                    <small class="text-muted" th:text="${envio.compra.total != null ? '$' + #numbers.formatDecimal(envio.compra.total, 0, 2) : '$0'}">$50,000</small>
                   </div>
                   <span th:unless="${envio.compra != null}" class="badge bg-secondary">Sin pedido</span>
                 </td>
                 <td>
-                  <div th:if="${envio.compra != null and envio.compra.cliente != null and envio.compra.cliente.usuario != null}">
-                    <div class="fw-bold" th:text="${envio.compra.cliente.usuario.nombre + ' ' + (envio.compra.cliente.usuario.apellido != null ? envio.compra.cliente.usuario.apellido : '')}">Cliente</div>
-                    <small class="text-muted" th:text="${envio.compra.cliente.usuario.correo}">correo@example.com</small>
-                  </div>
-                  <span th:unless="${envio.compra != null and envio.compra.cliente != null}" class="text-muted">N/A</span>
+                  <span th:if="${envio.compra != null}"
+                        class="text-muted fst-italic"
+                        th:text="'De pedido #' + ${envio.compra.idCompra}">De pedido #1</span>
+                  <span th:unless="${envio.compra != null}"
+                        class="text-muted">Sin pedido</span>
                 </td>
                 <td>
                   <div th:if="${envio.transportista != null and envio.transportista.usuario != null}">
@@ -502,7 +502,7 @@
                   <span th:unless="${envio.numeroSeguimiento != null}" class="text-muted">N/A</span>
                 </td>
                 <td class="text-center">
-                  <span th:if="${envio.distanciaKm != null}" th:text="${#numbers.formatDecimal(envio.distanciaKm, 1, 'POINT', 0, 'POINT')} + ' km'">0 km</span>
+                  <span th:if="${envio.distanciaKm != null}" th:text="${#numbers.formatDecimal(envio.distanciaKm, 1, 2)} + ' km'">0 km</span>
                   <span th:unless="${envio.distanciaKm != null}" class="text-muted">-</span>
                 </td>
                 <td class="text-center">
