@@ -344,8 +344,22 @@ public class AdminController {
      */
     @GetMapping("/productos")
     public String gestionProductos(Model model) {
+        log.info("=== Accediendo a /admin/productos ===");
         try {
+            // Obtener todos los productos
             List<Producto> productos = productoRepository.findAll();
+            log.info("Total productos encontrados: {}", productos.size());
+
+            // Inicializar imágenes para evitar lazy loading issues
+            for (Producto p : productos) {
+                if (p.getImagenesProducto() != null) {
+                    p.getImagenesProducto().size(); // Forzar carga de imágenes
+                    log.debug("Producto: {} - Imágenes: {}", p.getNombreProducto(), p.getImagenesProducto().size());
+                }
+                if (p.getProductor() != null && p.getProductor().getUsuario() != null) {
+                    p.getProductor().getUsuario().getNombre(); // Forzar carga de productor
+                }
+            }
 
             // Datos para la vista
             model.addAttribute("productos", productos);
@@ -358,23 +372,39 @@ public class AdminController {
                 }
             }
             model.addAttribute("categorias", new ArrayList<>(categoriasUnicas));
+            log.info("Total categorías únicas: {}", categoriasUnicas.size());
 
             // Stats para KPIs
-            model.addAttribute("totalProductos", productos.size());
-            model.addAttribute("productosBajoStock",
-                productos.stream().filter(p -> p.getStock() != null && p.getStock() < 10).count());
-            model.addAttribute("productosDisponibles",
-                productos.stream().filter(p -> p.getStock() != null && p.getStock() >= 10).count());
-            model.addAttribute("totalProductores", productorRepository.count());
+            long bajoStock = productos.stream().filter(p -> p.getStock() != null && p.getStock() < 10).count();
+            long disponibles = productos.stream().filter(p -> p.getStock() != null && p.getStock() >= 10).count();
+            long totalProductores = productorRepository.count();
 
-            log.info("Vista de productos admin cargada - Total productos: {}", productos.size());
+            model.addAttribute("totalProductos", productos.size());
+            model.addAttribute("productosBajoStock", bajoStock);
+            model.addAttribute("productosDisponibles", disponibles);
+            model.addAttribute("totalProductores", totalProductores);
+
+            log.info("✅ Vista de productos admin cargada exitosamente");
+            log.info("📊 Stats: {} productos, {} disponibles, {} bajo stock, {} productores",
+                     productos.size(), disponibles, bajoStock, totalProductores);
 
             return "admin/productos";
 
         } catch (Exception e) {
-            log.error("Error al cargar productos: {}", e.getMessage(), e);
-            model.addAttribute("error", "Error al cargar productos");
-            return "redirect:/admin";
+            log.error("=== ❌ ERROR AL CARGAR PRODUCTOS ===");
+            log.error("Tipo de error: {}", e.getClass().getName());
+            log.error("Mensaje: {}", e.getMessage());
+            log.error("Stack trace: ", e);
+
+            model.addAttribute("productos", Collections.emptyList());
+            model.addAttribute("categorias", Collections.emptyList());
+            model.addAttribute("totalProductos", 0);
+            model.addAttribute("productosBajoStock", 0);
+            model.addAttribute("productosDisponibles", 0);
+            model.addAttribute("totalProductores", 0);
+            model.addAttribute("error", "Error al cargar productos: " + e.getMessage());
+
+            return "admin/productos";
         }
     }
 
