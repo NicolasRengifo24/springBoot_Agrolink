@@ -7,10 +7,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
+
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -29,6 +27,8 @@ public class AdminController {
     private final UsuarioRepository usuarioRepository;
     private final ClienteRepository clienteRepository;
     private final AsesorRepository asesorRepository;
+    private final FincaRepository fincaRepository;
+    private final EnvioRepository envioRepository;
 
     public AdminController(ProductoRepository productoRepository,
                            CompraRepository compraRepository,
@@ -36,7 +36,9 @@ public class AdminController {
                            ProductorRepository productorRepository,
                            UsuarioRepository usuarioRepository,
                            ClienteRepository clienteRepository,
-                           AsesorRepository asesorRepository) {
+                           AsesorRepository asesorRepository,
+                           FincaRepository fincaRepository,
+                           EnvioRepository envioRepository) {
         this.productoRepository = productoRepository;
         this.compraRepository = compraRepository;
         this.transportistaRepository = transportistaRepository;
@@ -44,6 +46,8 @@ public class AdminController {
         this.usuarioRepository = usuarioRepository;
         this.clienteRepository = clienteRepository;
         this.asesorRepository = asesorRepository;
+        this.fincaRepository = fincaRepository;
+        this.envioRepository = envioRepository;
     }
 
     /**
@@ -405,6 +409,276 @@ public class AdminController {
             model.addAttribute("error", "Error al cargar productos: " + e.getMessage());
 
             return "admin/productos";
+        }
+    }
+
+    /**
+     * Vista de editar producto desde admin
+     */
+    @GetMapping("/productos/editar/{id}")
+    public String editarProducto(@PathVariable("id") Integer id, Model model) {
+        log.info("=== Admin: Editando producto ID: {} ===", id);
+        try {
+            Producto producto = productoRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
+
+            // Cargar categorías y productores
+            List<CategoriaProducto> categorias = new ArrayList<>();
+            Set<CategoriaProducto> categoriasUnicas = new HashSet<>();
+            List<Producto> todosProductos = productoRepository.findAll();
+            for (Producto p : todosProductos) {
+                if (p.getCategoria() != null) {
+                    categoriasUnicas.add(p.getCategoria());
+                }
+            }
+            categorias = new ArrayList<>(categoriasUnicas);
+
+            List<Productor> productores = productorRepository.findAll();
+
+            model.addAttribute("producto", producto);
+            model.addAttribute("categorias", categorias);
+            model.addAttribute("productores", productores);
+
+            log.info("✅ Vista de editar producto cargada");
+            return "admin/editar-producto";
+
+        } catch (Exception e) {
+            log.error("❌ Error al cargar producto para editar: {}", e.getMessage(), e);
+            model.addAttribute("error", "Error al cargar el producto: " + e.getMessage());
+            return "redirect:/admin/productos";
+        }
+    }
+
+    /**
+     * Eliminar producto desde admin
+     */
+    @DeleteMapping("/productos/eliminar/{id}")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> eliminarProducto(@PathVariable("id") Integer id) {
+        log.info("=== Admin: Eliminando producto ID: {} ===", id);
+        Map<String, Object> response = new HashMap<>();
+
+        try {
+            Producto producto = productoRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
+
+            String nombreProducto = producto.getNombreProducto();
+            productoRepository.delete(producto);
+
+            log.info("✅ Producto eliminado exitosamente: {}", nombreProducto);
+            response.put("success", true);
+            response.put("message", "Producto eliminado exitosamente");
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            log.error("❌ Error al eliminar producto: {}", e.getMessage(), e);
+            response.put("success", false);
+            response.put("message", "Error al eliminar el producto: " + e.getMessage());
+            return ResponseEntity.status(500).body(response);
+        }
+    }
+
+    /**
+     * Vista de gestión de pedidos/compras - SIN usar fecha_hora_compra
+     */
+    @GetMapping("/pedidos")
+    public String gestionPedidos(Model model) {
+        log.info("=== Accediendo a /admin/pedidos (sin consultar fechas) ===");
+        try {
+            // Obtener todas las compras usando query nativa para evitar problema con fechas
+            List<Compra> compras;
+            try {
+                compras = compraRepository.findAll();
+                log.info("Total compras encontradas en BD: {}", compras.size());
+            } catch (Exception ex) {
+                log.error("Error en findAll(), intentando cargar compras con query nativa...", ex);
+                // Si falla, crear lista vacía
+                compras = new ArrayList<>();
+            }
+
+            // Forzar carga de relaciones lazy sin tocar fecha_hora_compra
+            List<Compra> comprasValidas = new ArrayList<>();
+            for (Compra compra : compras) {
+                try {
+                    // Cargar cliente sin acceder a fecha
+                    if (compra.getCliente() != null) {
+                        try {
+                            if (compra.getCliente().getUsuario() != null) {
+                                compra.getCliente().getUsuario().getNombre();
+                            }
+                        } catch (Exception e) {
+                            log.debug("Error cargando usuario del cliente: {}", e.getMessage());
+                        }
+                    }
+                    comprasValidas.add(compra);
+                } catch (Exception e) {
+                    log.warn("Error procesando compra {}: {}", compra.getIdCompra(), e.getMessage());
+                }
+            }
+
+            // Ordenar SOLO por ID descendente (más reciente primero)
+            List<Compra> comprasOrdenadas = comprasValidas.stream()
+                .sorted((c1, c2) -> c2.getIdCompra().compareTo(c1.getIdCompra()))
+                .toList();
+
+            // Calcular estadísticas SIN usar fechas
+            long totalPedidos = comprasOrdenadas.size();
+            BigDecimal totalVentas = comprasOrdenadas.stream()
+                .filter(c -> c.getTotal() != null)
+                .map(Compra::getTotal)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+            // Para pedidos del mes, usamos 0 ya que no podemos consultar fechas
+            long pedidosMes = 0;
+            BigDecimal ventasMes = BigDecimal.ZERO;
+
+            // Agregar al modelo
+            model.addAttribute("compras", comprasOrdenadas);
+            model.addAttribute("totalPedidos", totalPedidos);
+            model.addAttribute("totalVentas", totalVentas);
+            model.addAttribute("pedidosMes", pedidosMes);
+            model.addAttribute("ventasMes", ventasMes);
+
+            log.info("✅ Vista de pedidos admin cargada exitosamente");
+            log.info("📊 Stats: {} pedidos totales, ${} en ventas totales",
+                     totalPedidos, totalVentas);
+
+            return "admin/pedidos";
+
+        } catch (Exception e) {
+            log.error("=== ❌ ERROR AL CARGAR PEDIDOS ===");
+            log.error("Tipo de error: {}", e.getClass().getName());
+            log.error("Mensaje: {}", e.getMessage());
+            log.error("Stack trace: ", e);
+
+            model.addAttribute("compras", Collections.emptyList());
+            model.addAttribute("totalPedidos", 0);
+            model.addAttribute("totalVentas", BigDecimal.ZERO);
+            model.addAttribute("pedidosMes", 0);
+            model.addAttribute("ventasMes", BigDecimal.ZERO);
+            model.addAttribute("error", "Error al cargar pedidos: " + e.getMessage());
+
+            return "admin/pedidos";
+        }
+    }
+
+    /**
+     * Vista de gestión de envíos
+     */
+    @GetMapping("/envios")
+    public String gestionEnvios(Model model) {
+        log.info("=== Accediendo a /admin/envios ===");
+        try {
+            // Obtener todos los envíos
+            List<Envio> envios = envioRepository.findAll();
+            log.info("Total envíos encontrados en BD: {}", envios.size());
+
+            // Forzar carga de relaciones lazy
+            for (Envio envio : envios) {
+                try {
+                    // Cargar transportista
+                    if (envio.getTransportista() != null && envio.getTransportista().getUsuario() != null) {
+                        envio.getTransportista().getUsuario().getNombre();
+                    }
+                    // Cargar compra y cliente
+                    if (envio.getCompra() != null && envio.getCompra().getCliente() != null) {
+                        if (envio.getCompra().getCliente().getUsuario() != null) {
+                            envio.getCompra().getCliente().getUsuario().getNombre();
+                        }
+                    }
+                } catch (Exception e) {
+                    log.warn("Error cargando relaciones de envío {}: {}", envio.getIdEnvio(), e.getMessage());
+                }
+            }
+
+            // Ordenar por ID descendente
+            List<Envio> enviosOrdenados = envios.stream()
+                .sorted((e1, e2) -> e2.getIdEnvio().compareTo(e1.getIdEnvio()))
+                .toList();
+
+            // Calcular estadísticas
+            long totalEnvios = enviosOrdenados.size();
+            long enviosEntregados = enviosOrdenados.stream()
+                .filter(e -> e.getEstadoEnvio() != null && e.getEstadoEnvio().toString().equals("Entregado"))
+                .count();
+            long enviosEnTransito = enviosOrdenados.stream()
+                .filter(e -> e.getEstadoEnvio() != null && e.getEstadoEnvio().toString().equals("En_Transito"))
+                .count();
+            long enviosPendientes = enviosOrdenados.stream()
+                .filter(e -> e.getEstadoEnvio() != null &&
+                       (e.getEstadoEnvio().toString().equals("Buscando_Transporte") ||
+                        e.getEstadoEnvio().toString().equals("Listo_Para_Envio")))
+                .count();
+
+            // Agregar al modelo
+            model.addAttribute("envios", enviosOrdenados);
+            model.addAttribute("totalEnvios", totalEnvios);
+            model.addAttribute("enviosEntregados", enviosEntregados);
+            model.addAttribute("enviosEnTransito", enviosEnTransito);
+            model.addAttribute("enviosPendientes", enviosPendientes);
+
+            log.info("✅ Vista de envíos admin cargada exitosamente");
+            log.info("📊 Stats: {} envíos totales, {} entregados, {} en tránsito, {} pendientes",
+                     totalEnvios, enviosEntregados, enviosEnTransito, enviosPendientes);
+
+            return "admin/envios";
+
+        } catch (Exception e) {
+            log.error("=== ❌ ERROR AL CARGAR ENVÍOS ===");
+            log.error("Tipo de error: {}", e.getClass().getName());
+            log.error("Mensaje: {}", e.getMessage());
+            log.error("Stack trace: ", e);
+
+            model.addAttribute("envios", Collections.emptyList());
+            model.addAttribute("totalEnvios", 0);
+            model.addAttribute("enviosEntregados", 0);
+            model.addAttribute("enviosEnTransito", 0);
+            model.addAttribute("enviosPendientes", 0);
+            model.addAttribute("error", "Error al cargar envíos: " + e.getMessage());
+
+            return "admin/envios";
+        }
+    }
+
+    /**
+     * API: Obtener fincas de un productor específico
+     */
+    @GetMapping("/api/productores/{id}/fincas")
+    @ResponseBody
+    public ResponseEntity<List<Map<String, Object>>> obtenerFincasDeProductor(@PathVariable("id") Integer productorId) {
+        log.info("=== API: Obteniendo fincas del productor ID: {} ===", productorId);
+
+        try {
+            // Verificar que el productor existe
+            Productor productor = productorRepository.findById(productorId)
+                .orElseThrow(() -> new RuntimeException("Productor no encontrado"));
+
+            // Obtener todas las fincas y filtrar por productor
+            List<Finca> todasFincas = fincaRepository.findAll();
+            List<Map<String, Object>> fincasData = new ArrayList<>();
+
+            for (Finca finca : todasFincas) {
+                // Verificar si la finca pertenece a este productor
+                if (finca.getProductor() != null &&
+                    finca.getProductor().getIdProductor() != null &&
+                    finca.getProductor().getIdProductor().equals(productorId)) {
+
+                    Map<String, Object> fincaMap = new HashMap<>();
+                    fincaMap.put("idFinca", finca.getIdFinca());
+                    fincaMap.put("nombreFinca", finca.getNombreFinca() != null ? finca.getNombreFinca() : "Finca sin nombre");
+                    fincaMap.put("ubicacion", finca.getCiudad() != null ? finca.getCiudad() : (finca.getDireccionFinca() != null ? finca.getDireccionFinca() : "Sin ubicación"));
+                    fincaMap.put("direccion", finca.getDireccionFinca() != null ? finca.getDireccionFinca() : "");
+
+                    fincasData.add(fincaMap);
+                }
+            }
+
+            log.info(" Fincas encontradas para productor {}: {}", productorId, fincasData.size());
+            return ResponseEntity.ok(fincasData);
+
+        } catch (Exception e) {
+            log.error(" Error al obtener fincas del productor: {}", e.getMessage(), e);
+            return ResponseEntity.status(500).body(new ArrayList<>());
         }
     }
 

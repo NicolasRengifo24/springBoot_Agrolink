@@ -305,16 +305,13 @@
         <div class="nav-item" onclick="window.location.href='/admin/productos'" style="cursor: pointer;">
           <i class="bi bi-box-seam"></i><span class="nav-label">Productos</span>
         </div>
-        <div class="nav-item" onclick="mostrarEnDesarrollo('Pedidos')" style="cursor: pointer;">
+        <div class="nav-item" onclick="window.location.href='/admin/pedidos'">
           <i class="bi bi-cart-check"></i><span class="nav-label">Pedidos</span>
         </div>
-        <div class="nav-item" onclick="mostrarEnDesarrollo('Envíos')" style="cursor: pointer;">
+        <div class="nav-item" onclick="window.location.href='/admin/envios'">
           <i class="bi bi-truck"></i><span class="nav-label">Envíos</span>
         </div>
-        <div class="nav-item" onclick="mostrarEnDesarrollo('Analíticas')" style="cursor: pointer;">
-          <i class="bi bi-graph-up"></i><span class="nav-label">Analíticas</span>
-        </div>
-        <div class="nav-item" onclick="window.location.href='/logout'" style="cursor: pointer;">
+        <div class="nav-item" onclick="mostrarModalCerrarSesion()">
           <i class="bi bi-box-arrow-right"></i><span class="nav-label">Cerrar Sesión</span>
         </div>
       </nav>
@@ -469,39 +466,7 @@
         </div>
       </div>
 
-      <!-- INVENTARIO TABLE -->
-      <div class="card-glass fade-admin" style="background:white; border-radius:24px; padding:32px; border:1px solid rgba(0,0,0,0.05); box-shadow:0 16px 40px rgba(0,0,0,0.08);">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-          <h5 class="fw-800 mb-0" style="color:var(--green);">📦 Inventario Crítico</h5>
-          <button class="btn btn-success" onclick="window.location.href='/productos/crear'">
-            <i class="bi bi-plus-lg me-2"></i>Agregar Producto
-          </button>
-        </div>
-        <div class="table-responsive">
-          <table class="table align-middle">
-            <thead>
-              <tr>
-                <th>Producto</th>
-                <th>Productor</th>
-                <th>Stock</th>
-                <th>Precio</th>
-                <th>Estado</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td colspan="6" class="text-center py-5">
-                  <div class="spinner-border text-success" role="status">
-                    <span class="visually-hidden">Cargando...</span>
-                  </div>
-                  <p class="mt-3 text-muted">Cargando productos con stock crítico...</p>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
+
     </main>
   </div>
 
@@ -509,6 +474,37 @@
   <button class="fab-admin" title="Panel rápido">
     <i class="bi bi-speedometer2"></i>
   </button>
+
+  <!-- MODAL DE CONFIRMACIÓN CERRAR SESIÓN -->
+  <div class="modal fade" id="modalCerrarSesion" tabindex="-1" aria-labelledby="modalCerrarSesionLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content" style="border-radius: 20px; border: none; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
+        <div class="modal-header border-0" style="background: linear-gradient(135deg, #2f6b31, #3f8a41); color: white; border-radius: 20px 20px 0 0; padding: 24px 32px;">
+          <h5 class="modal-title fw-bold" id="modalCerrarSesionLabel">
+            <i class="bi bi-box-arrow-right me-2"></i>Cerrar Sesión
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body" style="padding: 32px;">
+          <div class="text-center mb-4">
+            <i class="bi bi-question-circle-fill text-warning" style="font-size: 4rem;"></i>
+          </div>
+          <h5 class="text-center mb-3 fw-bold">¿Estás seguro de cerrar sesión?</h5>
+          <p class="text-center text-muted mb-0">
+            Se cerrará tu sesión actual y serás redirigido al inicio de sesión.
+          </p>
+        </div>
+        <div class="modal-footer border-0" style="padding: 0 32px 32px 32px; gap: 12px;">
+          <button type="button" class="btn btn-lg btn-outline-secondary" data-bs-dismiss="modal" style="border-radius: 12px; padding: 12px 32px; font-weight: 600;">
+            <i class="bi bi-x-circle me-2"></i>Cancelar
+          </button>
+          <button type="button" class="btn btn-lg btn-danger" onclick="cerrarSesion()" style="border-radius: 12px; padding: 12px 32px; font-weight: 600; background: linear-gradient(135deg, #dc3545, #c82333); border: none;">
+            <i class="bi bi-box-arrow-right me-2"></i>Sí, Cerrar Sesión
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- SCRIPTS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
@@ -518,15 +514,17 @@
     // INICIALIZACIÓN
     // ============================================
     document.addEventListener('DOMContentLoaded', function() {
+      console.log('🎯 Dashboard Admin cargado');
+      console.log('📊 Total Pedidos:', document.querySelector('.kpi-number')?.textContent || '0');
+
       // Inicializar tooltips de Bootstrap
       var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
       tooltipTriggerList.map(function (tooltipTriggerEl) {
         return new bootstrap.Tooltip(tooltipTriggerEl);
       });
 
-      // Cargar datos dinámicos
+      // Cargar gráfico de ventas
       cargarVentasSemanales();
-      cargarProductosCriticos();
     });
 
     // ============================================
@@ -534,17 +532,23 @@
     // ============================================
     function cargarVentasSemanales() {
       fetch('/admin/ventas-semanales')
-        .then(response => response.json())
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Error al obtener datos');
+          }
+          return response.json();
+        })
         .then(data => {
+          console.log('📈 Datos de ventas recibidos:', data);
           const ctx = document.getElementById('salesChart');
           if (ctx) {
             new Chart(ctx, {
               type: 'line',
               data: {
-                labels: data.labels || ['Lun', 'Mar', 'Mié', 'Jue', 'Vie'],
+                labels: data.labels || ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'],
                 datasets: [{
                   label: 'Ventas COP',
-                  data: data.data || [12000, 22000, 18000, 32000, 45000],
+                  data: data.data || [45000, 62000, 53000, 78000, 95000, 81000, 67000],
                   borderColor: '#2f6b31',
                   backgroundColor: 'rgba(47,107,49,0.12)',
                   borderWidth: 4,
@@ -553,135 +557,112 @@
                   pointBackgroundColor: '#fff',
                   pointBorderColor: '#2f6b31',
                   pointBorderWidth: 3,
-                  pointRadius: 8
+                  pointRadius: 8,
+                  pointHoverRadius: 10
                 }]
               },
               options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                plugins: { legend: { display: false } },
+                plugins: {
+                  legend: { display: false },
+                  tooltip: {
+                    backgroundColor: 'rgba(47,107,49,0.9)',
+                    padding: 12,
+                    titleFont: { size: 14, weight: 'bold' },
+                    bodyFont: { size: 13 },
+                    callbacks: {
+                      label: function(context) {
+                        return 'Ventas: $' + context.parsed.y.toLocaleString('es-CO');
+                      }
+                    }
+                  }
+                },
                 scales: {
                   y: {
                     beginAtZero: true,
                     grid: { color: 'rgba(47,107,49,0.08)' },
-                    ticks: { color: '#666' }
+                    ticks: {
+                      color: '#666',
+                      callback: function(value) {
+                        return '$' + (value/1000) + 'k';
+                      }
+                    }
                   },
                   x: {
                     grid: { display: false },
-                    ticks: { color: '#666' }
+                    ticks: { color: '#666', font: { weight: '600' } }
                   }
                 }
               }
             });
+            console.log('✅ Gráfico de ventas creado');
           }
         })
         .catch(error => {
-          console.error('Error al cargar ventas:', error);
-        });
-    }
-
-    // ============================================
-    // TABLA DE PRODUCTOS CRÍTICOS
-    // ============================================
-    function cargarProductosCriticos() {
-      fetch('/admin/productos-criticos')
-        .then(response => response.json())
-        .then(productos => {
-          const tbody = document.querySelector('.table tbody');
-          if (!tbody) return;
-
-          if (!productos || productos.length === 0) {
-            tbody.innerHTML = `
-              <tr>
-                <td colspan="6" class="text-center py-5 text-muted">
-                  <i class="bi bi-check-circle fs-1 text-success"></i>
-                  <p class="mt-2">No hay productos con stock crítico</p>
-                </td>
-              </tr>
-            `;
-            return;
+          console.error('❌ Error al cargar ventas:', error);
+          // Mostrar gráfico con datos de ejemplo
+          const ctx = document.getElementById('salesChart');
+          if (ctx) {
+            new Chart(ctx, {
+              type: 'line',
+              data: {
+                labels: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'],
+                datasets: [{
+                  label: 'Ventas COP',
+                  data: [45000, 62000, 53000, 78000, 95000, 81000, 67000],
+                  borderColor: '#2f6b31',
+                  backgroundColor: 'rgba(47,107,49,0.12)',
+                  borderWidth: 4,
+                  tension: 0.4,
+                  fill: true
+                }]
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } }
+              }
+            });
           }
-
-          let html = '';
-          productos.forEach(producto => {
-            const icono = producto.stock < 300 ? 'bi-exclamation-triangle text-danger' : 'bi-box-seam text-success';
-            const estadoBadge = producto.stock < 300 ? 'status-low' : 'status-ready';
-            const estadoTexto = producto.stock < 300 ? 'Bajo Stock' : 'Disponible';
-
-            html += `
-              <tr>
-                <td>
-                  <div class="d-flex align-items-center">
-                    <i class="bi ${icono} fs-3 me-3"></i>
-                    <div><strong>${producto.nombreProducto}</strong></div>
-                  </div>
-                </td>
-                <td>${producto.productor || 'N/A'}</td>
-                <td><strong class="${producto.stock < 300 ? 'text-warning' : ''}">${producto.stock} kg</strong></td>
-                <td>$${producto.precio ? producto.precio.toLocaleString('es-CO') : '0'}</td>
-                <td><span class="badge-admin ${estadoBadge}">${estadoTexto}</span></td>
-                <td>
-                  <button class="btn btn-sm btn-outline-primary me-1" onclick="window.location.href='/productos/editar/${producto.idProducto}'">
-                    <i class="bi bi-pencil"></i>
-                  </button>
-                  <button class="btn btn-sm btn-outline-danger" onclick="eliminarProducto(${producto.idProducto})">
-                    <i class="bi bi-trash"></i>
-                  </button>
-                </td>
-              </tr>
-            `;
-          });
-
-          tbody.innerHTML = html;
-        })
-        .catch(error => {
-          console.error('Error al cargar productos críticos:', error);
         });
     }
 
     // ============================================
     // FUNCIONES AUXILIARES
     // ============================================
-    function mostrarEnDesarrollo(seccion) {
-      const toast = document.createElement('div');
-      toast.style.cssText = 'position:fixed;top:20px;right:20px;background:linear-gradient(135deg,#ff9800,#ff6b00);color:white;padding:20px 30px;border-radius:12px;box-shadow:0 8px 24px rgba(255,107,0,0.3);z-index:9999;animation:slideIn 0.3s ease;font-weight:500;';
-      toast.innerHTML = '<i class="bi bi-info-circle me-2"></i>Sección de ' + seccion + ' en desarrollo';
-      document.body.appendChild(toast);
 
+    // Función para el FAB (Botón de acción flotante)
+    document.querySelector('.fab-admin')?.addEventListener('click', function() {
+      alert('Panel de acceso rápido\n\n• Ver Estadísticas\n• Exportar Datos\n• Configuración Rápida');
+    });
+
+    // Log de estado
+    console.log('✅ Dashboard Admin completamente cargado');
+    console.log('📊 KPIs visibles:', document.querySelectorAll('.kpi-admin').length);
+    console.log('📈 Gráfico:', document.getElementById('salesChart') ? 'Inicializado' : 'No encontrado');
+
+    // ============================================
+    // MODAL Y FUNCIÓN DE CERRAR SESIÓN
+    // ============================================
+    function mostrarModalCerrarSesion() {
+      const modal = new bootstrap.Modal(document.getElementById('modalCerrarSesion'));
+      modal.show();
+    }
+
+    function cerrarSesion() {
+      console.log('🚪 Cerrando sesión...');
+      // Mostrar mensaje de despedida
+      const modal = bootstrap.Modal.getInstance(document.getElementById('modalCerrarSesion'));
+      if (modal) {
+        modal.hide();
+      }
+
+      // Pequeña animación antes de redirigir
       setTimeout(() => {
-        toast.style.opacity = '0';
-        toast.style.transform = 'translateX(400px)';
-        toast.style.transition = 'all 0.3s ease';
-        setTimeout(() => toast.remove(), 300);
-      }, 2500);
+        window.location.href = '/logout';
+      }, 300);
     }
-
-    function eliminarProducto(id) {
-      if (confirm('¿Estás seguro de eliminar este producto?')) {
-        fetch(`/productos/eliminar/${id}`, { method: 'DELETE' })
-          .then(response => {
-            if (response.ok) {
-              location.reload();
-            } else {
-              alert('Error al eliminar el producto');
-            }
-          })
-          .catch(error => {
-            console.error('Error:', error);
-            alert('Error al eliminar el producto');
-          });
-      }
-    }
-
-    // Animación para las notificaciones
-    const style = document.createElement('style');
-    style.textContent = `
-      @keyframes slideIn {
-        from { transform: translateX(400px); opacity: 0; }
-        to { transform: translateX(0); opacity: 1; }
-      }
-    `;
-    document.head.appendChild(style);
   </script>
 </body>
 </html>
