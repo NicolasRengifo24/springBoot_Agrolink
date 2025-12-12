@@ -29,8 +29,9 @@ public class Vehiculo implements Serializable {
     )
     private Transportista transportista;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "tipo_vehiculo", length = 50)
-    private String tipoVehiculo;
+    private TipoVehiculo tipoVehiculo;
 
     @Column(name = "capacidad_carga", precision = 10, scale = 2)
     private BigDecimal capacidadCarga;

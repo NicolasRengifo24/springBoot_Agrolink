@@ -1,0 +1,65 @@
+2025-12-12T02:55:12.096-05:00  INFO 15264 --- [SpringBoot-Agrolink] [main] c.e.s.SpringBootAgrolinkApplication      : Starting SpringBootAgrolinkApplication v0.0.1-SNAPSHOT using Java 21.0.9 with PID 15264 (C:\Users\NICOLAS\IdeaProjects\SpringBoot-Agrolink\target\SpringBoot-Agrolink-0.0.1-SNAPSHOT.jar started by NICOLAS in C:\Users\NICOLAS\IdeaProjects\SpringBoot-Agrolink)
+2025-12-12T02:55:12.116-05:00  INFO 15264 --- [SpringBoot-Agrolink] [main] c.e.s.SpringBootAgrolinkApplication      : No active profile set, falling back to 1 default profile: "default"
+2025-12-12T02:55:14.448-05:00  INFO 15264 --- [SpringBoot-Agrolink] [main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2025-12-12T02:55:14.711-05:00  INFO 15264 --- [SpringBoot-Agrolink] [main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 237 ms. Found 19 JPA repository interfaces.
+2025-12-12T02:55:22.920-05:00  INFO 15264 --- [SpringBoot-Agrolink] [main] o.s.boot.tomcat.TomcatWebServer          : Tomcat initialized with port 8081 (http)
+2025-12-12T02:55:22.986-05:00  INFO 15264 --- [SpringBoot-Agrolink] [main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2025-12-12T02:55:22.988-05:00  INFO 15264 --- [SpringBoot-Agrolink] [main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/11.0.14]
+2025-12-12T02:55:23.116-05:00  INFO 15264 --- [SpringBoot-Agrolink] [main] b.w.c.s.WebApplicationContextInitializer : Root WebApplicationContext: initialization completed in 10818 ms
+2025-12-12T02:55:23.706-05:00  INFO 15264 --- [SpringBoot-Agrolink] [main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2025-12-12T02:55:23.878-05:00  INFO 15264 --- [SpringBoot-Agrolink] [main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 7.1.8.Final
+2025-12-12T02:55:26.025-05:00  INFO 15264 --- [SpringBoot-Agrolink] [main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2025-12-12T02:55:26.289-05:00  INFO 15264 --- [SpringBoot-Agrolink] [main] com.zaxxer.hikari.HikariDataSource       : AgrolinkHikariCP - Starting...
+2025-12-12T02:55:27.365-05:00  INFO 15264 --- [SpringBoot-Agrolink] [main] com.zaxxer.hikari.pool.HikariPool        : AgrolinkHikariCP - Added connection com.mysql.cj.jdbc.ConnectionImpl@57bac3f0
+2025-12-12T02:55:27.376-05:00  INFO 15264 --- [SpringBoot-Agrolink] [main] com.zaxxer.hikari.HikariDataSource       : AgrolinkHikariCP - Start completed.
+2025-12-12T02:55:27.638-05:00  WARN 15264 --- [SpringBoot-Agrolink] [main] org.hibernate.dialect.Dialect            : HHH000511: The 5.5.5 version for [org.hibernate.dialect.MySQLDialect] is no longer supported, hence certain features may not work properly. The minimum supported version is 8.0.0. Check the community dialects project for available legacy versions.
+2025-12-12T02:55:27.740-05:00  INFO 15264 --- [SpringBoot-Agrolink] [main] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
+	Database JDBC URL [jdbc:mysql://localhost:3306/springbagrolink_db?createDatabaseIfNotExist=true&serverTimezone=UTC]
+	Database driver: MySQL Connector/J
+	Database dialect: MySQLDialect
+	Database version: 5.5.5
+	Default catalog/schema: springbagrolink_db/undefined
+	Autocommit mode: undefined/unknown
+	Isolation level: REPEATABLE_READ [default REPEATABLE_READ]
+	JDBC fetch size: none
+	Pool: DatasourceConnectionProviderImpl
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2025-12-12T02:55:35.577-05:00  INFO 15264 --- [SpringBoot-Agrolink] [main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2025-12-12T02:55:36.132-05:00 DEBUG 15264 --- [SpringBoot-Agrolink] [main] org.hibernate.SQL                        : 
+    alter table tb_envios 
+       modify column estado_envio enum ('Asignado','Buscando_Transporte','Cancelado','En_Transito','Finalizado')
+2025-12-12T02:55:36.157-05:00 DEBUG 15264 --- [SpringBoot-Agrolink] [main] org.hibernate.SQL                        : 
+    alter table tb_productores 
+       modify column tipo_cultivo enum ('Cultivo_Urbano','Huerta','Monocultivo','Policultivo')
+2025-12-12T02:55:36.168-05:00 DEBUG 15264 --- [SpringBoot-Agrolink] [main] org.hibernate.SQL                        : 
+    alter table tb_servicios 
+       modify column estado enum ('Activo','Inactivo')
+2025-12-12T02:55:36.176-05:00 DEBUG 15264 --- [SpringBoot-Agrolink] [main] org.hibernate.SQL                        : 
+    alter table tb_usuarios 
+       modify column rol enum ('ROLE_ADMIN','ROLE_CLIENTE','ROLE_PRODUCTOR','ROLE_SERVICIO','ROLE_TRANSPORTISTA')
+2025-12-12T02:55:36.340-05:00  INFO 15264 --- [SpringBoot-Agrolink] [main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2025-12-12T02:55:36.512-05:00  INFO 15264 --- [SpringBoot-Agrolink] [main] o.s.d.j.r.query.QueryEnhancerFactories   : Hibernate is in classpath; If applicable, HQL parser will be used.
+2025-12-12T02:55:40.948-05:00  WARN 15264 --- [SpringBoot-Agrolink] [main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2025-12-12T02:55:41.172-05:00  INFO 15264 --- [SpringBoot-Agrolink] [main] r$InitializeUserDetailsManagerConfigurer : Global AuthenticationManager configured with UserDetailsService bean with name customUserDetailsService
+2025-12-12T02:55:42.618-05:00  WARN 15264 --- [SpringBoot-Agrolink] [main] ConfigServletWebServerApplicationContext : Exception encountered during context initialization - cancelling refresh attempt: org.springframework.context.ApplicationContextException: Failed to start bean 'webServerStartStop'
+2025-12-12T02:55:42.630-05:00  INFO 15264 --- [SpringBoot-Agrolink] [main] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2025-12-12T02:55:42.635-05:00  INFO 15264 --- [SpringBoot-Agrolink] [main] com.zaxxer.hikari.HikariDataSource       : AgrolinkHikariCP - Shutdown initiated...
+2025-12-12T02:55:42.651-05:00  INFO 15264 --- [SpringBoot-Agrolink] [main] com.zaxxer.hikari.HikariDataSource       : AgrolinkHikariCP - Shutdown completed.
+2025-12-12T02:55:42.680-05:00  INFO 15264 --- [SpringBoot-Agrolink] [main] .s.b.a.l.ConditionEvaluationReportLogger : 
+
+Error starting ApplicationContext. To display the condition evaluation report re-run your application with 'debug' enabled.
+2025-12-12T02:55:42.728-05:00 ERROR 15264 --- [SpringBoot-Agrolink] [main] o.s.b.d.LoggingFailureAnalysisReporter   : 
+
+***************************
+APPLICATION FAILED TO START
+***************************
+
+Description:
+
+Web server failed to start. Port 8081 was already in use.
+
+Action:
+
+Identify and stop the process that's listening on port 8081 or configure this application to listen on another port.
+

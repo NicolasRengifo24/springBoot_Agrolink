@@ -109,7 +109,7 @@ public class SecurityConfig {
                 .permitAll()
             )
             .csrf(csrf -> csrf
-                .ignoringRequestMatchers("/logout")
+                .ignoringRequestMatchers("/logout", "/transportista/envios/aceptar/**")
             );
 
         return http.build();

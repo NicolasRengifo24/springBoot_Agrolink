@@ -142,7 +142,7 @@
                     </div>
 
                     <div class="envio-actions">
-                        <button class="btn-aceptar" th:onclick="'aceptarEnvio(' + ${envio.idEnvio} + ')'">
+                        <button class="btn-aceptar" type="button" th:onclick="'abrirModalAceptarEnvio(' + ${envio.idEnvio} + ')'">
                             <i class="bi bi-check-circle"></i> Aceptar
                         </button>
                     </div>
@@ -157,6 +157,44 @@
         </div>
     </div>
 </main>
+
+<!-- Modal para aceptar envío -->
+<div class="modal fade" id="modalAceptarEnvio" tabindex="-1" aria-labelledby="modalAceptarEnvioLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalAceptarEnvioLabel">Aceptar Envío</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <form id="formAceptarEnvio">
+        <div class="modal-body">
+          <input type="hidden" id="modalEnvioId" name="envioId">
+          <div class="mb-3">
+            <label for="vehiculoId" class="form-label">Selecciona un vehículo</label>
+            <select class="form-select" id="vehiculoId" name="vehiculoId" required>
+              <option value="" disabled selected>Selecciona...</option>
+              <th:block th:each="vehiculo : ${vehiculos}">
+                <option th:value="${vehiculo.idVehiculo}" th:text="${vehiculo.placaVehiculo} + ' - ' + ${vehiculo.tipoVehiculo}"></option>
+              </th:block>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label for="fechaSalida" class="form-label">Fecha de salida</label>
+            <input type="date" class="form-control" id="fechaSalida" name="fechaSalida" required min="2025-12-12">
+          </div>
+          <div class="mb-3">
+            <label for="fechaEntrega" class="form-label">Fecha de entrega</label>
+            <input type="date" class="form-control" id="fechaEntrega" name="fechaEntrega" required min="2025-12-12">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-success">Aceptar Envío</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
@@ -177,11 +215,29 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
-function aceptarEnvio(idEnvio) {
-    if (!confirm('¿Deseas aceptar este envío?')) return;
-    fetch('/transportista/envios/aceptar/' + idEnvio, {
+function abrirModalAceptarEnvio(idEnvio) {
+    document.getElementById('modalEnvioId').value = idEnvio;
+    document.getElementById('vehiculoId').selectedIndex = 0;
+    document.getElementById('fechaSalida').value = '';
+    document.getElementById('fechaEntrega').value = '';
+    var modal = new bootstrap.Modal(document.getElementById('modalAceptarEnvio'));
+    modal.show();
+}
+
+document.getElementById('formAceptarEnvio').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const envioId = document.getElementById('modalEnvioId').value;
+    const vehiculoId = document.getElementById('vehiculoId').value;
+    const fechaSalida = document.getElementById('fechaSalida').value;
+    const fechaEntrega = document.getElementById('fechaEntrega').value;
+    if (!vehiculoId || !fechaSalida || !fechaEntrega) {
+        alert('Debes seleccionar un vehículo, una fecha de salida y una fecha de entrega.');
+        return;
+    }
+    fetch('/transportista/envios/aceptar/' + envioId, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({ vehiculoId, fechaSalida, fechaEntrega })
     })
     .then(r => r.json())
     .then(data => {
@@ -193,7 +249,7 @@ function aceptarEnvio(idEnvio) {
         }
     })
     .catch(() => alert('❌ Error al aceptar el envío'));
-}
+});
 </script>
 
 </body>

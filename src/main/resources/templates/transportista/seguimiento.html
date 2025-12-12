@@ -125,7 +125,23 @@
             <div th:each="envio : ${envios}" class="envio-item">
                 <div class="envio-item-header">
                     <div class="envio-id" th:text="'#ENV-' + ${envio.idEnvio}">#ENV-0</div>
-                    <span class="envio-status" th:classappend="${envio.estadoEnvio == 'En_Transito' ? 'status-transito' : 'status-asignado'}" th:text="${envio.estadoEnvio}">Estado</span>
+                    <span class="envio-status" th:classappend="${envio.estadoEnvio == 'En_Transito' ? 'status-transito' : (envio.estadoEnvio == 'Finalizado' ? 'status-finalizado' : 'status-asignado')}" th:text="${envio.estadoEnvio}">Estado</span>
+                </div>
+
+                <!-- Botones para cambiar estado -->
+                <div class="mb-2">
+                    <form th:action="@{'/transportista/envios/actualizar-estado/' + ${envio.idEnvio}}" method="post" style="display:inline;">
+                        <input type="hidden" name="estado" value="En_Transito" />
+                        <button type="submit" class="btn btn-sm btn-primary me-2" th:if="${envio.estadoEnvio.name() == 'Asignado'}">
+                            Marcar como En Tránsito
+                        </button>
+                    </form>
+                    <form th:action="@{'/transportista/envios/actualizar-estado/' + ${envio.idEnvio}}" method="post" style="display:inline;">
+                        <input type="hidden" name="estado" value="Finalizado" />
+                        <button type="submit" class="btn btn-sm btn-success" th:if="${envio.estadoEnvio.name() == 'En_Transito' || envio.estadoEnvio.name() == 'Asignado'}">
+                            Marcar como Finalizado
+                        </button>
+                    </form>
                 </div>
 
                 <div class="row mb-3">
