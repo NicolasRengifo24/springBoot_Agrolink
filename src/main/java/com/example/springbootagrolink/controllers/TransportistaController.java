@@ -42,6 +42,9 @@ public class TransportistaController {
     @Autowired
     private TransportistaService transportistaService;
 
+    @Autowired
+    private jakarta.persistence.EntityManager entityManager;
+
     /**
      * API para obtener envíos disponibles en JSON (usando SQL nativa para obtener cliente)
      */
@@ -115,6 +118,28 @@ public class TransportistaController {
         return transportista;
     }
 
+    /**
+     * Obtener nombre del cliente usando SQL nativo (evita lazy loading de fecha_hora_compra)
+     */
+    private String obtenerNombreClientePorCompra(Integer idCompra) {
+        try {
+            String sql = "SELECT CONCAT(u.nombre, ' ', u.apellido) " +
+                        "FROM tb_compras c " +
+                        "JOIN tb_clientes cl ON c.id_cliente = cl.id_usuario " +
+                        "JOIN tb_usuarios u ON cl.id_usuario = u.id_usuario " +
+                        "WHERE c.id_compra = ?1";
+
+            Object result = entityManager.createNativeQuery(sql)
+                .setParameter(1, idCompra)
+                .getSingleResult();
+
+            return result != null ? result.toString() : "Sin asignar";
+        } catch (Exception e) {
+            log.warn("Error al obtener nombre de cliente para compra {}: {}", idCompra, e.getMessage());
+            return "Sin asignar";
+        }
+    }
+
     // =============================================================================
     // NOTE: Se eliminó la vista 'dashboard' y los endpoints relacionados a sus gráficos
     // - Se removieron: método calcularIngresosPorMes, método GET /dashboard,
@@ -131,16 +156,16 @@ public class TransportistaController {
         try {
             log.info("▶ ▶ ▶ INICIANDO: Obtener envíos disponibles para transportista");
 
-            // Obtener envíos disponibles directamente
-            log.info("  → Consultando BD para envíos con estado Buscando_Transporte...");
-            List<Envio> enviosDisponibles = envioRepository.findByEstadoEnvio(Envio.EstadoEnvio.Buscando_Transporte);
-            
+            // Obtener envíos disponibles SIN fechas asignadas (filtrado en BD)
+            log.info("  → Consultando BD para envíos sin fechas asignadas...");
+            List<Envio> enviosDisponibles = envioRepository.findEnviosDisponiblesSinFechas(Envio.EstadoEnvio.Buscando_Transporte);
+
             if (enviosDisponibles == null) {
                 log.warn("  ⚠ Query retornó NULL, usando lista vacía");
                 enviosDisponibles = new ArrayList<>();
             }
 
-            log.info("  ✓ Total de envíos encontrados en BD: {}", enviosDisponibles.size());
+            log.info("  ✓ Total de envíos disponibles (sin fechas asignadas): {}", enviosDisponibles.size());
 
             // Mostrar detalles de CADA envío encontrado
             for (int i = 0; i < enviosDisponibles.size(); i++) {
@@ -153,15 +178,36 @@ public class TransportistaController {
                 log.info("      Peso: {} kg", envio.getPesoTotalKg());
                 log.info("      Costo: ${}", envio.getCostoTotal());
                 log.info("      Estado: {}", envio.getEstadoEnvio());
-                log.info("      Compra: {}", envio.getCompra() != null ? envio.getCompra().getIdCompra() : "NULL");
+                // NO acceder a fechaHoraCompra para evitar error "Zero date value prohibited"
+                log.info("      Tiene Compra: {}", envio.getCompra() != null ? "SÍ (ID: " + envio.getCompra().getIdCompra() + ")" : "NO");
             }
 
-            // NO filtrar, mostrar TODOS los envíos encontrados
+            // Mostrar solo envíos realmente disponibles (sin fechas asignadas)
             // Los campos como fecha_entrega, fecha_salida, transportista, vehiculo se llenarán cuando se acepte
-            log.info("  ✓ Se mostrarán {} envíos sin filtrado", enviosDisponibles.size());
+            log.info("  ✓ Se mostrarán {} envíos disponibles (filtrados sin fechas)", enviosDisponibles.size());
+
+            // Crear mapa de nombres de clientes usando SQL nativo (evita lazy loading problemático)
+            Map<Integer, String> nombresClientes = new HashMap<>();
+            for (Envio envio : enviosDisponibles) {
+                if (envio.getCompra() != null) {
+                    try {
+                        // Obtener nombre del cliente usando SQL nativo para evitar fecha_hora_compra
+                        Integer idCompra = envio.getCompra().getIdCompra();
+                        String nombreCliente = obtenerNombreClientePorCompra(idCompra);
+                        nombresClientes.put(envio.getIdEnvio(), nombreCliente != null ? nombreCliente : "Sin asignar");
+                    } catch (Exception e) {
+                        log.warn("No se pudo obtener cliente para envío {}", envio.getIdEnvio());
+                        nombresClientes.put(envio.getIdEnvio(), "Sin asignar");
+                    }
+                } else {
+                    nombresClientes.put(envio.getIdEnvio(), "Sin asignar");
+                }
+            }
 
             // Agregar datos al modelo
             model.addAttribute("envios", enviosDisponibles);
+            model.addAttribute("nombresClientes", nombresClientes);
+
             try {
                 Transportista transportistaModel = obtenerTransportistaAutenticado();
                 Usuario usuarioModel = transportistaModel.getUsuario();

@@ -25,21 +25,38 @@ public class CustomUserDetailsService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        logger.info("=== Intentando cargar usuario: {} ===", username);
+
         Usuario usuario = usuarioRepository.findByNombreUsuario(username)
                 .orElseThrow(() -> {
-                    logger.warn("Usuario no encontrado en la BD: {}", username);
+                    logger.error("❌ Usuario NO encontrado en la BD: {}", username);
                     return new UsernameNotFoundException("Usuario no encontrado: " + username);
                 });
 
-        logger.info("Cargando usuario '{}' desde BD (id={}) con rol={}", usuario.getNombreUsuario(), usuario.getIdUsuario(), usuario.getRol());
+        logger.info("✓ Usuario encontrado en BD:");
+        logger.info("  - ID: {}", usuario.getIdUsuario());
+        logger.info("  - Nombre: {}", usuario.getNombre());
+        logger.info("  - Username: {}", usuario.getNombreUsuario());
+        logger.info("  - Rol: {}", usuario.getRol());
+        logger.info("  - Password hash: {}", usuario.getContrasenaUsuario().substring(0, Math.min(20, usuario.getContrasenaUsuario().length())) + "...");
+
+        // Validar que el rol no sea nulo
+        if (usuario.getRol() == null) {
+            logger.error("❌ El usuario {} no tiene ROL asignado!", username);
+            throw new UsernameNotFoundException("Usuario sin rol asignado: " + username);
+        }
 
         List<SimpleGrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(usuario.getRol().name()));
 
-        logger.info("Authorities del usuario {}: {}", usuario.getNombreUsuario(), authorities);
+        logger.info("✓ Authorities asignadas: {}", authorities);
 
         return new org.springframework.security.core.userdetails.User(
                 usuario.getNombreUsuario(),
                 usuario.getContrasenaUsuario(),
+                true, // enabled
+                true, // accountNonExpired
+                true, // credentialsNonExpired
+                true, // accountNonLocked
                 authorities
         );
     }

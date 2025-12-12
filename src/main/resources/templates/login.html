@@ -53,8 +53,8 @@
 
   <div class="login-card">
 
-    <a href="index.html" class="text-agro mb-3 d-block text-decoration-none">
-      ← Volver al panel
+    <a th:href="@{/}" href="/" class="text-agro mb-3 d-block text-decoration-none">
+      ← Volver al inicio
     </a>
 
     <h1 class="fw-bold text-agro mb-2 text-center">Iniciar Sesión</h1>
@@ -63,15 +63,15 @@
     <!-- BOTONES SOCIALES -->
     <div class="row g-3 mb-4">
       <div class="col-12 col-sm-6">
-        <button class="btn btn-light w-100 border shadow-sm">
-          <img src="https://www.svgrepo.com/show/475656/google-color.svg" width="20" class="me-2">
+        <button class="btn btn-light w-100 border shadow-sm" type="button">
+          <img src="https://www.svgrepo.com/show/475656/google-color.svg" width="20" class="me-2" alt="Google">
           Google
         </button>
       </div>
 
       <div class="col-12 col-sm-6">
-        <button class="btn btn-light w-100 border shadow-sm">
-          <img src="https://www.svgrepo.com/show/354141/twitter.svg" width="20" class="me-2">
+        <button class="btn btn-light w-100 border shadow-sm" type="button">
+          <img src="https://www.svgrepo.com/show/354141/twitter.svg" width="20" class="me-2" alt="Twitter">
           X (Twitter)
         </button>
       </div>
@@ -96,13 +96,12 @@
       <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
 
       <div class="mb-3">
-        <label class="form-label text-agro">Email / Usuario *</label>
-        <input type="text" name="username" class="form-control input-agro" placeholder="usuario@correo.com" autofocus
-          required>
+        <label for="username" class="form-label text-agro">Email / Usuario *</label>
+        <input type="text" id="username" name="username" class="form-control input-agro" placeholder="usuario@correo.com" autofocus required>
       </div>
 
       <div class="mb-3">
-        <label class="form-label text-agro">Contraseña *</label>
+        <label for="passInput" class="form-label text-agro">Contraseña *</label>
 
         <div class="input-group">
           <input type="password" name="password" class="form-control input-agro" id="passInput"
@@ -110,7 +109,7 @@
           <button class="btn btn-outline-success" type="button" onclick="
               const inp = document.getElementById('passInput');
               inp.type = inp.type === 'password' ? 'text' : 'password';
-            ">
+            " aria-label="Mostrar/Ocultar contraseña">
             👁️
           </button>
         </div>

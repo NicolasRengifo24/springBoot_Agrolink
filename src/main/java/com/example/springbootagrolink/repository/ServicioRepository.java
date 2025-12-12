@@ -11,8 +11,8 @@ import java.util.List;
 @Repository
 public interface ServicioRepository extends JpaRepository<Servicio, Integer> {
 
-    // Sobrescribir findAll para cargar el usuario junto con el servicio/asesor
+    // Sobrescribir findAll para cargar el asesor junto con el servicio
     @Override
-    @EntityGraph(attributePaths = {"usuario"})
+    @EntityGraph(attributePaths = {"asesor"})
     List<Servicio> findAll();
 }

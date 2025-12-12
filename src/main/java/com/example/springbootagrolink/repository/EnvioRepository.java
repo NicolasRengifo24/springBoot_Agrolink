@@ -51,6 +51,12 @@ public interface EnvioRepository extends JpaRepository<Envio, Integer> {
            "ORDER BY e.id_envio DESC", nativeQuery = true)
     List<Object[]> findEnviosDisponiblesConCliente(String estado);
 
+    // Buscar envíos disponibles sin fechas asignadas (realmente disponibles para aceptar)
+    @Query("SELECT e FROM Envio e WHERE e.estadoEnvio = :estado " +
+           "AND e.fechaSalida IS NULL AND e.fechaEntrega IS NULL " +
+           "ORDER BY e.idEnvio DESC")
+    List<Envio> findEnviosDisponiblesSinFechas(@Param("estado") Envio.EstadoEnvio estado);
+
 }
 
 

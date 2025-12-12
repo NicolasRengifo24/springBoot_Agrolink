@@ -111,8 +111,9 @@
 
                     <div class="envio-cliente">
                         <div class="envio-cliente-label">Cliente</div>
-                        <div class="envio-cliente-name" th:if="${envio.compra != null and envio.compra.cliente != null and envio.compra.cliente.usuario != null}" th:text="${envio.compra.cliente.usuario.nombre}"></div>
-                        <div class="envio-cliente-name" th:unless="${envio.compra != null and envio.compra.cliente != null and envio.compra.cliente.usuario != null}">Por asignar</div>
+                        <div class="envio-cliente-name" th:text="${nombresClientes[envio.idEnvio]}">
+                            Sin asignar
+                        </div>
                     </div>
 
                     <div class="envio-details">

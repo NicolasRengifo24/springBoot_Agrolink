@@ -39,28 +39,32 @@ public class SecurityConfig {
     @Bean
     public AuthenticationSuccessHandler myAuthSuccessHandler() {
         return (HttpServletRequest request, HttpServletResponse response, org.springframework.security.core.Authentication authentication) -> {
-            Collection<? extends GrantedAuthority> auth = authentication.getAuthorities();
-            String redirectUrl = "/";
+            try {
+                Collection<? extends GrantedAuthority> auth = authentication.getAuthorities();
+                String redirectUrl = "/";
 
-            // Redirección basada en roles (prioridad: Admin > Transportista > Productor > Servicio > Cliente)
-            if (auth.stream().anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()))) {
-                redirectUrl = "/admin"; // Dashboard premium de administrador
-            } else if (auth.stream().anyMatch(a -> "ROLE_TRANSPORTISTA".equals(a.getAuthority()))) {
-                // La vista /transportista/dashboard fue removida; redirigimos a envios
-                redirectUrl = "/transportista/envios";
-            } else if (auth.stream().anyMatch(a -> "ROLE_PRODUCTOR".equals(a.getAuthority()))) {
-                redirectUrl = "/productos/dashboard";
-            } else if (auth.stream().anyMatch(a -> "ROLE_SERVICIO".equals(a.getAuthority()))) {
-                redirectUrl = "/servicio/dashboard";
-            } else {
-                redirectUrl = "/cliente/index";
+                // Redirección basada en roles (prioridad: Admin > Transportista > Productor > Servicio > Cliente)
+                if (auth.stream().anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()))) {
+                    redirectUrl = "/admin";
+                } else if (auth.stream().anyMatch(a -> "ROLE_TRANSPORTISTA".equals(a.getAuthority()))) {
+                    redirectUrl = "/transportista/envios";
+                } else if (auth.stream().anyMatch(a -> "ROLE_PRODUCTOR".equals(a.getAuthority()))) {
+                    redirectUrl = "/productos/dashboard";
+                } else if (auth.stream().anyMatch(a -> "ROLE_SERVICIO".equals(a.getAuthority()))) {
+                    redirectUrl = "/servicio/dashboard";
+                } else if (auth.stream().anyMatch(a -> "ROLE_CLIENTE".equals(a.getAuthority()))) {
+                    redirectUrl = "/cliente/index";
+                }
+
+                // Log para debugging
+                logger.info("Login exitoso: usuario='{}', authorities={} -> redirigiendo a {}",
+                        authentication.getName(), auth, redirectUrl);
+
+                response.sendRedirect(redirectUrl);
+            } catch (Exception e) {
+                logger.error("Error en redirección después del login", e);
+                response.sendRedirect("/login?error");
             }
-
-            // Log para debugging
-            logger.info("Autenticación exitosa: usuario='{}', authorities={} -> redirigiendo a {}",
-                    authentication.getName(), auth, redirectUrl);
-
-            response.sendRedirect(redirectUrl);
         };
     }
 
@@ -68,14 +72,15 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
             .authorizeHttpRequests(authorize -> authorize
-                .requestMatchers("/css/**", "/static/**", "/js/**", "/images/**", "/CSS/**", "/login", "/register", "/").permitAll()
+                // Recursos públicos
+                .requestMatchers("/css/**", "/CSS/**", "/static/**", "/js/**", "/images/**", "/imag/**", "/login", "/register", "/", "/buscar", "/access-denied").permitAll()
+                // Rutas por rol
                 .requestMatchers("/admin/**").hasRole("ADMIN")
                 .requestMatchers("/transportista/**").hasRole("TRANSPORTISTA")
                 .requestMatchers("/servicio/**").hasRole("SERVICIO")
                 .requestMatchers("/productos/**").hasRole("PRODUCTOR")
-                .requestMatchers("/cliente/**").hasRole("CLIENTE")
-                .requestMatchers("/compras/**").hasRole("CLIENTE")
-                .requestMatchers("/pago/**").hasRole("CLIENTE")
+                .requestMatchers("/cliente/**", "/compras/**", "/pago/**").hasRole("CLIENTE")
+                // Cualquier otra ruta requiere autenticación
                 .anyRequest().authenticated()
             )
             .headers(headers -> headers
