@@ -1,19 +1,29 @@
 package com.example.springbootagrolink.controllers;
 
 import com.example.springbootagrolink.model.Finca;
+import com.example.springbootagrolink.model.Productor;
 import com.example.springbootagrolink.services.FincaService;
+import com.example.springbootagrolink.services.ProductorService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.List;
 
-@RestController
+@Controller
 @RequestMapping("/fincas")
 public class FincaController {
 
     @Autowired
     private FincaService fincaService;
+
+    @Autowired
+    private ProductorService productorService;
 
     // GET - Obtener todas las fincas
     @GetMapping
@@ -79,5 +89,24 @@ public class FincaController {
             return ResponseEntity.badRequest().body("Error: " + e.getMessage());
         }
     }
-}
 
+    // Mostrar formulario web para crear finca
+    @GetMapping("/crear")
+    public String mostrarFormularioCrear(Model model) {
+        model.addAttribute("finca", new Finca());
+        return "finca/crear";
+    }
+
+    // Procesar formulario web para crear finca
+    @PostMapping("/crear")
+    public String guardarFincaWeb(@ModelAttribute Finca finca) {
+        // Obtener usuario autenticado
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication != null ? authentication.getName() : null;
+        if (username != null) {
+            productorService.obtenerPorNombreUsuario(username).ifPresent(finca::setProductor);
+        }
+        fincaService.guardar(finca);
+        return "redirect:/productos/crear";
+    }
+}

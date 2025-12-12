@@ -25,6 +25,11 @@ public class ProductorService implements Idao<Productor, Integer> {
         return productorRepository.findById(id);
     }
 
+    // Nuevo método para buscar productor por nombreUsuario
+    public Optional<Productor> obtenerPorNombreUsuario(String nombreUsuario) {
+        return productorRepository.findByUsuarioNombreUsuario(nombreUsuario);
+    }
+
     @Override
     public Productor guardar(Productor productor) {
         return productorRepository.save(productor);

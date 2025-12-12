@@ -124,4 +124,8 @@ public interface ProductoRepository extends JpaRepository<Producto, Integer>, Jp
 
     // Método de respaldo para obtener el producto más reciente si no hay compras
     Producto findFirstByOrderByIdProductoDesc();
+
+    // Obtener productos por productor
+    @Query("SELECT DISTINCT p FROM Producto p LEFT JOIN FETCH p.imagenesProducto WHERE p.productor.idProductor = :productorId")
+    List<Producto> findByProductorId(@Param("productorId") Integer productorId);
 }

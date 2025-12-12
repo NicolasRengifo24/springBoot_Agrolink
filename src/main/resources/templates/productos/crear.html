@@ -377,22 +377,11 @@
                 </div>
 
                 <div class="row g-3">
-                    <!-- Productor -->
+                    <!-- Productor (campo oculto y solo lectura) -->
+                    <input type="hidden" name="productorId" th:value="${productorLogueado.idProductor}" />
                     <div class="col-md-6">
-                        <label for="productorId" class="form-label">
-                            Productor<span class="required">*</span>
-                        </label>
-                        <select class="form-select"
-                                id="productorId"
-                                name="productorId"
-                                required
-                                onchange="cargarFincasDeProductor(this.value)">
-                            <option value="">Seleccione un productor</option>
-                            <option th:each="productor : ${productores}"
-                                    th:value="${productor.idProductor}"
-                                    th:text="${productor.usuario != null ? productor.usuario.nombreUsuario : 'Productor ID: ' + productor.idProductor}">
-                            </option>
-                        </select>
+                        <label class="form-label">Productor</label>
+                        <input type="text" class="form-control" th:value="${productorLogueado.usuario.nombreUsuario}" readonly />
                     </div>
 
                     <!-- Fincas -->
@@ -401,12 +390,8 @@
                             Finca(s) de Producción
                             <span class="badge bg-secondary">Opcional</span>
                         </label>
-                        <select class="form-select"
-                                id="fincaIds"
-                                multiple
-                                size="4"
-                                disabled>
-                            <option value="" disabled selected>Primero seleccione un productor</option>
+                        <select class="form-select" id="fincaIds" name="fincaIds" multiple size="4">
+                            <option th:each="finca : ${fincasProductor}" th:value="${finca.idFinca}" th:text="${finca.nombreFinca}"></option>
                         </select>
                         <div class="info-badge mt-2">
                             <i class="bi bi-lightbulb-fill"></i>
@@ -498,9 +483,10 @@
                         <div class="image-upload-area" id="uploadArea">
                             <input type="file"
                                    class="d-none"
-                                   id="imagenFile"
-                                   name="imagenFile"
-                                   accept="image/*">
+                                   id="imagenes"
+                                   name="imagenes"
+                                   accept="image/*"
+                                   multiple>
 
                             <div id="uploadPrompt">
                                 <div class="upload-icon">
@@ -644,7 +630,7 @@
     // MANEJO DE IMAGEN
     // ====================================
     const uploadArea = document.getElementById('uploadArea');
-    const imagenFile = document.getElementById('imagenFile');
+    const imagenFile = document.getElementById('imagenes');
     const imagePreview = document.getElementById('imagePreview');
     const uploadPrompt = document.getElementById('uploadPrompt');
     const imageInfo = document.getElementById('imageInfo');
@@ -659,7 +645,7 @@
 
     // Cambio de archivo
     imagenFile.addEventListener('change', function(e) {
-        handleImageFile(e.target.files[0]);
+        handleImageFile(e.target.files);
     });
 
     // Drag and drop
@@ -680,24 +666,32 @@
         const files = e.dataTransfer.files;
         if (files.length > 0 && files[0].type.startsWith('image/')) {
             imagenFile.files = files;
-            handleImageFile(files[0]);
+            handleImageFile(files);
         }
     });
 
-    function handleImageFile(file) {
-        if (!file) return;
+    function handleImageFile(files) {
+        if (!files || files.length === 0) return;
 
         // Validar tamaño (20MB)
-        if (file.size > 20 * 1024 * 1024) {
-            alert('❌ El archivo es muy grande. El tamaño máximo es 20MB.');
-            return;
-        }
+        let tamañoExcedido = false;
+        Array.from(files).forEach(file => {
+            if (file.size > 20 * 1024 * 1024) {
+                tamañoExcedido = true;
+                alert('❌ El archivo ' + file.name + ' es muy grande. El tamaño máximo es 20MB.');
+            }
+        });
+        if (tamañoExcedido) return;
 
         // Validar tipo
-        if (!file.type.startsWith('image/')) {
-            alert('❌ Por favor seleccione un archivo de imagen válido.');
-            return;
-        }
+        let tipoInvalido = false;
+        Array.from(files).forEach(file => {
+            if (!file.type.startsWith('image/')) {
+                tipoInvalido = true;
+                alert('❌ Por favor seleccione archivos de imagen válidos. Archivo inválido: ' + file.name);
+            }
+        });
+        if (tipoInvalido) return;
 
         // Mostrar preview
         const reader = new FileReader();
@@ -706,9 +700,9 @@
             imagePreview.style.display = 'block';
             uploadPrompt.style.display = 'none';
             imageInfo.style.display = 'block';
-            fileName.textContent = file.name;
+            fileName.textContent = Array.from(files).map(f => f.name).join(', ');
         };
-        reader.readAsDataURL(file);
+        reader.readAsDataURL(files[0]);
     }
 
     function removeImage() {
@@ -726,19 +720,10 @@
         e.preventDefault();
 
         const fincaSelect = document.getElementById('fincaIds');
-        const productorSelect = document.getElementById('productorId');
 
         console.log('=== INICIO VALIDACIÓN FORMULARIO ===');
-        console.log('Productor seleccionado:', productorSelect.value);
         console.log('Fincas disabled:', fincaSelect.disabled);
         console.log('Número de opciones de finca:', fincaSelect.options.length);
-
-        // Validar productor
-        if (!productorSelect.value || productorSelect.value === '') {
-            alert('⚠️ Por favor seleccione un productor');
-            productorSelect.focus();
-            return false;
-        }
 
         // Manejo de fincas
         if (fincaSelect.disabled) {
@@ -814,4 +799,3 @@
 
 </body>
 </html>
-

@@ -152,4 +152,9 @@ public class ProductoService  implements Idao <Producto, Integer> {
         }
     }
 
+    @Transactional(readOnly = true)
+    public List<Producto> obtenerPorProductor(Integer productorId) {
+        return productoRepository.findByProductorId(productorId);
+    }
+
 }

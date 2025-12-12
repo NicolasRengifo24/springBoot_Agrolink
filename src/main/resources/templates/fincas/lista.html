@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Mis Fincas</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="bi bi-tree me-2"></i>Mis Fincas</h2>
+        <a th:href="@{/fincas/crear}" class="btn btn-success">
+            <i class="bi bi-plus-circle me-1"></i>Nueva Finca
+        </a>
+    </div>
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Ubicación</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="finca : ${fincas}">
+                <td th:text="${finca.nombre}"></td>
+                <td th:text="${finca.ubicacion}"></td>
+                <td>
+                    <a th:href="@{/fincas/ver/{id}(id=${finca.idFinca})}" class="btn btn-info btn-sm">Ver</a>
+                    <a th:href="@{/fincas/editar/{id}(id=${finca.idFinca})}" class="btn btn-primary btn-sm">Editar</a>
+                    <a th:href="@{/fincas/eliminar/{id}(id=${finca.idFinca})}" class="btn btn-danger btn-sm" onclick="return confirm('¿Seguro que deseas eliminar esta finca?');">Eliminar</a>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+</body>
+</html>
+

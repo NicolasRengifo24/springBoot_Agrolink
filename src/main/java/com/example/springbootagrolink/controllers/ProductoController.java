@@ -20,6 +20,8 @@ import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.TextStyle;
 import java.util.*;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 @Controller
 @RequestMapping("/productos")
@@ -56,10 +58,29 @@ public class ProductoController {
      */
     @GetMapping
     public String listarProductos(Model model) {
-        List<Producto> productos = productoService.obtenerTodos();
+        // Obtener el usuario autenticado
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+
+        // Buscar el productor correspondiente
+        Optional<Productor> productorOpt = productorService.obtenerPorNombreUsuario(username);
+        List<Producto> productos;
+        List<Finca> fincas;
+        String nombreUsuario = username;
+        if (productorOpt.isPresent()) {
+            Productor productor = productorOpt.get();
+            productos = productoService.obtenerPorProductor(productor.getIdProductor());
+            fincas = fincaService.obtenerPorProductor(productor.getIdProductor());
+            model.addAttribute("productor", productor);
+            if (productor.getUsuario() != null && productor.getUsuario().getNombreUsuario() != null) {
+                nombreUsuario = productor.getUsuario().getNombreUsuario();
+            }
+        } else {
+            productos = productoService.obtenerTodos();
+            fincas = fincaService.obtenerTodos();
+        }
         List<CategoriaProducto> categorias = categoriaProductoService.obtenerTodos();
         List<Productor> productores = productorService.obtenerTodos();
-        List<Finca> fincas = fincaService.obtenerTodos();
 
         model.addAttribute("productos", productos);
         model.addAttribute("categorias", categorias);
@@ -67,6 +88,7 @@ public class ProductoController {
         model.addAttribute("fincas", fincas);
         model.addAttribute("ubicacion", "");
         model.addAttribute("categoriaId", 0);
+        model.addAttribute("usuarioLogueado", nombreUsuario);
 
         return "productos/dashboard";
     }
@@ -167,10 +189,15 @@ public class ProductoController {
                                   @RequestParam("productorId") Integer productorId,
                                   @RequestParam("categoriaId") Integer categoriaId,
                                   @RequestParam(value = "fincaIds", required = false) List<Integer> fincaIds,
-                                  @RequestParam(value = "imagenFile", required = false) MultipartFile imagenFile,
+                                  @RequestParam(value = "imagenes", required = false) List<MultipartFile> imagenes,
                                   @RequestParam(value = "esPrincipal", defaultValue = "false") boolean esPrincipal,
                                   RedirectAttributes redirectAttributes) {
          try {
+            // Validar máximo 10 imágenes
+            if (imagenes != null && imagenes.size() > 10) {
+                throw new IllegalArgumentException("Máximo 10 imágenes permitidas");
+            }
+
             // Validar y asignar el productor
             Optional<Productor> productorOpt = productorService.obtenerPorId(productorId);
             if (productorOpt.isEmpty()) {
@@ -217,18 +244,22 @@ public class ProductoController {
                 }
             }
 
-            // Procesar imagen si se proporciona
-            if (imagenFile != null && !imagenFile.isEmpty()) {
-                try {
-                    log.info("Procesando imagen: {} - Tamaño: {} bytes",
-                        imagenFile.getOriginalFilename(), imagenFile.getSize());
-                    guardarImagenProducto(imagenFile, productoGuardado, esPrincipal);
-                    log.info("Imagen guardada exitosamente para producto {}", productoGuardado.getIdProducto());
-                } catch (Exception imgEx) {
-                    log.error("Error al guardar imagen, pero producto creado: {}", imgEx.getMessage(), imgEx);
-                    redirectAttributes.addFlashAttribute("warning",
-                        "Producto creado pero hubo un error al guardar la imagen: " + imgEx.getMessage());
-                    return "redirect:/productos";
+            // Procesar imágenes si se proporcionan
+            if (imagenes != null && !imagenes.isEmpty()) {
+                for (MultipartFile imagenFile : imagenes) {
+                    if (imagenFile != null && !imagenFile.isEmpty()) {
+                        try {
+                            log.info("Procesando imagen: {} - Tamaño: {} bytes",
+                                imagenFile.getOriginalFilename(), imagenFile.getSize());
+                            guardarImagenProducto(imagenFile, productoGuardado, esPrincipal);
+                            log.info("Imagen guardada exitosamente para producto {}", productoGuardado.getIdProducto());
+                        } catch (Exception imgEx) {
+                            log.error("Error al guardar imagen, pero producto creado: {}", imgEx.getMessage(), imgEx);
+                            redirectAttributes.addFlashAttribute("warning",
+                                "Producto creado pero hubo un error al guardar una imagen: " + imgEx.getMessage());
+                            return "redirect:/productos";
+                        }
+                    }
                 }
             }
 
@@ -431,14 +462,19 @@ public class ProductoController {
     @GetMapping("/crear")
     public String mostrarFormularioCrear(Model model) {
         List<CategoriaProducto> categorias = categoriaProductoService.obtenerTodos();
-        List<Productor> productores = productorService.obtenerTodos();
-        List<Finca> fincas = fincaService.obtenerTodos();
-
         model.addAttribute("categorias", categorias);
-        model.addAttribute("productores", productores);
-        model.addAttribute("fincas", fincas);
         model.addAttribute("producto", new Producto());
 
+        // Obtener usuario autenticado
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication != null ? authentication.getName() : null;
+        if (username != null) {
+            productorService.obtenerPorNombreUsuario(username).ifPresent(productorLogueado -> {
+                model.addAttribute("productorLogueado", productorLogueado);
+                List<Finca> fincasProductor = fincaService.obtenerFincasPorProductor(productorLogueado.getIdProductor());
+                model.addAttribute("fincasProductor", fincasProductor);
+            });
+        }
         return "productos/crear";
     }
 
@@ -742,5 +778,13 @@ public class ProductoController {
             return ResponseEntity.status(500)
                 .body(Map.of("error", "Error al crear la finca: " + e.getMessage()));
         }
+    }
+
+    /**
+     * Alias para /productos/nuevo que redirige a /productos/crear
+     */
+    @GetMapping("/nuevo")
+    public String redirigirNuevo() {
+        return "redirect:/productos/crear";
     }
 }

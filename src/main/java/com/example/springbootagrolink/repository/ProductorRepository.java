@@ -9,6 +9,7 @@ import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface ProductorRepository extends JpaRepository<Productor, Integer> {
@@ -28,5 +29,8 @@ public interface ProductorRepository extends JpaRepository<Productor, Integer> {
     """)
     List<Productor> buscarPorCalificacionYDireccion(@Param("puntaje") BigDecimal puntaje,
                                                     @Param("direccion") String direccion);
+
+    // Buscar productor por nombreUsuario del usuario
+    Optional<Productor> findByUsuarioNombreUsuario(String nombreUsuario);
 
 }
