@@ -46,7 +46,8 @@ public class SecurityConfig {
             if (auth.stream().anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()))) {
                 redirectUrl = "/admin"; // Dashboard premium de administrador
             } else if (auth.stream().anyMatch(a -> "ROLE_TRANSPORTISTA".equals(a.getAuthority()))) {
-                redirectUrl = "/transportista/dashboard";
+                // La vista /transportista/dashboard fue removida; redirigimos a envios
+                redirectUrl = "/transportista/envios";
             } else if (auth.stream().anyMatch(a -> "ROLE_PRODUCTOR".equals(a.getAuthority()))) {
                 redirectUrl = "/productos/dashboard";
             } else if (auth.stream().anyMatch(a -> "ROLE_SERVICIO".equals(a.getAuthority()))) {

@@ -115,165 +115,13 @@ public class TransportistaController {
         return transportista;
     }
 
-    /**
-     * Calcular ingresos por mes basado en envíos finalizados
-     * Retorna un Map con mes (1-12) y valor en BigDecimal
-     */
-    private Map<Integer, BigDecimal> calcularIngresosPorMes(List<Envio> envios) {
-        Map<Integer, BigDecimal> ingresosPorMes = new TreeMap<>();
+    // =============================================================================
+    // NOTE: Se eliminó la vista 'dashboard' y los endpoints relacionados a sus gráficos
+    // - Se removieron: método calcularIngresosPorMes, método GET /dashboard,
+    //   y método GET /api/datos-dashboard
+    // - Esto evita servir la plantilla view y las APIs asociadas a las gráficas
+    // =============================================================================
 
-        // Inicializar todos los meses con 0
-        for (int mes = 1; mes <= 12; mes++) {
-            ingresosPorMes.put(mes, BigDecimal.ZERO);
-        }
-
-        // Sumar los costos de envíos finalizados por mes
-        envios.stream()
-            .filter(e -> e.getEstadoEnvio() == Envio.EstadoEnvio.Finalizado)
-            .filter(e -> e.getFechaEntrega() != null)
-            .forEach(e -> {
-                int mes = e.getFechaEntrega().getMonthValue();
-                BigDecimal costoActual = ingresosPorMes.get(mes);
-                BigDecimal costoEnvio = e.getCostoTotal() != null ? e.getCostoTotal() : BigDecimal.ZERO;
-                ingresosPorMes.put(mes, costoActual.add(costoEnvio));
-            });
-
-        log.debug("Ingresos por mes calculados: {}", ingresosPorMes);
-        return ingresosPorMes;
-    }
-
-
-    /**
-     * Dashboard principal del transportista con datos reales
-     */
-    @GetMapping("/dashboard")
-    public String dashboard(Model model) {
-        try {
-            log.info("▶ INICIANDO DASHBOARD");
-
-            log.info("  1. Obteniendo transportista autenticado...");
-            Transportista transportista = obtenerTransportistaAutenticado();
-            log.info("  ✓ Transportista obtenido: {}", transportista.getIdUsuario());
-
-            Usuario usuario = transportista.getUsuario();
-            log.info("  2. Usuario asociado: {}", usuario.getNombreUsuario());
-
-            // Forzar carga de datos del usuario ANTES de usarlos
-            usuario.getNombre();
-            usuario.getNombreUsuario();
-            usuario.getTelefono();
-            usuario.getCorreo();
-            log.info("  ✓ Datos del usuario cargados");
-
-            log.info("  3. Obteniendo envíos del transportista...");
-            // Obtener todos los envíos del transportista
-            List<Envio> todosLosEnvios = envioRepository.findByTransportista_IdUsuario(transportista.getIdUsuario());
-            if (todosLosEnvios == null) {
-                todosLosEnvios = new ArrayList<>();
-            }
-            log.info("  ✓ Envíos obtenidos: {}", todosLosEnvios.size());
-
-            log.info("  4. Obteniendo vehículos del transportista...");
-            // Obtener vehículos del transportista
-            List<Vehiculo> vehiculos = vehiculoRepository.findByTransportista_IdUsuario(transportista.getIdUsuario());
-            if (vehiculos == null) {
-                vehiculos = new ArrayList<>();
-            }
-            log.info("  ✓ Vehículos obtenidos: {}", vehiculos.size());
-
-            log.info("  5. Filtrando envíos activos...");
-            // Filtrar envíos activos (En_Transito o Asignado)
-            List<Envio> enviosActivos = todosLosEnvios.stream()
-                .filter(e -> e.getEstadoEnvio() == Envio.EstadoEnvio.En_Transito ||
-                            e.getEstadoEnvio() == Envio.EstadoEnvio.Asignado)
-                .collect(Collectors.toList());
-            log.info("  ✓ Envíos activos: {}", enviosActivos.size());
-
-            log.info("  6. Obteniendo envíos disponibles...");
-            // Obtener envíos disponibles (Buscando_Transporte)
-            List<Envio> enviosDisponibles = envioRepository.findByEstadoEnvio(Envio.EstadoEnvio.Buscando_Transporte);
-            if (enviosDisponibles == null) {
-                enviosDisponibles = new ArrayList<>();
-            }
-            log.info("  ✓ Envíos disponibles: {}", enviosDisponibles.size());
-
-            log.info("  7. Calculando ganancias...");
-            // Calcular ganancias totales
-            BigDecimal gananciasTotales = todosLosEnvios.stream()
-                .filter(e -> e.getEstadoEnvio() == Envio.EstadoEnvio.Finalizado)
-                .map(e -> e.getCostoTotal() != null ? e.getCostoTotal() : BigDecimal.ZERO)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-            // Calcular ganancias del mes
-            BigDecimal gananciasMes = todosLosEnvios.stream()
-                .filter(e -> e.getEstadoEnvio() == Envio.EstadoEnvio.Finalizado &&
-                            e.getFechaEntrega() != null &&
-                            e.getFechaEntrega().getMonthValue() == java.time.LocalDate.now().getMonthValue())
-                .map(e -> e.getCostoTotal() != null ? e.getCostoTotal() : BigDecimal.ZERO)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-            log.info("  ✓ Ganancias calculadas");
-
-            log.info("  8. Calculando ingresos mensuales para gráfica...");
-            // Calcular ingresos por mes (para la gráfica)
-            Map<Integer, BigDecimal> ingresosPorMes = calcularIngresosPorMes(todosLosEnvios);
-            log.info("  ✓ Ingresos mensuales calculados");
-
-            log.info("  9. Agregando atributos al modelo...");
-            // Agregar datos al modelo
-            model.addAttribute("usuario", usuario);
-            model.addAttribute("transportista", transportista);
-            model.addAttribute("enviosActivos", enviosActivos);
-            model.addAttribute("enviosDisponibles", enviosDisponibles.subList(0, Math.min(5, enviosDisponibles.size())));
-            model.addAttribute("vehiculos", vehiculos);
-            model.addAttribute("totalEnvios", todosLosEnvios.size());
-            model.addAttribute("enviosActivosCount", enviosActivos.size());
-            model.addAttribute("enviosDisponiblesCount", enviosDisponibles.size());
-            model.addAttribute("totalVehiculos", vehiculos.size());
-            model.addAttribute("gananciasTotales", gananciasTotales);
-            model.addAttribute("gananciasMes", gananciasMes);
-            model.addAttribute("ingresosPorMes", ingresosPorMes);
-            log.info("  ✓ Atributos agregados");
-
-            log.info("✓✓✓ Dashboard cargado exitosamente para transportista: {} - Envíos: {}, Vehículos: {}",
-                usuario.getNombreUsuario(), todosLosEnvios.size(), vehiculos.size());
-            return "transportista/dashboard";
-
-        } catch (Exception e) {
-            log.error("✗✗✗ ERROR EN DASHBOARD - Tipo: {}", e.getClass().getSimpleName(), e);
-            log.error("  Mensaje: {}", e.getMessage());
-            log.error("  Causa: {}", e.getCause());
-
-            // Imprimir stack trace completo
-            for (StackTraceElement ste : e.getStackTrace()) {
-                log.error("    at {}", ste);
-            }
-
-            try {
-                // Intentar obtener al menos el usuario para mostrarlo en la vista
-                log.info("  Intentando recuperación...");
-                Transportista transportista = obtenerTransportistaAutenticado();
-                Usuario usuario = transportista.getUsuario();
-                usuario.getNombre();
-                usuario.getNombreUsuario();
-                model.addAttribute("usuario", usuario);
-                model.addAttribute("transportista", transportista);
-                log.info("  ✓ Datos de usuario recuperados para vista de error");
-            } catch (Exception ex) {
-                log.error("  ✗ No se pudo obtener usuario: {}", ex.getMessage(), ex);
-            }
-            // Agregar datos vacíos para evitar errores en la vista
-            model.addAttribute("enviosActivos", new ArrayList<>());
-            model.addAttribute("enviosDisponibles", new ArrayList<>());
-            model.addAttribute("vehiculos", new ArrayList<>());
-            model.addAttribute("totalEnvios", 0);
-            model.addAttribute("enviosActivosCount", 0);
-            model.addAttribute("totalVehiculos", 0);
-            model.addAttribute("gananciasTotales", BigDecimal.ZERO);
-            model.addAttribute("gananciasMes", BigDecimal.ZERO);
-            model.addAttribute("error", "Error al cargar el dashboard: " + e.getMessage());
-            return "transportista/dashboard";
-        }
-    }
 
     /**
      * Ver envíos disponibles para aceptar (sin transportista asignado)
@@ -314,7 +162,18 @@ public class TransportistaController {
 
             // Agregar datos al modelo
             model.addAttribute("envios", enviosDisponibles);
-            model.addAttribute("usuario", new Object()); // Placeholder
+            try {
+                Transportista transportistaModel = obtenerTransportistaAutenticado();
+                Usuario usuarioModel = transportistaModel.getUsuario();
+                // Forzar carga de datos del usuario para evitar lazy issues
+                if (usuarioModel != null) {
+                    usuarioModel.getNombre();
+                    usuarioModel.getNombreUsuario();
+                }
+                model.addAttribute("usuario", usuarioModel);
+            } catch (Exception ex) {
+                model.addAttribute("usuario", null);
+            }
 
             log.info("✓ ✓ ✓ ÉXITO: {} envíos disponibles agregados al modelo", enviosDisponibles.size());
             return "transportista/envios";
@@ -479,118 +338,6 @@ public class TransportistaController {
         } catch (Exception e) {
             log.error("Error al actualizar estado del envío: {}", e.getMessage(), e);
             return ResponseEntity.status(500).body(Map.of("success", false, "message", "Error al actualizar estado"));
-        }
-    }
-
-    /**
-     * Endpoint REST para obtener datos de las gráficas del dashboard
-     * Devuelve ingresos por mes, contadores de envíos, etc.
-     */
-    @GetMapping("/api/datos-dashboard")
-    @ResponseBody
-    public ResponseEntity<Map<String, Object>> obtenerDatosDashboard() {
-        try {
-            log.info("▶ OBTENIENDO DATOS DEL DASHBOARD PARA API");
-
-            Transportista transportista = obtenerTransportistaAutenticado();
-            log.info("  1. Transportista obtenido: {}", transportista.getIdUsuario());
-
-            // Obtener todos los envíos del transportista
-            List<Envio> todosLosEnvios = envioRepository.findByTransportista_IdUsuario(transportista.getIdUsuario());
-            if (todosLosEnvios == null) {
-                todosLosEnvios = new ArrayList<>();
-            }
-            log.info("  2. Envíos del transportista obtenidos: {}", todosLosEnvios.size());
-
-            // Obtener envíos disponibles (sin transportista) para mostrar en el dashboard
-            List<Envio> enviosDisponibles = envioRepository.findByEstadoEnvio(Envio.EstadoEnvio.Buscando_Transporte);
-            if (enviosDisponibles == null) {
-                enviosDisponibles = new ArrayList<>();
-            }
-            log.info("  2b. Envíos disponibles encontrados: {}", enviosDisponibles.size());
-
-            // Contar envíos por estado (solo los del transportista)
-            long buscandoTransporte = todosLosEnvios.stream()
-                .filter(e -> e.getEstadoEnvio() == Envio.EstadoEnvio.Buscando_Transporte)
-                .count();
-
-            long asignado = todosLosEnvios.stream()
-                .filter(e -> e.getEstadoEnvio() == Envio.EstadoEnvio.Asignado)
-                .count();
-
-            long enTransito = todosLosEnvios.stream()
-                .filter(e -> e.getEstadoEnvio() == Envio.EstadoEnvio.En_Transito)
-                .count();
-
-            long finalizado = todosLosEnvios.stream()
-                .filter(e -> e.getEstadoEnvio() == Envio.EstadoEnvio.Finalizado)
-                .count();
-
-            long cancelado = todosLosEnvios.stream()
-                .filter(e -> e.getEstadoEnvio() == Envio.EstadoEnvio.Cancelado)
-                .count();
-
-            log.info("  3. Envíos del transportista por estado - Buscando: {}, Asignado: {}, En Tránsito: {}, Finalizado: {}, Cancelado: {}",
-                buscandoTransporte, asignado, enTransito, finalizado, cancelado);
-            log.info("  3b. Envíos disponibles en el sistema: {}", enviosDisponibles.size());
-
-            // Calcular ingresos por mes
-            Map<Integer, BigDecimal> ingresosPorMes = calcularIngresosPorMes(todosLosEnvios);
-            log.info("  4. Ingresos por mes calculados");
-
-            // Convertir el Map a un array List<Double> para JSON
-            List<Double> ingresosPorMesArray = new ArrayList<>();
-            for (int mes = 1; mes <= 12; mes++) {
-                BigDecimal ingreso = ingresosPorMes.getOrDefault(mes, BigDecimal.ZERO);
-                ingresosPorMesArray.add(ingreso.doubleValue());
-            }
-
-            // Construir respuesta con desglose de estados
-            Map<String, Object> response = new HashMap<>();
-            response.put("ingresosPorMes", ingresosPorMesArray);
-
-            // Datos para la gráfica de estados (Doughnut)
-            response.put("enviosFinalizados", finalizado);
-            response.put("enviosEnProceso", asignado + enTransito); // Asignado + En Tránsito
-            response.put("enviosDisponibles", enviosDisponibles.size()); // Mostrar envíos disponibles del sistema
-            response.put("enviosCancelados", cancelado);
-
-            // Datos adicionales
-            response.put("enviosActivosCount", asignado + enTransito); // Total de activos
-            response.put("totalEnvios", todosLosEnvios.size());
-            response.put("enviosDisponiblesCount", enviosDisponibles.size()); // Usar envíos disponibles del sistema
-
-            // Desglose detallado por estado (para debugging y estadísticas)
-            Map<String, Object> estadosDetallado = new HashMap<>();
-            estadosDetallado.put("Buscando_Transporte", enviosDisponibles.size()); // Mostrar disponibles del sistema
-            estadosDetallado.put("Asignado", asignado);
-            estadosDetallado.put("En_Transito", enTransito);
-            estadosDetallado.put("Finalizado", finalizado);
-            estadosDetallado.put("Cancelado", cancelado);
-            response.put("estadosDetallado", estadosDetallado);
-
-            response.put("success", true);
-
-            log.info("✓ Datos del dashboard compilados exitosamente");
-            return ResponseEntity.ok(response);
-
-        } catch (Exception e) {
-            log.error("✗ Error al obtener datos del dashboard: {}", e.getMessage(), e);
-
-            // Retornar datos vacíos en caso de error para no romper la UI
-            Map<String, Object> errorResponse = new HashMap<>();
-            errorResponse.put("ingresosPorMes", Arrays.asList(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0));
-            errorResponse.put("enviosFinalizados", 0);
-            errorResponse.put("enviosEnProceso", 0);
-            errorResponse.put("enviosDisponibles", 0);
-            errorResponse.put("enviosCancelados", 0);
-            errorResponse.put("enviosActivosCount", 0);
-            errorResponse.put("totalEnvios", 0);
-            errorResponse.put("enviosDisponiblesCount", 0);
-            errorResponse.put("success", false);
-            errorResponse.put("error", e.getMessage());
-
-            return ResponseEntity.ok(errorResponse);
         }
     }
 
@@ -771,4 +518,3 @@ public class TransportistaController {
         }
     }
 }
-
