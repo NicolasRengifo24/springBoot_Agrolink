@@ -1,0 +1,413 @@
+<!doctype html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>Crear Producto — Agrolink Premium</title>
+
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet"/>
+
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet"/>
+
+    <style>
+
+        /* ================================
+           PALETA PREMIUM VERDE + DORADO
+        ================================= */
+        :root{
+            --green: #2f6b31;
+            --gold: #c9a248;
+            --light-bg: #f8faf7;
+            --border-soft: rgba(0,0,0,0.05);
+        }
+
+        body{
+            font-family: "Inter", sans-serif;
+            background: linear-gradient(180deg, var(--light-bg), #eef2ec);
+            color:#222;
+        }
+
+        .container-main{
+            max-width:1100px;
+            margin:40px auto;
+            padding:20px;
+        }
+
+        /* CARD PREMIUM */
+        .card-glass{
+            background:white;
+            border-radius:16px;
+            padding:25px;
+            border:1px solid var(--border-soft);
+            box-shadow:0 12px 25px rgba(0,0,0,0.06);
+            transition:.25s;
+        }
+
+        .card-glass:hover{
+            box-shadow:0 18px 35px rgba(0,0,0,0.08);
+        }
+
+        /* TÍTULOS PREMIUM */
+        h3{
+            font-weight:700;
+            color:var(--green);
+        }
+
+        label{
+            font-weight:600;
+            color:#333;
+        }
+
+        /* BOTÓN PRINCIPAL */
+        .btn-success{
+            background:var(--green) !important;
+            border:none;
+            box-shadow:0 5px 15px rgba(47,107,49,0.25);
+        }
+
+        /* BOTÓN SECUNDARIO */
+        .btn-outline-secondary{
+            border-color:var(--gold);
+            color:var(--gold);
+            font-weight:600;
+        }
+        .btn-outline-secondary:hover{
+            background:var(--gold);
+            color:white;
+        }
+
+        /* SWITCH PREMIUM */
+        .form-check-input:checked {
+            background-color: var(--green);
+            border-color: var(--green);
+            box-shadow: 0 0 8px rgba(31, 94, 46, 0.4);
+        }
+
+        /* ================================
+           VISTA PREVIA DE IMAGEN PREMIUM
+        ================================= */
+        .preview-box{
+            width: 100%;
+            height: 220px;
+            border: 2px dashed var(--green);
+            border-radius: 12px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            background: #f4f7f3;
+            transition: .3s;
+        }
+
+        .preview-box:hover{
+            border-color: var(--gold);
+            background: #faf8f0;
+        }
+
+        .preview-box img{
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .preview-text{
+            color: var(--green);
+            font-weight: 600;
+            opacity: .7;
+        }
+
+    </style>
+</head>
+
+<body>
+
+<div class="container-main">
+
+    <!-- ENCABEZADO -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h3 class="mb-0">Crear producto</h3>
+            <div class="small text-muted">Agrolink — Productor</div>
+        </div>
+
+        <div>
+            <a th:href="@{/productos}" href="/productos" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Volver
+            </a>
+        </div>
+    </div>
+
+    <!-- CARD -->
+    <div class="card-glass">
+
+        <form th:action="@{/productos/guardar}" method="post" enctype="multipart/form-data">
+
+            <div class="row g-3">
+
+                <!-- Nombre -->
+                <div class="col-md-6">
+                    <label for="nombreProducto" class="form-label">Nombre del Producto *</label>
+                    <input id="nombreProducto" name="nombreProducto" type="text" class="form-control"
+                           placeholder="Ej: Tomate Cherry"
+                           th:value="${producto != null ? producto.nombreProducto : ''}"
+                           required />
+                </div>
+
+                <!-- Categoria -->
+                <div class="col-md-6">
+                    <label for="categoriaId" class="form-label">Categoría *</label>
+                    <select id="categoriaId" name="categoriaId" class="form-select" required>
+                        <option value="">Seleccione una categoría</option>
+                        <option th:each="categoria : ${categorias}"
+                                th:value="${categoria.idCategoria}"
+                                th:text="${categoria.nombreCategoria}">Categoría</option>
+                    </select>
+                </div>
+
+                <!-- Productor - Campo requerido por el controlador -->
+                <div class="col-md-6">
+                    <label for="productorId" class="form-label">Productor *</label>
+                    <select id="productorId" name="productorId" class="form-select" required onchange="cargarFincasDeProductor(this.value)">
+                        <option value="">Seleccione un productor</option>
+                        <option th:each="productor : ${productores}"
+                                th:value="${productor.idProductor}"
+                                th:text="${productor.usuario != null ? productor.usuario.nombreUsuario : 'Productor ID: ' + productor.idProductor}">Productor</option>
+                    </select>
+                </div>
+
+                <!-- Finca(s) - Asociar producto a una o más fincas del productor -->
+                <div class="col-md-6">
+                    <label for="fincaIds" class="form-label">Finca(s) donde se produce (opcional)</label>
+                    <select id="fincaIds" class="form-select" multiple size="3" disabled>
+                        <option value="" disabled selected>Primero seleccione un productor</option>
+                    </select>
+                    <small class="form-text text-muted">
+                        <i class="bi bi-info-circle"></i> Mantén presionado Ctrl (Cmd en Mac) para seleccionar múltiples fincas
+                    </small>
+                </div>
+
+                <!-- Descripción -->
+                <div class="col-12">
+                    <label for="descripcionProducto" class="form-label">Descripción</label>
+                    <textarea id="descripcionProducto" name="descripcionProducto" class="form-control"
+                              rows="3"
+                              placeholder="Descripción del producto..."
+                              th:text="${producto != null ? producto.descripcionProducto : ''}"></textarea>
+                </div>
+
+                <!-- Stock -->
+                <div class="col-md-4">
+                    <label for="stock" class="form-label">Stock (Unidades) *</label>
+                    <input id="stock" name="stock" type="number" class="form-control"
+                           th:value="${producto != null and producto.stock != null ? producto.stock : 1}"
+                           min="0" required />
+                </div>
+
+                <!-- Precio -->
+                <div class="col-md-4">
+                    <label for="precio" class="form-label">Precio (COP) *</label>
+                    <input id="precio" name="precio" type="number" class="form-control"
+                           th:value="${producto != null and producto.precio != null ? producto.precio : 1000}"
+                           min="0" step="0.01" required />
+                </div>
+
+                <!-- Peso -->
+                <div class="col-md-4">
+                    <label for="pesoKg" class="form-label">Peso (Kg)</label>
+                    <input id="pesoKg" name="pesoKg" type="number" class="form-control"
+                           th:value="${producto != null and producto.pesoKg != null ? producto.pesoKg : 1.0}"
+                           min="0" step="0.01" />
+                </div>
+
+                <!-- Imagen + Switch principal -->
+                <div class="col-md-12">
+                    <label for="imagenFile" class="form-label">Imagen del Producto</label>
+                    <input id="imagenFile" name="imagenFile" type="file" class="form-control" accept="image/*" />
+
+                    <!-- PREVIEW -->
+                    <div class="preview-box mt-2" id="preview">
+                        <span class="preview-text">Vista previa de la imagen</span>
+                    </div>
+
+                    <div class="form-check form-switch mt-3">
+                        <input class="form-check-input" type="checkbox" id="esPrincipal" name="esPrincipal" value="true" checked>
+                        <label class="form-check-label" for="esPrincipal">
+                            Marcar como imagen principal
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Botones -->
+                <div class="col-12 text-end mt-3">
+                    <a th:href="@{/productos}" href="/productos" class="btn btn-outline-secondary me-2">
+                        <i class="bi bi-x-circle"></i> Cancelar
+                    </a>
+
+                    <button type="submit" class="btn btn-success">
+                        <i class="bi bi-check-circle"></i> Guardar Producto
+                    </button>
+                </div>
+
+            </div>
+        </form>
+
+    </div>
+
+</div>
+
+<!-- SCRIPT PARA PREVIEW -->
+<script>
+    const inputFile = document.getElementById("imagenFile");
+    const preview = document.getElementById("preview");
+
+    inputFile.addEventListener("change", () => {
+        const file = inputFile.files[0];
+
+        if (file) {
+            const reader = new FileReader();
+
+            reader.onload = e => {
+                preview.innerHTML = `<img src="${e.target.result}" alt="Vista previa">`;
+            };
+
+            reader.readAsDataURL(file);
+        } else {
+            preview.innerHTML = `<span class="preview-text">Vista previa de la imagen</span>`;
+        }
+    });
+
+    // ============================================
+    // CARGAR FINCAS DEL PRODUCTOR SELECCIONADO
+    // ============================================
+    function cargarFincasDeProductor(productorId) {
+        const fincaSelect = document.getElementById('fincaIds');
+
+        console.log('=== CARGANDO FINCAS ===');
+        console.log('Productor ID:', productorId);
+
+        // Si no hay productor seleccionado, deshabilitar el selector de fincas
+        if (!productorId || productorId === '') {
+            fincaSelect.disabled = true;
+            fincaSelect.innerHTML = '<option value="" disabled selected>Primero seleccione un productor</option>';
+            fincaSelect.removeAttribute('name'); // No enviar si está deshabilitado
+            console.log('Sin productor - selector deshabilitado');
+            return;
+        }
+
+        // Mostrar mensaje de carga
+        fincaSelect.disabled = true;
+        fincaSelect.innerHTML = '<option value="" disabled selected>Cargando fincas...</option>';
+
+        // Realizar petición al backend
+        fetch('/productos/fincas/por-productor/' + productorId)
+            .then(response => {
+                console.log('Response status:', response.status);
+                if (!response.ok) {
+                    throw new Error('Error al cargar las fincas (HTTP ' + response.status + ')');
+                }
+                return response.json();
+            })
+            .then(fincas => {
+                console.log('Fincas recibidas:', fincas);
+                fincaSelect.innerHTML = '';
+
+                if (!fincas || fincas.length === 0) {
+                    fincaSelect.innerHTML = '<option value="" disabled selected>Este productor no tiene fincas registradas</option>';
+                    fincaSelect.disabled = true;
+                    fincaSelect.removeAttribute('name'); // No enviar si no hay fincas
+                    console.log('Sin fincas disponibles');
+
+                    // Mostrar alerta informativa (no bloquea la creación del producto)
+                    setTimeout(() => {
+                        const irADashboard = confirm('ℹ️ Este productor no tiene fincas registradas.\n\n¿Desea ir al Dashboard para crear una finca?\n\n(El producto se puede crear sin finca, pero es recomendable asociarlo a una)');
+                        if (irADashboard) {
+                            window.location.href = '/productos/dashboard#fincas';
+                        }
+                    }, 100);
+                    return;
+                }
+
+                // Llenar el selector con las fincas del productor
+                let optionsHTML = '';
+                fincas.forEach(finca => {
+                    const nombreCompleto = finca.nombreFinca +
+                        (finca.ciudad && finca.departamento ? ' (' + finca.ciudad + ', ' + finca.departamento + ')' : '');
+                    optionsHTML += '<option value="' + finca.idFinca + '">' + nombreCompleto + '</option>';
+                });
+
+                fincaSelect.innerHTML = optionsHTML;
+                fincaSelect.disabled = false;
+                fincaSelect.setAttribute('name', 'fincaIds'); // Restaurar name para envío
+
+                console.log('Fincas cargadas exitosamente:', fincas.length);
+            })
+            .catch(error => {
+                console.error('Error al cargar fincas:', error);
+                fincaSelect.innerHTML = '<option value="" disabled selected>Error al cargar fincas</option>';
+                fincaSelect.disabled = true;
+                fincaSelect.removeAttribute('name');
+
+                alert('❌ Error al cargar las fincas del productor.\n\nDetalle: ' + error.message + '\n\nPor favor, verifique:\n1. Que el servidor esté funcionando\n2. Que el productor exista\n3. La consola del navegador para más detalles');
+            });
+    }
+
+    // ============================================
+    // VALIDACIÓN DEL FORMULARIO ANTES DE ENVIAR
+    // ============================================
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.querySelector('form');
+
+        form.addEventListener('submit', function(e) {
+            const fincaSelect = document.getElementById('fincaIds');
+            const productorSelect = document.getElementById('productorId');
+
+            console.log('=== INICIO VALIDACIÓN FORMULARIO ===');
+            console.log('Productor seleccionado:', productorSelect.value);
+            console.log('Fincas disabled:', fincaSelect.disabled);
+            console.log('Número de opciones de finca:', fincaSelect.options.length);
+
+            // Validar que se haya seleccionado un productor
+            if (!productorSelect.value || productorSelect.value === '') {
+                e.preventDefault();
+                alert('⚠️ Por favor seleccione un productor');
+                productorSelect.focus();
+                return false;
+            }
+
+            // Si el selector de fincas está deshabilitado, removerlo del envío para evitar problemas
+            if (fincaSelect.disabled) {
+                fincaSelect.removeAttribute('name');
+                console.log('Selector de fincas deshabilitado - removido del envío');
+            } else if (fincaSelect.options.length > 0) {
+                // Solo validar si hay opciones y está habilitado
+                const selectedOptions = Array.from(fincaSelect.selectedOptions).filter(opt => opt.value && opt.value !== '');
+                console.log('Fincas seleccionadas:', selectedOptions.length);
+
+                if (selectedOptions.length === 0) {
+                    const continuar = confirm('⚠️ No ha seleccionado ninguna finca.\n\n¿Desea crear el producto sin asociarlo a una finca?\n\n(Puede asociarlo a una finca más tarde editando el producto)');
+                    if (!continuar) {
+                        e.preventDefault();
+                        fincaSelect.focus();
+                        return false;
+                    }
+                    // Si acepta continuar sin finca, remover el campo del envío
+                    fincaSelect.removeAttribute('name');
+                    console.log('Usuario aceptó continuar sin finca - campo removido del envío');
+                } else {
+                    console.log('Fincas válidas seleccionadas:', selectedOptions.map(o => o.value));
+                }
+            }
+
+            console.log('=== FORMULARIO VALIDADO - ENVIANDO ===');
+            return true;
+        });
+    });
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>

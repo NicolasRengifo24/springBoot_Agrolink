@@ -219,16 +219,27 @@ public class ProductoController {
 
             // Procesar imagen si se proporciona
             if (imagenFile != null && !imagenFile.isEmpty()) {
-                guardarImagenProducto(imagenFile, productoGuardado, esPrincipal);
+                try {
+                    log.info("Procesando imagen: {} - Tamaño: {} bytes",
+                        imagenFile.getOriginalFilename(), imagenFile.getSize());
+                    guardarImagenProducto(imagenFile, productoGuardado, esPrincipal);
+                    log.info("Imagen guardada exitosamente para producto {}", productoGuardado.getIdProducto());
+                } catch (Exception imgEx) {
+                    log.error("Error al guardar imagen, pero producto creado: {}", imgEx.getMessage(), imgEx);
+                    redirectAttributes.addFlashAttribute("warning",
+                        "Producto creado pero hubo un error al guardar la imagen: " + imgEx.getMessage());
+                    return "redirect:/productos";
+                }
             }
 
+            log.info("Producto creado exitosamente con ID: {}", productoGuardado.getIdProducto());
             redirectAttributes.addFlashAttribute("success", "created");
             return "redirect:/productos";
 
         } catch (Exception e) {
             log.error("Error al crear producto: {}", e.getMessage(), e);
             redirectAttributes.addFlashAttribute("error", "Error al crear el producto: " + e.getMessage());
-            return "redirect:/productos";
+            return "redirect:/productos/crear";
         }
     }
 
