@@ -119,7 +119,7 @@ public class TransportistaController {
     }
 
     /**
-     * Obtener nombre del cliente usando SQL nativo (evita lazy loading de fecha_hora_compra)
+     * Obtener nombre del cliente usando SQL nativa (evita lazy loading de fecha_hora_compra)
      */
     private String obtenerNombreClientePorCompra(Integer idCompra) {
         try {
@@ -217,6 +217,12 @@ public class TransportistaController {
                     usuarioModel.getNombreUsuario();
                 }
                 model.addAttribute("usuario", usuarioModel);
+
+                // --- Exponer los vehículos del transportista para el modal de aceptación ---
+                List<Vehiculo> vehiculos = vehiculoRepository.findByTransportista_IdUsuario(transportistaModel.getIdUsuario());
+                if (vehiculos == null) vehiculos = new ArrayList<>();
+                model.addAttribute("vehiculos", vehiculos);
+
             } catch (Exception ex) {
                 model.addAttribute("usuario", null);
             }
@@ -245,7 +251,11 @@ public class TransportistaController {
      */
     @PostMapping("/envios/aceptar/{id}")
     @ResponseBody
-    public ResponseEntity<Map<String, Object>> aceptarEnvio(@PathVariable Integer id) {
+    public ResponseEntity<Map<String, Object>> aceptarEnvio(
+            @PathVariable Integer id,
+            @RequestParam(required = false) Integer vehiculoId,
+            @RequestParam(required = false) String fechaSalida,
+            @RequestParam(required = false) String fechaEntrega) {
         try {
             Transportista transportista = obtenerTransportistaAutenticado();
 
@@ -260,19 +270,54 @@ public class TransportistaController {
                 return ResponseEntity.badRequest().body(Map.of("success", false, "message", "El envío ya no está disponible"));
             }
 
+            // Asignar transportista
             envio.setTransportista(transportista);
+
+            // Si se envió un vehiculoId, validar y asignar
+            if (vehiculoId != null) {
+                Optional<Vehiculo> vehiculoOpt = vehiculoRepository.findById(vehiculoId);
+                if (vehiculoOpt.isEmpty()) {
+                    return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Vehículo no encontrado"));
+                }
+                Vehiculo vehiculo = vehiculoOpt.get();
+                // Verificar que el vehículo pertenece al transportista
+                if (vehiculo.getTransportista() == null || !vehiculo.getTransportista().getIdUsuario().equals(transportista.getIdUsuario())) {
+                    return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Vehículo no autorizado"));
+                }
+                envio.setVehiculo(vehiculo);
+            }
+
+            // Asignar fecha de salida si se proporciona
+            if (fechaSalida != null && !fechaSalida.isBlank()) {
+                try {
+                    envio.setFechaSalida(java.time.LocalDate.parse(fechaSalida));
+                } catch (Exception ex) {
+                    return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Fecha de salida inválida (formato esperado: yyyy-MM-dd)"));
+                }
+            } else {
+                envio.setFechaSalida(null);
+            }
+
+            // Asignar fecha de entrega si se proporciona
+            if (fechaEntrega != null && !fechaEntrega.isBlank()) {
+                try {
+                    envio.setFechaEntrega(java.time.LocalDate.parse(fechaEntrega));
+                } catch (Exception ex) {
+                    return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Fecha de entrega inválida (formato esperado: yyyy-MM-dd)"));
+                }
+            } else {
+                envio.setFechaEntrega(null);
+            }
+
+            // Cambiar estado del envío a ASIGNADO
             envio.setEstadoEnvio(Envio.EstadoEnvio.Asignado);
             envioRepository.save(envio);
 
-            log.info("Envío {} aceptado por transportista {}", id, transportista.getIdUsuario());
-            return ResponseEntity.ok(Map.of("success", true, "message", "Envío aceptado exitosamente"));
-
+            return ResponseEntity.ok(Map.of("success", true, "message", "Envío aceptado y asignado correctamente"));
         } catch (Exception e) {
-            log.error("Error al aceptar envío: {}", e.getMessage(), e);
-            return ResponseEntity.status(500).body(Map.of("success", false, "message", "Error al aceptar envío"));
+            return ResponseEntity.status(500).body(Map.of("success", false, "message", "Error al aceptar envío: " + e.getMessage()));
         }
     }
-
     /**
      * Ver envíos aceptados por el transportista
      */
@@ -409,6 +454,8 @@ public class TransportistaController {
             model.addAttribute("usuario", usuario);
             model.addAttribute("transportista", transportista);
             model.addAttribute("vehiculos", vehiculos);
+            // Exponer las opciones del enum TipoVehiculo para poblar el select del formulario
+            model.addAttribute("tipoVehiculoOptions", com.example.springbootagrolink.model.TipoVehiculo.values());
 
             log.info("Vehículos cargados para {}: {} vehículos",
                 usuario.getNombreUsuario(), vehiculos.size());
@@ -510,27 +557,34 @@ public class TransportistaController {
     @ResponseBody
     public ResponseEntity<Map<String, Object>> crearVehiculo(
             @RequestParam String tipoVehiculo,
-            @RequestParam BigDecimal capacidadCarga,
-            @RequestParam String placaVehiculo) {
+             @RequestParam BigDecimal capacidadCarga,
+             @RequestParam String placaVehiculo) {
         try {
             Transportista transportista = obtenerTransportistaAutenticado();
 
             Vehiculo vehiculo = new Vehiculo();
             vehiculo.setTransportista(transportista);
-            vehiculo.setTipoVehiculo(tipoVehiculo);
-            vehiculo.setCapacidadCarga(capacidadCarga);
-            vehiculo.setPlacaVehiculo(placaVehiculo);
+            // Convertir el string recibido al enum TipoVehiculo (si no coincide, usar AUTOMOVIL por defecto)
+            try {
+                com.example.springbootagrolink.model.TipoVehiculo tv = com.example.springbootagrolink.model.TipoVehiculo.valueOf(tipoVehiculo);
+                vehiculo.setTipoVehiculo(tv);
+            } catch (Exception ex) {
+                log.warn("Tipo de vehículo inválido recibido: {}. Usando AUTOMOVIL por defecto", tipoVehiculo);
+                vehiculo.setTipoVehiculo(com.example.springbootagrolink.model.TipoVehiculo.AUTOMOVIL);
+            }
+             vehiculo.setCapacidadCarga(capacidadCarga);
+             vehiculo.setPlacaVehiculo(placaVehiculo);
 
-            vehiculoRepository.save(vehiculo);
+             vehiculoRepository.save(vehiculo);
 
-            log.info("Vehículo creado: {}", placaVehiculo);
-            return ResponseEntity.ok(Map.of("success", true, "message", "Vehículo creado exitosamente"));
+             log.info("Vehículo creado: {}", placaVehiculo);
+             return ResponseEntity.ok(Map.of("success", true, "message", "Vehículo creado exitosamente"));
 
-        } catch (Exception e) {
-            log.error("Error al crear vehículo: {}", e.getMessage(), e);
-            return ResponseEntity.status(500).body(Map.of("success", false, "message", "Error al crear vehículo"));
-        }
-    }
+         } catch (Exception e) {
+             log.error("Error al crear vehículo: {}", e.getMessage(), e);
+             return ResponseEntity.status(500).body(Map.of("success", false, "message", "Error al crear vehículo"));
+         }
+     }
 
     /**
      * Eliminar un vehículo
