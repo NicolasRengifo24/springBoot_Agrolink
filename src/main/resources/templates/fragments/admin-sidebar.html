@@ -1,0 +1,63 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<aside id="sidebar" th:fragment="adminSidebar(active)">
+    <div class="brand-admin">
+        <i class="bi bi-shield-check fs-2 text-success"></i>
+        <div>
+            <div class="brand-title-admin">Agrolink Admin</div>
+            <div class="role-badge">Super Admin</div>
+        </div>
+    </div>
+
+    <nav>
+
+        <a th:href="@{/admin}"
+           class="nav-item"
+           th:classappend="${active == 'dashboard'} ? ' active' : ''">
+            <i class="bi bi-speedometer2"></i>
+            <span class="nav-label">Dashboard</span>
+        </a>
+
+        <a th:href="@{/admin/usuarios}"
+           class="nav-item"
+           th:classappend="${active == 'usuarios'} ? ' active' : ''">
+            <i class="bi bi-people"></i>
+            <span class="nav-label">Usuarios</span>
+        </a>
+
+        <a th:href="@{/admin/productos}"
+           class="nav-item"
+           th:classappend="${active == 'productos'} ? ' active' : ''">
+            <i class="bi bi-box-seam"></i>
+            <span class="nav-label">Productos</span>
+        </a>
+
+        <a th:href="@{/admin/pedidos}"
+           class="nav-item"
+           th:classappend="${active == 'pedidos'} ? ' active' : ''">
+            <i class="bi bi-cart-check"></i>
+            <span class="nav-label">Pedidos</span>
+        </a>
+
+        <a th:href="@{/admin/envios}"
+           class="nav-item"
+           th:classappend="${active == 'envios'} ? ' active' : ''">
+            <i class="bi bi-truck"></i>
+            <span class="nav-label">Envíos</span>
+        </a>
+
+        <form th:action="@{/logout}" method="post" style="margin:0">
+            <button type="submit" class="nav-item text-danger"
+                    style="border:none;background:none;width:100%;text-align:left;">
+                <i class="bi bi-box-arrow-right"></i>
+                <span class="nav-label">Cerrar Sesión</span>
+            </button>
+        </form>
+
+    </nav>
+</aside>
+
+</body>
+</html>

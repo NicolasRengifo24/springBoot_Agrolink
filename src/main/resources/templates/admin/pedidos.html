@@ -286,39 +286,10 @@
 
 <body>
   <div class="app">
-    <!-- SIDEBAR ADMIN -->
-    <aside id="sidebar" class="sidebar">
-      <div class="brand-admin">
-        <i class="bi bi-shield-check fs-2 text-success"></i>
-        <div>
-          <div class="brand-title-admin">Agrolink Admin</div>
-          <div class="role-badge">Super Admin</div>
-        </div>
-      </div>
+      <div th:replace="fragments/admin-sidebar :: adminSidebar('pedidos')"></div>
 
-      <nav>
-        <div class="nav-item" onclick="window.location.href='/admin'">
-          <i class="bi bi-speedometer2"></i><span class="nav-label">Dashboard</span>
-        </div>
-        <div class="nav-item" onclick="window.location.href='/admin/usuarios'">
-          <i class="bi bi-people"></i><span class="nav-label">Usuarios</span>
-        </div>
-        <div class="nav-item" onclick="window.location.href='/admin/productos'">
-          <i class="bi bi-box-seam"></i><span class="nav-label">Productos</span>
-        </div>
-        <div class="nav-item active" onclick="window.location.href='/admin/pedidos'">
-          <i class="bi bi-cart-check"></i><span class="nav-label">Pedidos</span>
-        </div>
-        <div class="nav-item" onclick="window.location.href='/admin/envios'">
-          <i class="bi bi-truck"></i><span class="nav-label">Envíos</span>
-        </div>
-        <div class="nav-item" onclick="mostrarModalCerrarSesion()">
-          <i class="bi bi-box-arrow-right"></i><span class="nav-label">Cerrar Sesión</span>
-        </div>
-      </nav>
-    </aside>
 
-    <!-- MAIN CONTENT -->
+      <!-- MAIN CONTENT -->
     <main class="main-content">
       <!-- TOPBAR ADMIN -->
       <div class="topbar-admin">
@@ -552,56 +523,9 @@
     console.log('✅ Vista de pedidos admin cargada correctamente');
     console.log('Total pedidos:', document.querySelectorAll('.pedido-item').length);
 
-    // ============================================
-    // MODAL Y FUNCIÓN DE CERRAR SESIÓN
-    // ============================================
-    function mostrarModalCerrarSesion() {
-      const modal = new bootstrap.Modal(document.getElementById('modalCerrarSesion'));
-      modal.show();
-    }
 
-    function cerrarSesion() {
-      console.log('🚪 Cerrando sesión...');
-      const modal = bootstrap.Modal.getInstance(document.getElementById('modalCerrarSesion'));
-      if (modal) {
-        modal.hide();
-      }
-      setTimeout(() => {
-        window.location.href = '/logout';
-      }, 300);
-    }
   </script>
 
-  <!-- MODAL DE CONFIRMACIÓN CERRAR SESIÓN -->
-  <div class="modal fade" id="modalCerrarSesion" tabindex="-1" aria-labelledby="modalCerrarSesionLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content" style="border-radius: 20px; border: none; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
-        <div class="modal-header border-0" style="background: linear-gradient(135deg, #2f6b31, #3f8a41); color: white; border-radius: 20px 20px 0 0; padding: 24px 32px;">
-          <h5 class="modal-title fw-bold" id="modalCerrarSesionLabel">
-            <i class="bi bi-box-arrow-right me-2"></i>Cerrar Sesión
-          </h5>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body" style="padding: 32px;">
-          <div class="text-center mb-4">
-            <i class="bi bi-question-circle-fill text-warning" style="font-size: 4rem;"></i>
-          </div>
-          <h5 class="text-center mb-3 fw-bold">¿Estás seguro de cerrar sesión?</h5>
-          <p class="text-center text-muted mb-0">
-            Se cerrará tu sesión actual y serás redirigido al inicio de sesión.
-          </p>
-        </div>
-        <div class="modal-footer border-0" style="padding: 0 32px 32px 32px; gap: 12px;">
-          <button type="button" class="btn btn-lg btn-outline-secondary" data-bs-dismiss="modal" style="border-radius: 12px; padding: 12px 32px; font-weight: 600;">
-            <i class="bi bi-x-circle me-2"></i>Cancelar
-          </button>
-          <button type="button" class="btn btn-lg btn-danger" onclick="cerrarSesion()" style="border-radius: 12px; padding: 12px 32px; font-weight: 600; background: linear-gradient(135deg, #dc3545, #c82333); border: none;">
-            <i class="bi bi-box-arrow-right me-2"></i>Sí, Cerrar Sesión
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
 
 </body>
 </html>
