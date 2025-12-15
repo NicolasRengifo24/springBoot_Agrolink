@@ -721,14 +721,97 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
   <script>
-    // Funciones de acciones (placeholders para funcionalidad futura)
-    function verUsuario(id) {
-      alert('Ver detalles del usuario #' + id + '\n\nFuncionalidad en desarrollo...');
+    // Función para ver detalles del usuario
+    async function verUsuario(id) {
+      try {
+        console.log('🔍 Obteniendo información del usuario ID:', id);
+
+        // Obtener datos del usuario
+        const response = await fetch(`/admin/api/usuarios/${id}`);
+        console.log('📡 Respuesta HTTP:', response.status, response.statusText);
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('❌ Error del servidor:', errorText);
+          throw new Error(`Error al obtener datos del usuario: ${response.status} ${response.statusText}`);
+        }
+
+        const usuario = await response.json();
+        console.log('✅ Usuario obtenido:', usuario);
+
+        // Rellenar el modal con los datos
+        document.getElementById('modalUsuarioNombre').textContent =
+          `${usuario.nombre || ''} ${usuario.apellido || ''}`.trim() || 'Usuario';
+        document.getElementById('modalUsuarioUsername').textContent = usuario.nombreUsuario || 'N/A';
+        document.getElementById('modalUsuarioCorreo').textContent = usuario.correo || 'N/A';
+        document.getElementById('modalUsuarioTelefono').textContent = usuario.telefono || 'N/A';
+        document.getElementById('modalUsuarioCedula').textContent = usuario.cedula || 'N/A';
+        document.getElementById('modalUsuarioDireccion').textContent = usuario.direccion || 'N/A';
+        document.getElementById('modalUsuarioCiudad').textContent = usuario.ciudad || 'N/A';
+        document.getElementById('modalUsuarioDepartamento').textContent = usuario.departamento || 'N/A';
+
+        // Mostrar rol con badge correspondiente
+        const rolBadge = document.getElementById('modalUsuarioRol');
+        const rolTexto = usuario.rol ? usuario.rol.replace('ROLE_', '') : 'N/A';
+        rolBadge.textContent = rolTexto;
+        rolBadge.className = 'badge-rol';
+
+        // Asignar clase según el rol
+        if (rolTexto.includes('CLIENTE')) {
+          rolBadge.classList.add('badge-cliente');
+        } else if (rolTexto.includes('PRODUCTOR')) {
+          rolBadge.classList.add('badge-productor');
+        } else if (rolTexto.includes('TRANSPORTISTA')) {
+          rolBadge.classList.add('badge-transportista');
+        } else if (rolTexto.includes('SERVICIO')) {
+          rolBadge.classList.add('badge-servicio');
+        }
+
+        // Información adicional según el rol
+        const infoAdicional = document.getElementById('modalUsuarioInfoAdicional');
+        if (usuario.rolInfo) {
+          infoAdicional.innerHTML = `
+            <div class="mt-3 p-3" style="background: rgba(47,107,49,0.05); border-radius: 12px;">
+              <h6 class="fw-bold mb-2"><i class="bi bi-info-circle me-2"></i>Información Adicional</h6>
+              ${Object.entries(usuario.rolInfo).map(([key, value]) => `
+                <div class="mb-1">
+                  <strong>${key}:</strong> ${value || 'N/A'}
+                </div>
+              `).join('')}
+            </div>
+          `;
+        } else {
+          infoAdicional.innerHTML = '';
+        }
+
+        // Mostrar el modal
+        const modal = new bootstrap.Modal(document.getElementById('modalVerUsuario'));
+        modal.show();
+
+      } catch (error) {
+        console.error('❌ Error al obtener usuario:', error);
+        alert('Error al cargar los datos del usuario. Por favor, inténtalo de nuevo.');
+      }
     }
 
     function editarUsuario(id) {
       alert('Editar usuario #' + id + '\n\nFuncionalidad en desarrollo...');
     }
+
+    // Función para editar desde el modal (guarda el ID actual)
+    let currentUserId = null;
+    function editarUsuarioFromModal() {
+      if (currentUserId) {
+        editarUsuario(currentUserId);
+      }
+    }
+
+    // Modificar verUsuario para guardar el ID actual
+    const originalVerUsuario = verUsuario;
+    verUsuario = async function(id) {
+      currentUserId = id;
+      await originalVerUsuario(id);
+    };
 
     // Buscador simple
     document.getElementById('searchInput')?.addEventListener('input', function(e) {
@@ -768,6 +851,129 @@
       }, 300);
     }
   </script>
+
+  <!-- MODAL VER DETALLES DEL USUARIO -->
+  <div class="modal fade" id="modalVerUsuario" tabindex="-1" aria-labelledby="modalVerUsuarioLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content" style="border-radius: 24px; border: none; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
+        <div class="modal-header border-0" style="background: linear-gradient(135deg, #2f6b31, #3f8a41); color: white; border-radius: 24px 24px 0 0; padding: 28px 36px;">
+          <div>
+            <h5 class="modal-title fw-bold mb-1" id="modalVerUsuarioLabel">
+              <i class="bi bi-person-circle me-2"></i>Detalles del Usuario
+            </h5>
+            <p class="mb-0 opacity-75" style="font-size: 0.9rem;">Información completa del usuario</p>
+          </div>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body" style="padding: 36px;">
+          <!-- Avatar y Nombre -->
+          <div class="text-center mb-4">
+            <div class="user-avatar-lg mx-auto mb-3" style="width: 100px; height: 100px; font-size: 2.5rem;">
+              <i class="bi bi-person-fill"></i>
+            </div>
+            <h4 class="fw-bold mb-1" id="modalUsuarioNombre">Usuario</h4>
+            <p class="text-muted mb-2">@<span id="modalUsuarioUsername">username</span></p>
+            <span id="modalUsuarioRol" class="badge-rol">Cliente</span>
+          </div>
+
+          <hr class="my-4">
+
+          <!-- Información Personal -->
+          <div class="row g-4">
+            <div class="col-md-6">
+              <div class="info-item">
+                <label class="text-muted mb-1 d-block" style="font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
+                  <i class="bi bi-envelope me-2"></i>Correo Electrónico
+                </label>
+                <div class="fw-600" id="modalUsuarioCorreo">correo@example.com</div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="info-item">
+                <label class="text-muted mb-1 d-block" style="font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
+                  <i class="bi bi-telephone me-2"></i>Teléfono
+                </label>
+                <div class="fw-600" id="modalUsuarioTelefono">300-000-0000</div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="info-item">
+                <label class="text-muted mb-1 d-block" style="font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
+                  <i class="bi bi-card-text me-2"></i>Cédula
+                </label>
+                <div class="fw-600" id="modalUsuarioCedula">N/A</div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="info-item">
+                <label class="text-muted mb-1 d-block" style="font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
+                  <i class="bi bi-geo-alt me-2"></i>Ciudad
+                </label>
+                <div class="fw-600" id="modalUsuarioCiudad">N/A</div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="info-item">
+                <label class="text-muted mb-1 d-block" style="font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
+                  <i class="bi bi-map me-2"></i>Departamento
+                </label>
+                <div class="fw-600" id="modalUsuarioDepartamento">N/A</div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="info-item">
+                <label class="text-muted mb-1 d-block" style="font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
+                  <i class="bi bi-house me-2"></i>Dirección
+                </label>
+                <div class="fw-600" id="modalUsuarioDireccion">N/A</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Información Adicional (según rol) -->
+          <div id="modalUsuarioInfoAdicional"></div>
+        </div>
+        <div class="modal-footer border-0" style="padding: 0 36px 36px 36px; gap: 12px;">
+          <button type="button" class="btn btn-lg btn-outline-secondary" data-bs-dismiss="modal" style="border-radius: 12px; padding: 12px 32px; font-weight: 600;">
+            <i class="bi bi-x-circle me-2"></i>Cerrar
+          </button>
+          <button type="button" class="btn btn-lg btn-success" onclick="editarUsuarioFromModal()" style="border-radius: 12px; padding: 12px 32px; font-weight: 600; background: linear-gradient(135deg, #2f6b31, #3f8a41); border: none;">
+            <i class="bi bi-pencil me-2"></i>Editar Usuario
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <style>
+    .user-avatar-lg {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--green), var(--green-light));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 700;
+      font-size: 2rem;
+      box-shadow: 0 8px 24px rgba(47,107,49,0.3);
+    }
+
+    .info-item {
+      padding: 16px;
+      border-radius: 12px;
+      background: rgba(47,107,49,0.03);
+      border: 1px solid rgba(47,107,49,0.1);
+      transition: all 0.3s ease;
+    }
+
+    .info-item:hover {
+      background: rgba(47,107,49,0.06);
+      border-color: rgba(47,107,49,0.2);
+      transform: translateY(-2px);
+    }
+  </style>
 
   <!-- MODAL DE CONFIRMACIÓN CERRAR SESIÓN -->
   <div class="modal fade" id="modalCerrarSesion" tabindex="-1" aria-labelledby="modalCerrarSesionLabel" aria-hidden="true">

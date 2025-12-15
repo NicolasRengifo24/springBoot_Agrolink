@@ -189,14 +189,13 @@ public class ProductoController {
                                   @RequestParam("productorId") Integer productorId,
                                   @RequestParam("categoriaId") Integer categoriaId,
                                   @RequestParam(value = "fincaIds", required = false) List<Integer> fincaIds,
-                                  @RequestParam(value = "imagenes", required = false) List<MultipartFile> imagenes,
-                                  @RequestParam(value = "esPrincipal", defaultValue = "false") boolean esPrincipal,
+                                  @RequestParam(value = "imagenes", required = false) MultipartFile imagenFile,
+                                  @RequestParam(value = "esPrincipal", defaultValue = "true") boolean esPrincipal,
                                   RedirectAttributes redirectAttributes) {
          try {
-            // Validar máximo 10 imágenes
-            if (imagenes != null && imagenes.size() > 10) {
-                throw new IllegalArgumentException("Máximo 10 imágenes permitidas");
-            }
+            log.info("=== Guardando nuevo producto ===");
+            log.info("Producto: {}", producto.getNombreProducto());
+            log.info("Imagen recibida: {}", imagenFile != null && !imagenFile.isEmpty() ? imagenFile.getOriginalFilename() : "Sin imagen");
 
             // Validar y asignar el productor
             Optional<Productor> productorOpt = productorService.obtenerPorId(productorId);
@@ -244,23 +243,27 @@ public class ProductoController {
                 }
             }
 
-            // Procesar imágenes si se proporcionan
-            if (imagenes != null && !imagenes.isEmpty()) {
-                for (MultipartFile imagenFile : imagenes) {
-                    if (imagenFile != null && !imagenFile.isEmpty()) {
-                        try {
-                            log.info("Procesando imagen: {} - Tamaño: {} bytes",
-                                imagenFile.getOriginalFilename(), imagenFile.getSize());
-                            guardarImagenProducto(imagenFile, productoGuardado, esPrincipal);
-                            log.info("Imagen guardada exitosamente para producto {}", productoGuardado.getIdProducto());
-                        } catch (Exception imgEx) {
-                            log.error("Error al guardar imagen, pero producto creado: {}", imgEx.getMessage(), imgEx);
-                            redirectAttributes.addFlashAttribute("warning",
-                                "Producto creado pero hubo un error al guardar una imagen: " + imgEx.getMessage());
-                            return "redirect:/productos";
-                        }
+            // Procesar imagen si se proporciona (solo 1 imagen)
+            if (imagenFile != null && !imagenFile.isEmpty()) {
+                try {
+                    log.info("📸 Procesando imagen: {} - Tamaño: {} bytes",
+                        imagenFile.getOriginalFilename(), imagenFile.getSize());
+
+                    // Validar tamaño (máximo 5MB)
+                    if (imagenFile.getSize() > 5 * 1024 * 1024) {
+                        throw new IllegalArgumentException("La imagen excede el tamaño máximo de 5MB");
                     }
+
+                    guardarImagenProducto(imagenFile, productoGuardado, esPrincipal);
+                    log.info("✅ Imagen guardada exitosamente para producto {}", productoGuardado.getIdProducto());
+                } catch (Exception imgEx) {
+                    log.error("❌ Error al guardar imagen: {}", imgEx.getMessage(), imgEx);
+                    redirectAttributes.addFlashAttribute("warning",
+                        "Producto creado pero hubo un error al guardar la imagen: " + imgEx.getMessage());
+                    return "redirect:/productos";
                 }
+            } else {
+                log.info("ℹ️ No se proporcionó imagen para el producto");
             }
 
             log.info("Producto creado exitosamente con ID: {}", productoGuardado.getIdProducto());

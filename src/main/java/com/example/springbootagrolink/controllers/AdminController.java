@@ -344,6 +344,147 @@ public class AdminController {
     }
 
     /**
+     * API: Obtener detalles completos de un usuario específico
+     */
+    @GetMapping("/api/usuarios/{id}")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> obtenerDetallesUsuario(@PathVariable Integer id) {
+        log.info("=== API: Obteniendo detalles del usuario ID: {} ===", id);
+
+        try {
+            // Buscar el usuario
+            Optional<Usuario> usuarioOpt = usuarioRepository.findById(id);
+            if (usuarioOpt.isEmpty()) {
+                log.warn("❌ Usuario no encontrado con ID: {}", id);
+                return ResponseEntity.notFound().build();
+            }
+
+            Usuario usuario = usuarioOpt.get();
+            log.info("✅ Usuario encontrado: {} - {} ({})",
+                    usuario.getNombre(), usuario.getNombreUsuario(), usuario.getRol());
+
+            // Crear mapa con información básica
+            Map<String, Object> usuarioData = new HashMap<>();
+            usuarioData.put("idUsuario", usuario.getIdUsuario());
+            usuarioData.put("nombre", usuario.getNombre());
+            usuarioData.put("apellido", usuario.getApellido());
+            usuarioData.put("nombreUsuario", usuario.getNombreUsuario());
+            usuarioData.put("correo", usuario.getCorreo());
+            usuarioData.put("telefono", usuario.getTelefono());
+            usuarioData.put("cedula", usuario.getCedula());
+            usuarioData.put("direccion", usuario.getDireccion());
+            usuarioData.put("ciudad", usuario.getCiudad());
+            usuarioData.put("departamento", usuario.getDepartamento());
+            usuarioData.put("rol", usuario.getRol() != null ? usuario.getRol().name() : null);
+
+            // Agregar información específica según el rol
+            Map<String, String> rolInfo = new HashMap<>();
+
+            try {
+                if (usuario.getRol() != null) {
+                    String rolName = usuario.getRol().name();
+                    log.info("🔍 Buscando información adicional para rol: {}", rolName);
+
+                    switch (rolName) {
+                        case "ROLE_CLIENTE":
+                            Optional<Cliente> clienteOpt = clienteRepository.findById(id);
+                            if (clienteOpt.isPresent()) {
+                                Cliente cliente = clienteOpt.get();
+                                rolInfo.put("Preferencias", cliente.getPreferencias() != null ?
+                                        cliente.getPreferencias() : "No especificadas");
+
+                                // Contar compras del cliente
+                                long totalCompras = compraRepository.findAll().stream()
+                                    .filter(c -> c.getCliente() != null &&
+                                            c.getCliente().getIdUsuario().equals(id))
+                                    .count();
+                                rolInfo.put("Total de Compras", String.valueOf(totalCompras));
+                                log.info("📊 Cliente - Compras: {}", totalCompras);
+                            }
+                            break;
+
+                        case "ROLE_PRODUCTOR":
+                            Optional<Productor> productorOpt = productorRepository.findById(id);
+                            if (productorOpt.isPresent()) {
+                                Productor productor = productorOpt.get();
+                                rolInfo.put("Tipo de Cultivo", productor.getTipoCultivo() != null ?
+                                    productor.getTipoCultivo().toString().replace("_", " ") :
+                                    "No especificado");
+
+                                // Contar productos del productor
+                                long totalProductos = productoRepository.findAll().stream()
+                                    .filter(p -> p.getProductor() != null &&
+                                            p.getProductor().getIdProductor().equals(id))
+                                    .count();
+                                rolInfo.put("Total de Productos", String.valueOf(totalProductos));
+
+                                // Contar fincas del productor
+                                long totalFincas = fincaRepository.findAll().stream()
+                                    .filter(f -> f.getProductor() != null &&
+                                            f.getProductor().getIdProductor().equals(id))
+                                    .count();
+                                rolInfo.put("Total de Fincas", String.valueOf(totalFincas));
+                                log.info("📊 Productor - Productos: {}, Fincas: {}",
+                                        totalProductos, totalFincas);
+                            }
+                            break;
+
+                        case "ROLE_TRANSPORTISTA":
+                            Optional<Transportista> transportistaOpt = transportistaRepository.findById(id);
+                            if (transportistaOpt.isPresent()) {
+                                Transportista transportista = transportistaOpt.get();
+                                rolInfo.put("Zonas de Entrega", transportista.getZonasEntrega() != null ?
+                                    transportista.getZonasEntrega() : "No especificadas");
+
+                                // Contar envíos del transportista
+                                long totalEnvios = envioRepository.findAll().stream()
+                                    .filter(e -> e.getTransportista() != null &&
+                                            e.getTransportista().getIdUsuario().equals(id))
+                                    .count();
+                                rolInfo.put("Total de Envíos", String.valueOf(totalEnvios));
+                                log.info("📊 Transportista - Envíos: {}", totalEnvios);
+                            }
+                            break;
+
+                        case "ROLE_SERVICIO":
+                            Optional<Asesor> asesorOpt = asesorRepository.findById(id);
+                            if (asesorOpt.isPresent()) {
+                                Asesor asesor = asesorOpt.get();
+                                rolInfo.put("Tipo de Asesoría", asesor.getTipoAsesoria() != null ?
+                                    asesor.getTipoAsesoria() : "No especificada");
+                                log.info("📊 Asesor - Tipo: {}", asesor.getTipoAsesoria());
+                            }
+                            break;
+
+                        case "ROLE_ADMIN":
+                            rolInfo.put("Nivel de Acceso", "Administrador del Sistema");
+                            rolInfo.put("Permisos", "Acceso Total");
+                            break;
+                    }
+                }
+            } catch (Exception ex) {
+                log.warn("⚠️ Error al obtener información adicional del rol: {}", ex.getMessage());
+            }
+
+            // Agregar información del rol si existe
+            if (!rolInfo.isEmpty()) {
+                usuarioData.put("rolInfo", rolInfo);
+                log.info("✅ Información adicional del rol agregada: {} campos", rolInfo.size());
+            }
+
+            log.info("✅ Datos del usuario preparados correctamente");
+            return ResponseEntity.ok(usuarioData);
+
+        } catch (Exception e) {
+            log.error("❌ Error al obtener detalles del usuario {}: {}", id, e.getMessage(), e);
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("error", "Error al obtener datos del usuario");
+            errorResponse.put("message", e.getMessage());
+            return ResponseEntity.status(500).body(errorResponse);
+        }
+    }
+
+    /**
      * Vista de gestión de productos
      */
     @GetMapping("/productos")
