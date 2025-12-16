@@ -45,6 +45,12 @@ public class TransportistaController {
     @Autowired
     private jakarta.persistence.EntityManager entityManager;
 
+    @Autowired
+    private com.example.springbootagrolink.services.CategoriaProductoService categoriaProductoService;
+
+    @Autowired
+    private com.example.springbootagrolink.services.ServicioService servicioService;
+
     /**
      * API para obtener envíos disponibles en JSON (usando SQL nativa para obtener cliente)
      */
@@ -186,12 +192,12 @@ public class TransportistaController {
             // Los campos como fecha_entrega, fecha_salida, transportista, vehiculo se llenarán cuando se acepte
             log.info("  ✓ Se mostrarán {} envíos disponibles (filtrados sin fechas)", enviosDisponibles.size());
 
-            // Crear mapa de nombres de clientes usando SQL nativo (evita lazy loading problemático)
+            // Crear mapa de nombres de clientes usando SQL nativa (evita lazy loading problemático)
             Map<Integer, String> nombresClientes = new HashMap<>();
             for (Envio envio : enviosDisponibles) {
                 if (envio.getCompra() != null) {
                     try {
-                        // Obtener nombre del cliente usando SQL nativo para evitar fecha_hora_compra
+                        // Obtener nombre del cliente usando SQL nativa para evitar fecha_hora_compra
                         Integer idCompra = envio.getCompra().getIdCompra();
                         String nombreCliente = obtenerNombreClientePorCompra(idCompra);
                         nombresClientes.put(envio.getIdEnvio(), nombreCliente != null ? nombreCliente : "Sin asignar");
@@ -240,8 +246,6 @@ public class TransportistaController {
                 log.error("    at {}", ste);
             }
 
-            model.addAttribute("envios", new ArrayList<>());
-            model.addAttribute("error", "Error al cargar envíos: " + e.getMessage());
             return "transportista/envios";
         }
     }
@@ -414,17 +418,38 @@ public class TransportistaController {
                 return ResponseEntity.badRequest().body(Map.of("success", false, "message", "No autorizado"));
             }
 
+            // Estado previo (antes del cambio)
+            Envio.EstadoEnvio prevEstadoEnum = envio.getEstadoEnvio();
+            String prevEstado = prevEstadoEnum != null ? prevEstadoEnum.name() : null;
+
+             // Si el transportista solicita devolver el envío a búsqueda, limpiar asignaciones
+             if ("Buscando_Transporte".equals(estado)) {
+                 envio.setTransportista(null);
+                 envio.setVehiculo(null);
+                 envio.setFechaSalida(null);
+                 envio.setFechaEntrega(null);
+                 envio.setEstadoEnvio(Envio.EstadoEnvio.Buscando_Transporte);
+
+                 envioRepository.save(envio);
+                 log.info("El envío {} fue cancelado por el transportista y devuelto a Buscando_Transporte", id);
+                 return ResponseEntity.ok(Map.of("success", true, "message", "Envío cancelado y devuelto a búsqueda de transportista", "prevEstado", prevEstado, "nuevoEstado", "Buscando_Transporte"));
+             }
+
+             // Si se marca como finalizado, establecer fecha de entrega
+             if ("Finalizado".equals(estado)) {
+                 envio.setEstadoEnvio(Envio.EstadoEnvio.Finalizado);
+                 envio.setFechaEntrega(java.time.LocalDate.now());
+                 envioRepository.save(envio);
+                 log.info("Estado del envío {} actualizado a Finalizado", id);
+                 return ResponseEntity.ok(Map.of("success", true, "message", "Estado actualizado a Finalizado", "prevEstado", prevEstado, "nuevoEstado", "Finalizado"));
+             }
+
+             // Caso general (En_Transito, Asignado, etc.)
             envio.setEstadoEnvio(Envio.EstadoEnvio.valueOf(estado));
-
-            // Si se marca como finalizado, establecer fecha de entrega
-            if (estado.equals("Finalizado")) {
-                envio.setFechaEntrega(java.time.LocalDate.now());
-            }
-
             envioRepository.save(envio);
 
             log.info("Estado del envío {} actualizado a {}", id, estado);
-            return ResponseEntity.ok(Map.of("success", true, "message", "Estado actualizado exitosamente"));
+            return ResponseEntity.ok(Map.of("success", true, "message", "Estado actualizado exitosamente", "prevEstado", prevEstado, "nuevoEstado", estado));
 
         } catch (Exception e) {
             log.error("Error al actualizar estado del envío: {}", e.getMessage(), e);
@@ -615,6 +640,170 @@ public class TransportistaController {
         } catch (Exception e) {
             log.error("Error al eliminar vehículo: {}", e.getMessage(), e);
             return ResponseEntity.status(500).body(Map.of("success", false, "message", "Error al eliminar vehículo"));
+        }
+    }
+
+    // Endpoint para ver el perfil del transportista: reenvía al controlador central de perfiles
+    @GetMapping("/perfil")
+    public String perfilTransportistaPreparado(Model model) {
+        try {
+            // Obtener usuario autenticado
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            if (authentication == null || !authentication.isAuthenticated() || "anonymousUser".equals(authentication.getPrincipal())) {
+                return "redirect:/login";
+            }
+
+            String username = authentication.getName();
+            Usuario usuario = usuarioRepository.findByNombreUsuario(username).orElse(null);
+            if (usuario == null) {
+                return "redirect:/login";
+            }
+
+            // Verificar rol
+            if (usuario.getRol() == null || !"ROLE_TRANSPORTISTA".equals(usuario.getRol().name())) {
+                // Reusar controlador central de perfiles para otros roles
+                return "redirect:/perfil";
+            }
+
+            // Obtener o crear transportista asociado
+            Transportista transportista = transportistaRepository.findById(usuario.getIdUsuario()).orElse(null);
+            if (transportista == null) {
+                try {
+                    transportista = transportistaService.crearTransportistaAutomatico(usuario);
+                } catch (Exception e) {
+                    // Si falla la creación automática, seguimos con null y mostramos mensaje
+                    transportista = null;
+                }
+            }
+
+            // Preparar un view-model (Mapa) con las propiedades que la plantilla espera
+            Map<String, Object> transportistaVM = new HashMap<>();
+
+            // Usuario dentro del view-model
+            Map<String, Object> usuarioVM = new HashMap<>();
+            usuarioVM.put("nombre", usuario.getNombre());
+            usuarioVM.put("apellido", usuario.getApellido());
+            usuarioVM.put("telefono", usuario.getTelefono());
+            usuarioVM.put("correo", usuario.getCorreo());
+            usuarioVM.put("nombreUsuario", usuario.getNombreUsuario());
+            transportistaVM.put("usuario", usuarioVM);
+
+            // Campos simples
+            transportistaVM.put("empresa", null);
+            transportistaVM.put("documentacionCompleta", false);
+            transportistaVM.put("zonasEntrega", transportista != null ? transportista.getZonasEntrega() : null);
+
+            // Vehículos: mapear a la forma que espera la plantilla (tipo, placa, capacidad, disponible)
+            List<Map<String, Object>> vehiculosVM = new ArrayList<>();
+            if (transportista != null) {
+                List<Vehiculo> vehiculos = vehiculoRepository.findByTransportista_IdUsuario(transportista.getIdUsuario());
+                if (vehiculos != null) {
+                    for (Vehiculo v : vehiculos) {
+                        Map<String, Object> vmap = new HashMap<>();
+                        vmap.put("tipo", v.getTipoVehiculo() != null ? v.getTipoVehiculo().name() : "N/A");
+                        vmap.put("placa", v.getPlacaVehiculo());
+                        vmap.put("capacidad", v.getCapacidadCarga());
+                        // No existe campo disponible en la entidad; asumir true
+                        vmap.put("disponible", true);
+                        vehiculosVM.add(vmap);
+                    }
+                }
+            }
+            transportistaVM.put("vehiculos", vehiculosVM);
+
+            // Calificación: adaptar la entidad Calificacion (puntaje/promedio) al template (puntuacion, totalEvaluaciones, comentarios)
+            Map<String, Object> calVM = new HashMap<>();
+            if (transportista != null && transportista.getCalificacion() != null) {
+                com.example.springbootagrolink.model.Calificacion c = transportista.getCalificacion();
+                // Usar 'promedio' si existe, sino 'puntaje'
+                Number puntuacion = null;
+                try {
+                    java.lang.reflect.Method mProm = c.getClass().getMethod("getPromedio");
+                    Object val = mProm.invoke(c);
+                    if (val instanceof Number) puntuacion = (Number) val;
+                } catch (Exception ignored) {}
+                try {
+                    if (puntuacion == null) {
+                        java.lang.reflect.Method mPun = c.getClass().getMethod("getPuntaje");
+                        Object val2 = mPun.invoke(c);
+                        if (val2 instanceof Number) puntuacion = (Number) val2;
+                    }
+                } catch (Exception ignored) {}
+
+                calVM.put("puntuacion", puntuacion != null ? puntuacion.doubleValue() : 0);
+                calVM.put("totalEvaluaciones", 0);
+                calVM.put("comentarios", new ArrayList<>());
+            } else {
+                calVM.put("puntuacion", 0);
+                calVM.put("totalEvaluaciones", 0);
+                calVM.put("comentarios", new ArrayList<>());
+            }
+            transportistaVM.put("calificacion", calVM);
+
+            // Agregar atributos al modelo
+            model.addAttribute("usuario", usuario);
+            model.addAttribute("transportista", transportistaVM);
+            model.addAttribute("title", "Mi Perfil - Transportista");
+            model.addAttribute("datosEspecificos", transportistaVM);
+            model.addAttribute("templateEspecifico", "transportista/perfil :: transportista-perfil");
+            model.addAttribute("mostrarTransportista", transportistaVM != null);
+
+            // Añadir datos para el navbar/plantilla (categorías y servicios)
+            try {
+                model.addAttribute("categorias", categoriaProductoService.obtenerTodos());
+                // Agrupar servicios por clave similar al controller de perfil
+                Map<String, List<com.example.springbootagrolink.model.Servicio>> categoriasServicios = new java.util.HashMap<>();
+                List<com.example.springbootagrolink.model.Servicio> servicios = servicioService.obtenerTodosLosServicios();
+                if (servicios != null) {
+                    for (com.example.springbootagrolink.model.Servicio s : servicios) {
+                        String key = "Otros";
+                        try {
+                            if (s.getAsesor() != null && s.getAsesor().getTipoAsesoria() != null && !s.getAsesor().getTipoAsesoria().trim().isEmpty()) {
+                                key = s.getAsesor().getTipoAsesoria();
+                            }
+                        } catch (Exception ignored) {}
+                        categoriasServicios.computeIfAbsent(key, k -> new java.util.ArrayList<>()).add(s);
+                    }
+                }
+                model.addAttribute("categoriasServicios", categoriasServicios);
+            } catch (Exception e) {
+                model.addAttribute("categorias", new java.util.ArrayList<>());
+                model.addAttribute("categoriasServicios", new java.util.HashMap<>());
+            }
+
+            // Estadísticas para transportista
+            Map<String, Object> estadisticas = new HashMap<>();
+            try {
+                List<com.example.springbootagrolink.model.Envio> todos = envioRepository.findByTransportista_IdUsuario(usuario.getIdUsuario());
+                if (todos == null) todos = new ArrayList<>();
+
+                long finalizados = todos.stream().filter(e -> e.getEstadoEnvio() == com.example.springbootagrolink.model.Envio.EstadoEnvio.Finalizado).count();
+                long asignados = todos.stream().filter(e -> e.getEstadoEnvio() == com.example.springbootagrolink.model.Envio.EstadoEnvio.Asignado).count();
+                long enTransito = todos.stream().filter(e -> e.getEstadoEnvio() == com.example.springbootagrolink.model.Envio.EstadoEnvio.En_Transito).count();
+                int tasaExito = todos.size() > 0 ? (int) ((finalizados * 100) / todos.size()) : 0;
+
+                estadisticas.put("entregasCompletadas", finalizados);
+                estadisticas.put("entregasPendientes", asignados + enTransito);
+                estadisticas.put("entregasMes", 0);
+                estadisticas.put("tasaExito", tasaExito);
+                estadisticas.put("tiempoPromedio", 0);
+                estadisticas.put("saldoDisponible", 0);
+                estadisticas.put("ingresosMes", 0);
+                estadisticas.put("pendienteCobro", 0);
+            } catch (Exception e) {
+                estadisticas.put("entregasCompletadas", 0);
+                estadisticas.put("entregasPendientes", 0);
+                estadisticas.put("entregasMes", 0);
+                estadisticas.put("tasaExito", 0);
+            }
+
+            model.addAttribute("estadisticas", estadisticas);
+
+            // Usar layout sin navbar para la vista específica del transportista
+            return "layouts/perfil-sin-navbar";
+        } catch (Exception e) {
+            // En caso de error, redirigir al perfil general
+            return "redirect:/perfil";
         }
     }
 }

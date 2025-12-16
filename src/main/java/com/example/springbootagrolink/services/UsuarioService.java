@@ -191,4 +191,9 @@ public class UsuarioService implements Idao<Usuario, Integer> {
     // public Optional<Usuario> buscarPorCorreo(String correo) {
     //     return usuarioRepository.findByCorreo(correo);
     // }
+
+    // Buscar usuario por nombre de usuario (para uso en controladores)
+    public Usuario obtenerPorNombreUsuario(String nombreUsuario) {
+        return usuarioRepository.findByNombreUsuario(nombreUsuario).orElse(null);
+    }
 }

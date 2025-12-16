@@ -15,7 +15,7 @@ public interface EnvioRepository extends JpaRepository<Envio, Integer> {
     @Query("SELECT COUNT(e) FROM Envio e WHERE e.estadoEnvio = 'Finalizado'")
     Long countEnviosFinalizados();
 
-    // Buscar envíos por transportista con relaciones inicializadas
+    // Buscar envíos por transportista con relaciones inicializadas (sin referencias a campos inexistentes)
     @Query("SELECT DISTINCT e FROM Envio e " +
            "LEFT JOIN FETCH e.compra c " +
            "LEFT JOIN FETCH c.cliente cl " +
@@ -27,7 +27,7 @@ public interface EnvioRepository extends JpaRepository<Envio, Integer> {
     @Query("SELECT e FROM Envio e WHERE e.estadoEnvio = :estado ORDER BY e.idEnvio DESC")
     List<Envio> findByEstadoEnvio(@Param("estado") Envio.EstadoEnvio estado);
 
-    // Método alternativo con FETCH JOIN para cuando se necesitan relaciones
+    // Método alternativo con FETCH JOIN para cuando se necesitan relaciones (sin c.producto)
     @Query("SELECT DISTINCT e FROM Envio e " +
            "LEFT JOIN FETCH e.compra c " +
            "LEFT JOIN FETCH c.cliente cl " +
@@ -58,5 +58,3 @@ public interface EnvioRepository extends JpaRepository<Envio, Integer> {
     List<Envio> findEnviosDisponiblesSinFechas(@Param("estado") Envio.EstadoEnvio estado);
 
 }
-
-

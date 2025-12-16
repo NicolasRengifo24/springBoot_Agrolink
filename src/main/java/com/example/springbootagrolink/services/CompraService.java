@@ -130,4 +130,10 @@ public class CompraService {
     public Optional<Compra> obtenerPorId(Integer id) {
         return compraRepository.findById(id);
     }
+
+    // Contar compras realizadas por un cliente (útil para estadísticas de perfil)
+    public int contarPorCliente(Cliente cliente) {
+        if (cliente == null) return 0;
+        return compraRepository.findByCliente(cliente).size();
+    }
 }

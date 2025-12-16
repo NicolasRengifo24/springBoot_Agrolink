@@ -209,6 +209,75 @@ public class ClienteController {
         return inicio(null, null, null, null, null, null, null, model);
     }
 
+
+    // Endpoint para mostrar el perfil del cliente (con modelo preparado)
+    @GetMapping("/cliente/perfil")
+    public String perfilClientePreparado(Model model) {
+        // Obtener usuario autenticado
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated() || "anonymousUser".equals(authentication.getPrincipal())) {
+            return "redirect:/login";
+        }
+        String username = authentication.getName();
+        Usuario usuario = usuarioRepository.findByNombreUsuario(username).orElse(null);
+        if (usuario == null) return "redirect:/login";
+
+        // Sólo permitir acceso a este endpoint si el usuario es ROLE_CLIENTE
+        if (usuario.getRol() == null || !"ROLE_CLIENTE".equals(usuario.getRol().name())) {
+            // Redirigir al controlador general de perfil que maneja distintos roles
+            return "redirect:/perfil";
+        }
+
+        // Obtener cliente asociado
+        Cliente cliente = clienteRepository.findByUsuario(usuario).orElse(null);
+
+        model.addAttribute("usuario", usuario);
+        model.addAttribute("title", "Mi Perfil - Cliente");
+        model.addAttribute("cliente", cliente);
+        model.addAttribute("datosEspecificos", cliente);
+        model.addAttribute("templateEspecifico", "cliente/perfil :: cliente-perfil");
+
+        // Asegurar que el layout renderice el fragmento del cliente
+        model.addAttribute("mostrarCliente", true);
+
+        // Añadir datos para el navbar/plantilla (categorías y servicios) por consistencia
+        try {
+            model.addAttribute("categorias", categoriaProductoService.obtenerTodos());
+            model.addAttribute("categoriasServicios", categorizarServicios(servicioService.obtenerTodosLosServicios()));
+        } catch (Exception ignored) {}
+
+        // Si el cliente existe, asegurarnos de que el usuario en el modelo es el mismo objeto asociado
+        if (cliente != null && cliente.getUsuario() != null) {
+            model.addAttribute("usuario", cliente.getUsuario());
+        }
+
+        // Si no existe el cliente en BD, redirigir al usuario o mostrar mensaje
+        if (cliente == null) {
+            model.addAttribute("errorMessage", "No se encontró la información de cliente.");
+            // Puedes cambiar la redirección si prefieres
+            return "layouts/perfil-sin-navbar";
+        }
+
+        // Estadísticas simples
+        Map<String, Object> estadisticas = new HashMap<>();
+        int pedidos = 0;
+        try {
+            if (cliente != null) {
+                pedidos = compraRepository.findByCliente(cliente).size();
+            }
+        } catch (Exception e) {
+            pedidos = 0;
+        }
+        estadisticas.put("pedidosRealizados", pedidos);
+        estadisticas.put("comentariosRealizados", 0);
+        estadisticas.put("productosFavoritos", 0);
+
+        model.addAttribute("estadisticas", estadisticas);
+
+        // Usar layout sin navbar para la vista específica del cliente
+        return "layouts/perfil-sin-navbar";
+    }
+
     /**
      * Ruta específica para búsquedas del navbar con normalización de texto
      */
@@ -510,24 +579,6 @@ public class ClienteController {
         return "cliente/carrito";
     }
 
-    /**
-     * Ver perfil del cliente
-     */
-    @GetMapping("/cliente/perfil")
-    public String verPerfil(HttpSession session, Model model) {
-        // Aquí puedes agregar la lógica para obtener los datos del cliente de la sesión
-        // Por ejemplo:
-        // Cliente cliente = (Cliente) session.getAttribute("clienteLogueado");
-        // model.addAttribute("cliente", cliente);
-
-        // Obtener el carrito para el contador
-        @SuppressWarnings("unchecked")
-        Map<Integer, Integer> carrito = (Map<Integer, Integer>) session.getAttribute("carrito");
-        int cartCount = (carrito != null) ? carrito.values().stream().mapToInt(Integer::intValue).sum() : 0;
-        model.addAttribute("cartCount", cartCount);
-
-        return "cliente/perfil";
-    }
 
     /**
      * Actualizar cantidad de un producto en el carrito

@@ -1,0 +1,126 @@
+<div th:fragment="cliente-perfil(cliente)" class="container">
+    <!-- Mensajes de éxito / error -->
+    <div th:if="${successMessage != null}" class="alert alert-success" role="alert" th:text="${successMessage}"></div>
+    <div th:if="${errorMessage != null}" class="alert alert-danger" role="alert" th:text="${errorMessage}"></div>
+
+    <div class="row g-4">
+        <!-- Columna izquierda: Vista de perfil y resumen -->
+        <div class="col-md-4">
+            <div class="card mb-3">
+                <div class="card-body text-center">
+                    <img th:src="${(cliente != null and cliente.usuario != null and cliente.usuario.idUsuario != null) ? ('https://i.pravatar.cc/120?img=' + cliente.usuario.idUsuario) : '/CSS/imag/placeholder.jpg'}"
+                         class="rounded-circle mb-3" alt="Avatar" style="width:120px; height:120px; object-fit:cover;">
+                    <h5 class="card-title" th:text="${cliente.usuario.nombre + ' ' + cliente.usuario.apellido}">Nombre Apellido</h5>
+                    <p class="text-muted mb-1" th:text="${cliente.usuario.correo}">email@ejemplo.com</p>
+                    <p class="text-muted small" th:text="${cliente.usuario.ciudad}">Ciudad</p>
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-outline-success" type="button" onclick="toggleEdit()">Editar perfil</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-body">
+                    <h6><i class="bi bi-clock-history me-2"></i>Actividad</h6>
+                    <p class="mb-1"><strong>Pedidos:</strong> <span th:text="${estadisticas?.pedidosRealizados ?: 0}">0</span></p>
+                    <p class="mb-1"><strong>Comentarios:</strong> <span th:text="${estadisticas?.comentariosRealizados ?: 0}">0</span></p>
+                    <p class="mb-0"><strong>Favoritos:</strong> <span th:text="${estadisticas?.productosFavoritos ?: 0}">0</span></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Columna derecha: Información y formulario de edición -->
+        <div class="col-md-8">
+            <!-- Vista (por defecto visible) -->
+            <div id="perfilView">
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <h4><i class="bi bi-person-lines-fill me-2"></i>Datos Personales</h4>
+                        <p><strong>Nombre:</strong> <span th:text="${cliente.usuario.nombre}">Nombre</span></p>
+                        <p><strong>Apellido:</strong> <span th:text="${cliente.usuario.apellido}">Apellido</span></p>
+                        <p><strong>Email:</strong> <span th:text="${cliente.usuario.correo}">correo</span></p>
+                        <p><strong>Teléfono:</strong> <span th:text="${cliente.usuario.telefono}">Teléfono</span></p>
+                        <p><strong>Cédula:</strong> <span th:text="${cliente.usuario.cedula}">Cédula</span></p>
+                        <p><strong>Dirección:</strong> <span th:text="${cliente.usuario.direccion}">Dirección</span></p>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-body">
+                        <h5>Preferencias</h5>
+                        <p th:text="${cliente.preferencias ?: 'Sin preferencias especificadas'}">Sin preferencias</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Formulario de edición (oculto por defecto) -->
+            <div id="perfilEdit" class="d-none">
+                <div class="card">
+                    <div class="card-body">
+                        <h4><i class="bi bi-pencil-square me-2"></i>Editar Perfil</h4>
+
+                        <form th:action="@{/perfil/editar}" method="post">
+                            <!-- CSRF token -->
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+
+                            <!-- Enviar id del cliente si está disponible -->
+                            <input type="hidden" name="idCliente" th:value="${cliente.idUsuario}" />
+
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label" for="nombre">Nombre</label>
+                                    <input id="nombre" class="form-control" type="text" name="nombre" th:value="${cliente.usuario.nombre}" required />
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label" for="apellido">Apellido</label>
+                                    <input id="apellido" class="form-control" type="text" name="apellido" th:value="${cliente.usuario.apellido}" required />
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label" for="correo">Email</label>
+                                    <input id="correo" class="form-control" type="email" name="correo" th:value="${cliente.usuario.correo}" required />
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label" for="telefono">Teléfono</label>
+                                    <input id="telefono" class="form-control" type="text" name="telefono" th:value="${cliente.usuario.telefono}" />
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label" for="cedula">Cédula</label>
+                                    <input id="cedula" class="form-control" type="text" name="cedula" th:value="${cliente.usuario.cedula}" />
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label" for="direccion">Dirección</label>
+                                    <input id="direccion" class="form-control" type="text" name="direccion" th:value="${cliente.usuario.direccion}" />
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label" for="preferencias">Preferencias</label>
+                                    <textarea id="preferencias" class="form-control" name="preferencias" rows="3" th:text="${cliente.preferencias}"></textarea>
+                                </div>
+                            </div>
+
+                            <div class="mt-3 d-flex gap-2">
+                                <button type="submit" class="btn btn-success">Guardar cambios</button>
+                                <button type="button" class="btn btn-outline-secondary" onclick="toggleEdit()">Cancelar</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        function toggleEdit(){
+            var view = document.getElementById('perfilView');
+            var edit = document.getElementById('perfilEdit');
+            if(view && edit){
+                view.classList.toggle('d-none');
+                edit.classList.toggle('d-none');
+                // scroll to top of edit form for better UX
+                if(!edit.classList.contains('d-none')){
+                    edit.scrollIntoView({behavior: 'smooth'});
+                }
+            }
+        }
+    </script>
+</div>

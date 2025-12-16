@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:fragment="transportista-perfil(transportista)" class="row">
+    <!-- Columna izquierda: Datos del Transportista -->
+    <div class="col-md-6">
+        <div class="profile-card" data-aos="fade-right">
+            <h4><i class="bi bi-truck me-2"></i>Información del Transportista</h4>
+            <p><strong>Nombre:</strong>
+                <span th:text="${transportista.usuario.nombre + ' ' + transportista.usuario.apellido}"></span>
+            </p>
+            <p><strong>Empresa/Transporte:</strong>
+                <span th:text="${transportista.empresa != null ? transportista.empresa : 'Independiente'}"></span>
+            </p>
+            <p><strong>Contacto:</strong>
+                <span th:text="${transportista.usuario.telefono}"></span>
+            </p>
+            <p><strong>Email:</strong>
+                <span th:text="${transportista.usuario.correo}"></span>
+            </p>
+            <p><strong>Documentación:</strong>
+                <span class="badge bg-success" th:if="${transportista.documentacionCompleta}">✓ Completada</span>
+                <span class="badge bg-warning" th:unless="${transportista.documentacionCompleta}">Pendiente</span>
+            </p>
+        </div>
+
+        <div class="profile-card" data-aos="fade-right">
+            <h4><i class="bi bi-geo-alt-fill me-2"></i>Zonas de Entrega</h4>
+            <div th:if="${transportista.zonasEntrega != null}">
+                <p th:text="${transportista.zonasEntrega}"></p>
+            </div>
+            <div th:unless="${transportista.zonasEntrega != null}">
+                <p class="text-muted">No hay zonas especificadas</p>
+            </div>
+            <button class="btn btn-outline-success btn-sm mt-2">
+                <i class="bi bi-pencil"></i> Editar Zonas
+            </button>
+        </div>
+
+        <div class="profile-card" data-aos="fade-right">
+            <h4><i class="bi bi-car-front-fill me-2"></i>Vehículos</h4>
+            <div th:if="${!transportista.vehiculos.isEmpty()}">
+                <div th:each="vehiculo : ${transportista.vehiculos}" class="mb-3">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-truck me-2 fs-5"></i>
+                        <div>
+                            <p class="mb-1">
+                                <strong th:text="${vehiculo.tipo}"></strong> -
+                                <span th:text="${vehiculo.placa}"></span>
+                            </p>
+                            <small class="text-muted">
+                                Capacidad: <span th:text="${vehiculo.capacidad}"></span> kg
+                            </small>
+                        </div>
+                        <span th:classappend="${vehiculo.disponible ? 'badge bg-success ms-auto' : 'badge bg-secondary ms-auto'}"
+                              th:text="${vehiculo.disponible ? 'Disponible' : 'No disponible'}">
+                            </span>
+                    </div>
+                </div>
+            </div>
+            <div th:unless="${!transportista.vehiculos.isEmpty()}">
+                <p class="text-muted">No hay vehículos registrados</p>
+            </div>
+            <a th:href="@{/transportista/vehiculos/nuevo}" class="btn btn-outline-primary btn-sm mt-2">
+                <i class="bi bi-plus-circle"></i> Agregar Vehículo
+            </a>
+        </div>
+    </div>
+
+    <!-- Columna derecha: Estadísticas y Calificación -->
+    <div class="col-md-6">
+        <div class="profile-card" data-aos="fade-left">
+            <h4><i class="bi bi-bar-chart-fill me-2"></i>Estadísticas de Entregas</h4>
+            <div class="row text-center">
+                <div class="col-4">
+                    <div class="display-6 fw-bold" th:text="${estadisticas?.entregasCompletadas ?: '0'}"></div>
+                    <small class="text-muted">Entregas Completadas</small>
+                </div>
+                <div class="col-4">
+                    <div class="display-6 fw-bold text-primary" th:text="${estadisticas?.entregasPendientes ?: '0'}"></div>
+                    <small class="text-muted">En Proceso</small>
+                </div>
+                <div class="col-4">
+                    <div class="display-6 fw-bold text-success" th:text="|${estadisticas?.tasaExito ?: 0}%|"></div>
+                    <small class="text-muted">Tasa de Éxito</small>
+                </div>
+            </div>
+            <div class="mt-3">
+                <p><i class="bi bi-calendar-check text-success"></i>
+                    <strong>Entregas este mes:</strong>
+                    <span th:text="${estadisticas?.entregasMes ?: '0'}"></span>
+                </p>
+                <p><i class="bi bi-clock-history text-warning"></i>
+                    <strong>Tiempo promedio:</strong>
+                    <span th:text="${estadisticas?.tiempoPromedio ?: '0'}"></span> horas
+                </p>
+            </div>
+            <a th:href="@{/transportista/estadisticas}" class="btn btn-outline-primary btn-sm mt-2">
+                Ver reporte detallado
+            </a>
+        </div>
+
+        <div class="profile-card" data-aos="fade-left">
+            <h4><i class="bi bi-star-fill me-2"></i>Calificación y Reputación</h4>
+            <div th:if="${transportista.calificacion != null}">
+                <div class="d-flex align-items-center mb-3">
+                    <div class="me-3">
+                        <div class="display-4 fw-bold" th:text="${transportista.calificacion.puntuacion}"></div>
+                        <small class="text-muted">/ 5.0</small>
+                    </div>
+                    <div>
+                        <div class="stars mb-1">
+                                <span th:each="i : ${#numbers.sequence(1, 5)}">
+                                    <i th:class="${i <= transportista.calificacion.puntuacion ? 'bi bi-star-fill text-warning' : 'bi bi-star text-muted'}"></i>
+                                </span>
+                        </div>
+                        <p class="mb-0">
+                            <span th:text="${transportista.calificacion.totalEvaluaciones}"></span> evaluaciones
+                        </p>
+                    </div>
+                </div>
+
+                <div class="mb-2">
+                        <span class="badge"
+                              th:classappend="${transportista.calificacion.puntuacion >= 4.5 ? 'bg-success' :
+                                             transportista.calificacion.puntuacion >= 4.0 ? 'bg-primary' :
+                                             transportista.calificacion.puntuacion >= 3.5 ? 'bg-info' :
+                                             'bg-warning'}">
+                            <span th:if="${transportista.calificacion.puntuacion >= 4.5}">⭐ Excelente</span>
+                            <span th:if="${transportista.calificacion.puntuacion >= 4.0 and transportista.calificacion.puntuacion < 4.5}">👍 Muy Bueno</span>
+                            <span th:if="${transportista.calificacion.puntuacion >= 3.5 and transportista.calificacion.puntuacion < 4.0}">✓ Bueno</span>
+                            <span th:if="${transportista.calificacion.puntuacion < 3.5}">⚠️ Regular</span>
+                        </span>
+                </div>
+
+                <p><strong>Comentarios recientes:</strong></p>
+                <div th:if="${!transportista.calificacion.comentarios.isEmpty()}">
+                    <div th:each="comentario : ${transportista.calificacion.comentarios}"
+                         th:if="${comentariosCount.index < 2}"
+                         class="mb-2 p-2 bg-light rounded">
+                        <small th:text="|\"${comentario.texto}\"|"></small>
+                        <div class="text-end">
+                            <small class="text-muted" th:text="${comentario.cliente.nombre}"></small>
+                        </div>
+                    </div>
+                </div>
+                <div th:unless="${!transportista.calificacion.comentarios.isEmpty()}">
+                    <p class="text-muted">Sin comentarios aún</p>
+                </div>
+            </div>
+            <div th:unless="${transportista.calificacion != null}">
+                <p class="text-muted">Aún no tiene calificaciones</p>
+            </div>
+        </div>
+
+        <!-- Sección financiera eliminada por requerimiento del transportista -->
+     </div>
+ </div>
+ </body>
+ </html>

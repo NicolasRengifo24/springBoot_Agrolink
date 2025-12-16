@@ -1,0 +1,826 @@
+<!doctype html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>Crear Producto — Agrolink</title>
+
+    <!-- Bootstrap 5.3 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet"/>
+
+    <style>
+        :root {
+            --primary-green: #2f6b31;
+            --secondary-gold: #c9a248;
+            --light-bg: #f8faf7;
+            --success: #28a745;
+            --danger: #dc3545;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f8faf7 0%, #e8f5e9 100%);
+            min-height: 100vh;
+            padding: 20px 0;
+        }
+
+        .container-main {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Header mejorado */
+        .page-header {
+            background: white;
+            border-radius: 12px;
+            padding: 25px 30px;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .page-header h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 600;
+            color: var(--primary-green);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        /* Card del formulario */
+        .form-card {
+            background: white;
+            border-radius: 12px;
+            padding: 35px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+
+        /* Secciones del formulario */
+        .form-section {
+            border-left: 4px solid var(--primary-green);
+            padding-left: 20px;
+            margin-bottom: 30px;
+        }
+
+        .form-section-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--primary-green);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Labels mejorados */
+        .form-label {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .form-label .required {
+            color: var(--danger);
+            margin-left: 3px;
+        }
+
+        /* Inputs mejorados */
+        .form-control, .form-select {
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 12px 15px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary-green);
+            box-shadow: 0 0 0 0.25rem rgba(47, 107, 49, 0.15);
+        }
+
+        /* Preview de imagen mejorado */
+        .image-upload-area {
+            border: 2px dashed #ccc;
+            border-radius: 12px;
+            padding: 30px;
+            text-align: center;
+            background: #fafafa;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .image-upload-area:hover {
+            border-color: var(--primary-green);
+            background: #f0f8f0;
+        }
+
+        .image-upload-area.dragover {
+            border-color: var(--success);
+            background: #e8f5e9;
+        }
+
+        #imagePreview {
+            max-width: 100%;
+            max-height: 300px;
+            border-radius: 8px;
+            margin-top: 15px;
+            display: none;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .upload-icon {
+            font-size: 48px;
+            color: var(--primary-green);
+            margin-bottom: 10px;
+        }
+
+        /* Selector de fincas mejorado */
+        #fincaIds {
+            min-height: 100px;
+        }
+
+        #fincaIds option {
+            padding: 8px;
+            border-radius: 4px;
+            margin: 2px 0;
+        }
+
+        /* Badges informativos */
+        .info-badge {
+            background: #e3f2fd;
+            color: #1976d2;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* Botones mejorados */
+        .btn {
+            padding: 12px 28px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 15px;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-success {
+            background: var(--primary-green);
+            border: none;
+        }
+
+        .btn-success:hover {
+            background: #245024;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(47, 107, 49, 0.3);
+        }
+
+        .btn-outline-secondary {
+            border: 2px solid #6c757d;
+        }
+
+        .btn-outline-secondary:hover {
+            background: #6c757d;
+            transform: translateY(-2px);
+        }
+
+        /* Tooltip personalizado */
+        .help-tooltip {
+            cursor: help;
+            color: var(--primary-green);
+            font-size: 16px;
+            margin-left: 5px;
+        }
+
+        /* Loading spinner */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+
+        .loading-overlay.active {
+            display: flex;
+        }
+
+        .spinner {
+            width: 60px;
+            height: 60px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid var(--primary-green);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .page-header {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+
+            .form-card {
+                padding: 20px;
+            }
+
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
+        /* Animación de entrada */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .form-card {
+            animation: fadeInUp 0.5s ease-out;
+        }
+    </style>
+</head>
+
+<body>
+
+<!-- Loading Overlay -->
+<div class="loading-overlay" id="loadingOverlay">
+    <div class="text-center">
+        <div class="spinner"></div>
+        <p class="text-white mt-3 fw-bold">Guardando producto...</p>
+    </div>
+</div>
+
+<div class="container-main">
+
+    <!-- Header -->
+    <div class="page-header">
+        <div>
+            <h1>
+                <i class="bi bi-box-seam"></i>
+                Crear Nuevo Producto
+            </h1>
+            <small class="text-muted">Complete el formulario para agregar un producto al catálogo</small>
+        </div>
+        <a th:href="@{/productor}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Volver
+        </a>
+    </div>
+
+    <!-- Alertas -->
+    <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="bi bi-exclamation-triangle-fill"></i>
+        <strong>Error:</strong> <span th:text="${error}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <div th:if="${warning}" class="alert alert-warning alert-dismissible fade show" role="alert">
+        <i class="bi bi-exclamation-circle-fill"></i>
+        <strong>Advertencia:</strong> <span th:text="${warning}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <!-- Formulario -->
+    <div class="form-card">
+        <form id="productoForm" th:action="@{/productor/guardar}" method="post" enctype="multipart/form-data">
+
+            <!-- SECCIÓN 1: Información Básica -->
+            <div class="form-section">
+                <div class="form-section-title">
+                    <i class="bi bi-info-circle-fill"></i>
+                    Información Básica
+                </div>
+
+                <div class="row g-3">
+                    <!-- Nombre del Producto -->
+                    <div class="col-md-6">
+                        <label for="nombreProducto" class="form-label">
+                            Nombre del Producto<span class="required">*</span>
+                        </label>
+                        <input type="text"
+                               class="form-control"
+                               id="nombreProducto"
+                               name="nombreProducto"
+                               placeholder="Ej: Tomate Cherry Orgánico"
+                               required
+                               maxlength="100">
+                        <small class="text-muted">Máximo 100 caracteres</small>
+                    </div>
+
+                    <!-- Categoría -->
+                    <div class="col-md-6">
+                        <label for="categoriaId" class="form-label">
+                            Categoría<span class="required">*</span>
+                        </label>
+                        <select class="form-select" id="categoriaId" name="categoriaId" required>
+                            <option value="">Seleccione una categoría</option>
+                            <option th:each="categoria : ${categorias}"
+                                    th:value="${categoria.idCategoria}"
+                                    th:text="${categoria.nombreCategoria}">
+                            </option>
+                        </select>
+                    </div>
+
+                    <!-- Descripción -->
+                    <div class="col-12">
+                        <label for="descripcionProducto" class="form-label">
+                            Descripción del Producto
+                            <i class="bi bi-question-circle help-tooltip"
+                               title="Describa las características principales del producto"></i>
+                        </label>
+                        <textarea class="form-control"
+                                  id="descripcionProducto"
+                                  name="descripcionProducto"
+                                  rows="4"
+                                  maxlength="255"
+                                  placeholder="Describa las características, calidad, propiedades, etc."></textarea>
+                        <small class="text-muted">Máximo 255 caracteres</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECCIÓN 2: Productor y Finca -->
+            <div class="form-section">
+                <div class="form-section-title">
+                    <i class="bi bi-person-badge-fill"></i>
+                    Productor y Ubicación
+                </div>
+
+                <div class="row g-3">
+                    <!-- Productor (campo oculto y solo lectura) -->
+                    <input type="hidden" name="productorId" th:value="${productorLogueado.idProductor}" />
+                    <div class="col-md-6">
+                        <label class="form-label">Productor</label>
+                        <input type="text" class="form-control" th:value="${productorLogueado.usuario.nombreUsuario}" readonly />
+                    </div>
+
+                    <!-- Fincas -->
+                    <div class="col-md-6">
+                        <label for="fincaIds" class="form-label">
+                            Finca(s) de Producción
+                            <span class="badge bg-secondary">Opcional</span>
+                        </label>
+                        <select class="form-select" id="fincaIds" name="fincaIds" multiple size="4">
+                            <option th:each="finca : ${fincasProductor}" th:value="${finca.idFinca}" th:text="${finca.nombreFinca}"></option>
+                        </select>
+                        <div class="info-badge mt-2">
+                            <i class="bi bi-lightbulb-fill"></i>
+                            Mantén presionado Ctrl (Cmd en Mac) para seleccionar múltiples fincas
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECCIÓN 3: Inventario y Precios -->
+            <div class="form-section">
+                <div class="form-section-title">
+                    <i class="bi bi-cash-stack"></i>
+                    Inventario y Precios
+                </div>
+
+                <div class="row g-3">
+                    <!-- Stock -->
+                    <div class="col-md-4">
+                        <label for="stock" class="form-label">
+                            Stock Disponible<span class="required">*</span>
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-box"></i></span>
+                            <input type="number"
+                                   class="form-control"
+                                   id="stock"
+                                   name="stock"
+                                   min="0"
+                                   value="1"
+                                   required>
+                            <span class="input-group-text">unidades</span>
+                        </div>
+                    </div>
+
+                    <!-- Precio -->
+                    <div class="col-md-4">
+                        <label for="precio" class="form-label">
+                            Precio<span class="required">*</span>
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text">$</span>
+                            <input type="number"
+                                   class="form-control"
+                                   id="precio"
+                                   name="precio"
+                                   min="0"
+                                   step="0.01"
+                                   value="1000"
+                                   required>
+                            <span class="input-group-text">COP</span>
+                        </div>
+                    </div>
+
+                    <!-- Peso -->
+                    <div class="col-md-4">
+                        <label for="pesoKg" class="form-label">
+                            Peso por Unidad
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-speedometer"></i></span>
+                            <input type="number"
+                                   class="form-control"
+                                   id="pesoKg"
+                                   name="pesoKg"
+                                   min="0"
+                                   step="0.01"
+                                   value="1.0">
+                            <span class="input-group-text">Kg</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECCIÓN 4: Imagen del Producto -->
+            <div class="form-section">
+                <div class="form-section-title">
+                    <i class="bi bi-image-fill"></i>
+                    Imagen del Producto
+                </div>
+
+                <div class="row">
+                    <div class="col-12">
+                        <label class="form-label">
+                            Subir Imagen
+                            <span class="badge bg-secondary">Opcional</span>
+                        </label>
+
+                        <div class="image-upload-area" id="uploadArea">
+                            <input type="file"
+                                   class="d-none"
+                                   id="imagenes"
+                                   name="imagenes"
+                                   accept="image/*">
+
+                            <div id="uploadPrompt">
+                                <div class="upload-icon">
+                                    <i class="bi bi-cloud-upload"></i>
+                                </div>
+                                <p class="mb-2 fw-bold">Click para seleccionar o arrastra una imagen aquí</p>
+                                <small class="text-muted">Formatos: JPG, PNG, GIF • Tamaño máximo: 5MB • Solo 1 imagen</small>
+                            </div>
+
+                            <img id="imagePreview" alt="Vista previa">
+
+                            <div id="imageInfo" class="mt-3" style="display: none;">
+                                <span class="badge bg-success" id="fileName"></span>
+                                <button type="button" class="btn btn-sm btn-danger ms-2" onclick="removeImage()">
+                                    <i class="bi bi-trash"></i> Eliminar
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="form-check form-switch mt-3">
+                            <input class="form-check-input"
+                                   type="checkbox"
+                                   id="esPrincipal"
+                                   name="esPrincipal"
+                                   value="true"
+                                   checked>
+                            <label class="form-check-label" for="esPrincipal">
+                                <i class="bi bi-star-fill text-warning"></i>
+                                Marcar como imagen principal
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Botones de Acción -->
+            <div class="row mt-4">
+                <div class="col-12">
+                    <hr class="mb-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <small class="text-muted">
+                            <i class="bi bi-info-circle"></i>
+                            Los campos marcados con <span class="text-danger">*</span> son obligatorios
+                        </small>
+
+                        <div class="d-flex gap-2">
+                            <a th:href="@{/productor}" class="btn btn-outline-secondary">
+                                <i class="bi bi-x-circle"></i> Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-success" id="submitBtn">
+                                <i class="bi bi-check-circle"></i> Guardar Producto
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </form>
+    </div>
+
+</div>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    // ====================================
+    // FUNCIÓN: CARGAR FINCAS DEL PRODUCTOR
+    // ====================================
+    function cargarFincasDeProductor(productorId) {
+        const fincaSelect = document.getElementById('fincaIds');
+
+        console.log('=== CARGANDO FINCAS ===');
+        console.log('Productor ID:', productorId);
+
+        if (!productorId || productorId === '') {
+            fincaSelect.disabled = true;
+            fincaSelect.innerHTML = '<option value="" disabled selected>Primero seleccione un productor</option>';
+            fincaSelect.removeAttribute('name');
+            console.log('Sin productor - selector deshabilitado');
+            return;
+        }
+
+        fincaSelect.disabled = true;
+        fincaSelect.innerHTML = '<option value="" disabled selected>Cargando fincas...</option>';
+
+        fetch('/productos/fincas/por-productor/' + productorId)
+            .then(response => {
+                console.log('Response status:', response.status);
+                if (!response.ok) {
+                    throw new Error('Error HTTP ' + response.status);
+                }
+                return response.json();
+            })
+            .then(fincas => {
+                console.log('Fincas recibidas:', fincas);
+                fincaSelect.innerHTML = '';
+
+                if (!fincas || fincas.length === 0) {
+                    fincaSelect.innerHTML = '<option value="" disabled selected>Este productor no tiene fincas registradas</option>';
+                    fincaSelect.disabled = true;
+                    fincaSelect.removeAttribute('name');
+                    console.log('Sin fincas disponibles');
+
+                    setTimeout(() => {
+                        const mensaje = 'ℹ️ Este productor no tiene fincas registradas.\n\n' +
+                                      '¿Desea ir al Dashboard para crear una finca?\n\n' +
+                                      '(El producto se puede crear sin finca, pero es recomendable asociarlo a una)';
+                        if (confirm(mensaje)) {
+                            window.location.href = '/productos/dashboard#fincas';
+                        }
+                    }, 100);
+                    return;
+                }
+
+                let optionsHTML = '';
+                fincas.forEach(finca => {
+                    const nombreCompleto = finca.nombreFinca +
+                        (finca.ciudad && finca.departamento ?
+                         ' (' + finca.ciudad + ', ' + finca.departamento + ')' : '');
+                    optionsHTML += '<option value="' + finca.idFinca + '">' + nombreCompleto + '</option>';
+                });
+
+                fincaSelect.innerHTML = optionsHTML;
+                fincaSelect.disabled = false;
+                fincaSelect.setAttribute('name', 'fincaIds');
+
+                console.log('✅ Fincas cargadas exitosamente:', fincas.length);
+            })
+            .catch(error => {
+                console.error('❌ Error al cargar fincas:', error);
+                fincaSelect.innerHTML = '<option value="" disabled selected>Error al cargar fincas</option>';
+                fincaSelect.disabled = true;
+                fincaSelect.removeAttribute('name');
+
+                alert('❌ Error al cargar las fincas del productor.\n\nPor favor, verifique su conexión e intente nuevamente.');
+            });
+    }
+
+    // ====================================
+    // MANEJO DE IMAGEN
+    // ====================================
+    const uploadArea = document.getElementById('uploadArea');
+    const imagenFile = document.getElementById('imagenes');
+    const imagePreview = document.getElementById('imagePreview');
+    const uploadPrompt = document.getElementById('uploadPrompt');
+    const imageInfo = document.getElementById('imageInfo');
+    const fileName = document.getElementById('fileName');
+
+    // Click en área de upload
+    uploadArea.addEventListener('click', function(e) {
+        if (e.target.tagName !== 'BUTTON' && e.target.tagName !== 'I') {
+            imagenFile.click();
+        }
+    });
+
+    // Cambio de archivo
+    imagenFile.addEventListener('change', function(e) {
+        handleImageFile(e.target.files);
+    });
+
+    // Drag and drop
+    uploadArea.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        uploadArea.classList.add('dragover');
+    });
+
+    uploadArea.addEventListener('dragleave', function(e) {
+        e.preventDefault();
+        uploadArea.classList.remove('dragover');
+    });
+
+    uploadArea.addEventListener('drop', function(e) {
+        e.preventDefault();
+        uploadArea.classList.remove('dragover');
+
+        const files = e.dataTransfer.files;
+        if (files.length > 0 && files[0].type.startsWith('image/')) {
+            imagenFile.files = files;
+            handleImageFile(files);
+        }
+    });
+
+    function handleImageFile(files) {
+        if (!files || files.length === 0) return;
+
+        const file = files[0]; // Solo tomar el primer archivo
+
+        // Validar tamaño (5MB)
+        if (file.size > 5 * 1024 * 1024) {
+            alert('❌ El archivo es muy grande. El tamaño máximo es 5MB.\n\n' +
+                  'Tamaño actual: ' + (file.size / (1024 * 1024)).toFixed(2) + ' MB');
+            removeImage();
+            return;
+        }
+
+        // Validar tipo
+        if (!file.type.startsWith('image/')) {
+            alert('❌ Por favor seleccione un archivo de imagen válido.\n\n' +
+                  'Formatos permitidos: JPG, PNG, GIF, WEBP');
+            removeImage();
+            return;
+        }
+
+        // Mostrar preview
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            imagePreview.src = e.target.result;
+            imagePreview.style.display = 'block';
+            uploadPrompt.style.display = 'none';
+            imageInfo.style.display = 'block';
+            fileName.textContent = file.name + ' (' + (file.size / 1024).toFixed(2) + ' KB)';
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function removeImage() {
+        imagenFile.value = '';
+        imagePreview.style.display = 'none';
+        imagePreview.src = '';
+        uploadPrompt.style.display = 'block';
+        imageInfo.style.display = 'none';
+    }
+
+    // ====================================
+    // VALIDACIÓN Y ENVÍO DEL FORMULARIO
+    // ====================================
+    document.getElementById('productoForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        const fincaSelect = document.getElementById('fincaIds');
+        const imageInput = document.getElementById('imagenes');
+
+        console.log('=== INICIO VALIDACIÓN FORMULARIO ===');
+        console.log('Fincas disabled:', fincaSelect.disabled);
+        console.log('Número de opciones de finca:', fincaSelect.options.length);
+        console.log('Archivos de imagen seleccionados:', imageInput.files.length);
+
+        // Manejo de fincas
+        if (fincaSelect.disabled) {
+            fincaSelect.removeAttribute('name');
+            console.log('✓ Selector de fincas deshabilitado - removido del envío');
+        } else if (fincaSelect.options.length > 0) {
+            const selectedOptions = Array.from(fincaSelect.selectedOptions)
+                .filter(opt => opt.value && opt.value !== '');
+            console.log('Fincas seleccionadas:', selectedOptions.length);
+
+            if (selectedOptions.length === 0) {
+                const continuar = confirm(
+                    '⚠️ No ha seleccionado ninguna finca.\n\n' +
+                    '¿Desea crear el producto sin asociarlo a una finca?\n\n' +
+                    '(Puede asociarlo a una finca más tarde editando el producto)'
+                );
+                if (!continuar) {
+                    fincaSelect.focus();
+                    return false;
+                }
+                fincaSelect.removeAttribute('name');
+                console.log('✓ Usuario aceptó continuar sin finca - campo removido del envío');
+            } else {
+                console.log('✓ Fincas válidas seleccionadas:', selectedOptions.map(o => o.value));
+            }
+        }
+
+        // Manejo de imagen: si no hay archivo, remover el input del envío
+        if (!imageInput.files || imageInput.files.length === 0) {
+            imageInput.removeAttribute('name');
+            console.log('✓ Sin imagen seleccionada - input removido del envío');
+        } else {
+            const file = imageInput.files[0];
+
+            // Validar tamaño (máximo 5MB)
+            if (file.size > 5 * 1024 * 1024) {
+                alert('❌ Error: La imagen excede el tamaño máximo de 5MB.\n\nTamaño actual: ' +
+                      (file.size / (1024 * 1024)).toFixed(2) + ' MB');
+                imageInput.focus();
+                return false;
+            }
+
+            // Validar tipo de archivo
+            if (!file.type.startsWith('image/')) {
+                alert('❌ Error: El archivo seleccionado no es una imagen válida.');
+                imageInput.focus();
+                return false;
+            }
+
+            imageInput.setAttribute('name', 'imagenes');
+            console.log('✓ Imagen válida - Archivo: ' + file.name + ' (' + (file.size / 1024).toFixed(2) + ' KB)');
+        }
+
+        console.log('=== FORMULARIO VALIDADO - ENVIANDO ===');
+
+        // Mostrar loading overlay
+        document.getElementById('loadingOverlay').classList.add('active');
+        document.getElementById('submitBtn').disabled = true;
+
+        // Enviar el formulario
+        this.submit();
+    });
+
+    // ====================================
+    // CONTADOR DE CARACTERES
+    // ====================================
+    const nombreProducto = document.getElementById('nombreProducto');
+    const descripcionProducto = document.getElementById('descripcionProducto');
+
+    function addCharCounter(element, maxLength) {
+        const parent = element.parentElement;
+        const counter = document.createElement('small');
+        counter.className = 'text-muted float-end';
+        counter.textContent = '0/' + maxLength;
+
+        const existingSmall = parent.querySelector('small');
+        if (existingSmall) {
+            existingSmall.after(counter);
+        } else {
+            parent.appendChild(counter);
+        }
+
+        element.addEventListener('input', function() {
+            const length = this.value.length;
+            counter.textContent = length + '/' + maxLength;
+            counter.className = length >= maxLength ? 'text-danger float-end' : 'text-muted float-end';
+        });
+    }
+
+    if (nombreProducto) addCharCounter(nombreProducto, 100);
+    if (descripcionProducto) addCharCounter(descripcionProducto, 255);
+
+    // ====================================
+    // INICIALIZACIÓN
+    // ====================================
+    console.log('✅ Formulario de crear producto cargado correctamente');
+    console.log('📝 Versión optimizada con validación mejorada');
+</script>
+
+</body>
+</html>

@@ -1,0 +1,70 @@
+.sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: 280px;
+    background: linear-gradient(180deg, #2f6b31 0%, #1d4820 100%);
+    padding: 20px 0;
+    z-index: 1000;
+    box-shadow: 4px 0 15px rgba(0,0,0,0.1);
+}
+
+.sidebar-menu {
+    list-style: none;
+    padding: 0;
+}
+
+.sidebar-menu li {
+    margin: 5px 15px;
+}
+
+.sidebar-menu .nav-item {
+    display: flex;
+    align-items: center;
+    padding: 14px 18px;
+    color: rgba(255,255,255,0.85);
+    text-decoration: none;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    font-weight: 500;
+    font-size: 0.95rem;
+    width: 100%;
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+/* Normalizar botones dentro del sidebar */
+.sidebar-menu button.nav-item {
+    all: unset;               /* elimina estilos del navegador */
+    display: flex;
+    align-items: center;
+    padding: 14px 18px;
+    width: 100%;
+    cursor: pointer;
+    color: inherit;
+    font-family: inherit;
+}
+
+
+.sidebar-menu .nav-item:hover,
+.sidebar-menu .nav-item.active {
+    background: rgba(255,255,255,0.15);
+    color: white;
+    transform: translateX(5px);
+}
+
+.sidebar-menu .nav-item i {
+    font-size: 1.3rem;
+    margin-right: 15px;
+    width: 25px;
+}
+
+/* LOGOUT */
+.nav-logout i {
+    color: #dc3545;
+}
+
+.nav-logout:hover i {
+    color: #b02a37;
+}

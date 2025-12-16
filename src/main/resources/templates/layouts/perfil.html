@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:fragment="head(title)">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${title} + ' – Agrolink'">Agrolink</title>
+
+    <!-- Dependencias -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Nunito:wght@700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css">
+
+    <style>
+
+
+        :root {
+            --color-cliente: #2f6b31;
+            --color-productor: #e67e22;
+            --color-admin: #c0392b;
+            --color-asesor: #3498db;
+            --color-transportista: #9b59b6;
+        }
+
+        .role-cliente .profile-header { background: var(--color-cliente); }
+        .role-productor .profile-header { background: var(--color-productor); }
+        .role-admin .profile-header { background: var(--color-admin); }
+        .role-asesor .profile-header { background: var(--color-asesor); }
+        .role-transportista .profile-header { background: var(--color-transportista); }
+
+        /* Estilos base del perfil */
+        .profile-header {
+            padding: 40px 30px;
+            border-radius: 20px;
+            color: white;
+            text-align: center;
+            margin-top: 100px;
+        }
+
+        .profile-photo {
+            width: 130px;
+            height: 130px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid white;
+            margin-top: -80px;
+            background: white;
+        }
+
+        .profile-card {
+            background: white;
+            border-radius: 18px;
+            padding: 25px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+            margin-bottom: 30px;
+        }
+
+        .role-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body th:classappend="${(usuario != null and usuario.rol != null and usuario.rol.name() != null) ? 'role-' + usuario.rol.name().toLowerCase().replace('role_', '') : ''}">
+
+<!-- Navbar dinámico -->
+<nav th:replace="~{fragments/navbar :: navbar(usuario=${usuario})}"></nav>
+
+<!-- Contenido principal -->
+<main class="container mt-4">
+    <!-- Header del perfil (común) -->
+    <div th:replace="~{fragments/profile-header :: profile-header(usuario=${usuario})}"></div>
+
+    <!-- Secciones específicas del rol -->
+    <div th:if="${mostrarCliente}">
+        <div th:replace="~{cliente/perfil :: cliente-perfil(cliente=${cliente})}"></div>
+    </div>
+    <div th:if="${mostrarProductor}">
+        <div th:replace="~{productor/perfil :: productor-perfil(productor=${productor})}"></div>
+    </div>
+    <div th:if="${usuario != null and usuario.rol != null and usuario.rol.name() == 'ROLE_ADMINISTRADOR'}">
+        <!-- Administrador: por ahora no hay fragmento específico, dejar un mensaje -->
+        <div class="alert alert-info">Vista de administrador no implementada</div>
+    </div>
+    <div th:if="${mostrarAsesor}">
+        <div th:replace="~{asesor/perfil :: asesor-perfil(asesor=${asesor})}"></div>
+    </div>
+    <div th:if="${mostrarTransportista}">
+        <div th:replace="~{transportista/perfil :: transportista-perfil(transportista=${transportista})}"></div>
+    </div>
+</main>
+
+<!-- Footer -->
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js"></script>
+<script>
+    AOS.init({ duration: 900, once: true });
+</script>
+</body>
+</html>

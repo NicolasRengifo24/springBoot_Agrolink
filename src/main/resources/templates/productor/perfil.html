@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:fragment="productor-perfil(productor)" class="row">
+    <!-- Columna izquierda -->
+    <div class="col-md-6">
+        <div class="profile-card" data-aos="fade-right">
+            <h4><i class="bi bi-person-lines-fill me-2"></i>Datos del Productor</h4>
+            <p><strong>Nombre:</strong> <span th:text="${productor.usuario.nombre + ' ' + productor.usuario.apellido}"></span></p>
+            <p><strong>Tipo de Cultivo:</strong>
+                <span th:text="${productor.tipoCultivo?.name() ?: 'No especificado'}"></span>
+            </p>
+            <p><strong>Contacto:</strong> <span th:text="${productor.usuario.telefono}"></span></p>
+            <p><strong>Ubicación:</strong>
+                <span th:text="${productor.usuario.ciudad + ', ' + productor.usuario.departamento}"></span>
+            </p>
+        </div>
+
+        <div class="profile-card" data-aos="fade-right">
+            <h4><i class="bi bi-tree-fill me-2"></i>Mis Fincas</h4>
+            <div th:if="${!productor.fincas.isEmpty()}">
+                <div th:each="finca : ${productor.fincas}" class="mb-2">
+                    <p class="mb-1"><strong th:text="${finca.nombreFinca}"></strong></p>
+                    <small class="text-muted" th:text="${finca.direccionFinca}"></small>
+                </div>
+            </div>
+            <div th:unless="${!productor.fincas.isEmpty()}">
+                <p class="text-muted">No hay fincas registradas</p>
+            </div>
+            <a th:href="@{/fincas/nueva}" class="btn btn-outline-success btn-sm mt-2">
+                <i class="bi bi-plus-circle"></i> Agregar Finca
+            </a>
+        </div>
+    </div>
+
+    <!-- Columna derecha -->
+    <div class="col-md-6">
+        <div class="profile-card" data-aos="fade-left">
+            <h4><i class="bi bi-star-fill me-2"></i>Calificación</h4>
+            <div th:if="${productor.calificacion != null}">
+                <p><strong>Puntuación:</strong>
+                    <span th:text="${productor.calificacion.puntuacion}"></span>/5
+                </p>
+                <p><strong>Reputación:</strong>
+                    <span th:classappend="${productor.calificacion.puntuacion >= 4 ? 'text-success' : (productor.calificacion.puntuacion >= 3 ? 'text-warning' : 'text-danger')}">
+                            <span th:if="${productor.calificacion.puntuacion >= 4}">Excelente</span>
+                            <span th:if="${productor.calificacion.puntuacion >= 3 and productor.calificacion.puntuacion < 4}">Bueno</span>
+                            <span th:if="${productor.calificacion.puntuacion < 3}">Regular</span>
+                        </span>
+                </p>
+            </div>
+            <div th:unless="${productor.calificacion != null}">
+                <p class="text-muted">Aún no tiene calificaciones</p>
+            </div>
+        </div>
+
+        <div class="profile-card" data-aos="fade-left">
+            <h4><i class="bi bi-graph-up me-2"></i>Estadísticas</h4>
+            <p><i class="bi bi-basket text-success"></i>
+                <strong>Productos activos:</strong> <span th:text="${estadisticas?.productosActivos ?: '0'}"></span>
+            </p>
+            <p><i class="bi bi-cash-coin text-primary"></i>
+                <strong>Ventas este mes:</strong> <span th:text="${estadisticas?.ventasMes ?: '0'}"></span>
+            </p>
+            <p><i class="bi bi-people text-info"></i>
+                <strong>Clientes atendidos:</strong> <span th:text="${estadisticas?.clientesAtendidos ?: '0'}"></span>
+            </p>
+            <a th:href="@{/productor/estadisticas}" class="btn btn-outline-primary btn-sm mt-2">
+                Ver estadísticas detalladas
+            </a>
+        </div>
+    </div>
+</div>
+</body>
+</html>

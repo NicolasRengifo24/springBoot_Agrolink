@@ -1,0 +1,24 @@
+<div th:fragment="profile-header(usuario)" class="profile-header" data-aos="fade-down">
+    <img th:src="${(usuario != null and usuario.idUsuario != null) ? ('https://i.pravatar.cc/200?img=' + usuario.idUsuario) : '/CSS/imag/placeholder.jpg'}"
+         class="profile-photo" data-aos="zoom-in" alt="Foto de perfil">
+
+    <h2 class="fw-bold mt-3" th:text="${usuario.nombre + ' ' + usuario.apellido}">Nombre Completo</h2>
+
+    <!-- Badge del rol -->
+    <span th:switch="${usuario.rol.name()}" class="role-badge mt-2 d-inline-block">
+            <span th:case="'ROLE_CLIENTE'" class="bg-success">Cliente</span>
+            <span th:case="'ROLE_PRODUCTOR'" class="bg-warning text-dark">Productor</span>
+            <span th:case="'ROLE_ADMINISTRADOR'" class="bg-danger">Administrador</span>
+            <span th:case="'ROLE_ASESOR'" class="bg-primary">Asesor</span>
+            <span th:case="'ROLE_TRANSPORTISTA'" class="bg-info">Transportista</span>
+        </span>
+
+    <p class="mt-2 mb-1">
+        <i class="bi bi-geo-alt"></i>
+        <span th:text="${usuario.ciudad + ', ' + usuario.departamento}">Ciudad, Departamento</span>
+    </p>
+
+    <button class="btn btn-light mt-3">
+        <i class="bi bi-pencil"></i> Editar Perfil
+    </button>
+</div>

@@ -1,6 +1,7 @@
 package com.example.springbootagrolink.services;
 
 import com.example.springbootagrolink.model.Cliente;
+import com.example.springbootagrolink.model.Usuario;
 import com.example.springbootagrolink.repository.ClienteRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -48,5 +49,14 @@ public class ClienteService {
         }
         return false;
     }
-}
 
+    // Nuevo método: obtener cliente por usuario
+    public Optional<Cliente> obtenerPorUsuarioOptional(Usuario usuario) {
+        return clienteRepository.findByUsuario(usuario);
+    }
+
+    // Helper que devuelve directamente el objeto o null (útil para controladores)
+    public Cliente obtenerPorUsuario(Usuario usuario) {
+        return clienteRepository.findByUsuario(usuario).orElse(null);
+    }
+}

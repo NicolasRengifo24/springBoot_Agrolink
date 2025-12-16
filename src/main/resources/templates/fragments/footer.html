@@ -1,0 +1,17 @@
+<div th:fragment="footer" class="footer mt-5 py-4 text-center text-white" style="background: #2f6b31;">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <img th:src="@{/CSS/logo/logoAgrolink.jpeg}" alt="Logo Agrolink" style="width:48px; height:48px; object-fit:cover; border-radius:8px;">
+            </div>
+            <div>
+                <small>© <span th:text="${#dates.format(#dates.createNow(),'yyyy')}">2025</span> Agrolink. Todos los derechos reservados.</small>
+            </div>
+            <div>
+                <a href="/contacto" class="text-white text-decoration-none me-3">Contacto</a>
+                <a href="/terminos" class="text-white text-decoration-none">Términos</a>
+            </div>
+        </div>
+    </div>
+</div>
+

@@ -50,9 +50,9 @@
             <p class="card-text"><strong>Finca:</strong> <span th:text="${producto.finca.nombre}"></span></p>
         </div>
     </div>
-    <a th:href="@{/productos/editar/{id}(id=${producto.idProducto})}" class="btn btn-primary">Editar</a>
-    <a th:href="@{/productos/eliminar/{id}(id=${producto.idProducto})}" class="btn btn-danger ms-2" onclick="return confirm('¿Seguro que deseas eliminar este producto?');">Eliminar</a>
-    <a th:href="@{/productos/lista}" class="btn btn-secondary ms-2">Volver a la lista</a>
+    <a th:href="@{/productor/editar/{id}(id=${producto.idProducto})}" class="btn btn-primary">Editar</a>
+    <a th:href="@{/productor/eliminar/{id}(id=${producto.idProducto})}" class="btn btn-danger ms-2" onclick="return confirm('¿Seguro que deseas eliminar este producto?');">Eliminar</a>
+    <a th:href="@{/productor/lista}" class="btn btn-secondary ms-2">Volver a la lista</a>
 </div>
 </body>
 </html>
