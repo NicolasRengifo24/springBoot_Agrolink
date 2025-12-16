@@ -45,7 +45,7 @@ public class SecurityConfig {
 
                 // Redirección basada en roles (prioridad: Admin > Transportista > Productor > Servicio > Cliente)
                 if (auth.stream().anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()))) {
-                    redirectUrl = "/admin";
+                    redirectUrl = "/admin/usuarios";
                 } else if (auth.stream().anyMatch(a -> "ROLE_TRANSPORTISTA".equals(a.getAuthority()))) {
                     redirectUrl = "/transportista/envios";
                 } else if (auth.stream().anyMatch(a -> "ROLE_PRODUCTOR".equals(a.getAuthority()))) {

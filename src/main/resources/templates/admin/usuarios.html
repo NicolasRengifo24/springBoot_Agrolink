@@ -3,6 +3,8 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <meta name="_csrf" th:content="${_csrf.token}"/>
+  <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
   <title>Gestión de Usuarios — Agrolink Admin</title>
 
   <!-- Bootstrap -->
@@ -349,7 +351,20 @@
         </div>
       </div>
 
+      <!-- Mensaje de Éxito si existe -->
+      <div class="alert alert-success alert-dismissible fade show mb-4" role="alert" id="successAlert" style="display: none;">
+        <i class="bi bi-check-circle-fill me-2"></i>
+        <strong>¡Éxito!</strong> <span id="successMessage"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+
       <!-- Mensaje de Error si existe -->
+      <div class="alert alert-danger alert-dismissible fade show mb-4" role="alert" id="errorAlert" style="display: none;">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+        <strong>Error:</strong> <span id="errorMessage"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+
       <div th:if="${error}" class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
         <i class="bi bi-exclamation-triangle-fill me-2"></i>
         <strong>Error:</strong> <span th:text="${error}">Error al cargar datos</span>
@@ -696,7 +711,7 @@
     // Función para ver detalles del usuario
     async function verUsuario(id) {
       try {
-        console.log('🔍 Obteniendo información del usuario ID:', id);
+        console.log(' Obteniendo información del usuario ID:', id);
 
         // Obtener datos del usuario
         const response = await fetch(`/admin/api/usuarios/${id}`);
@@ -709,7 +724,7 @@
         }
 
         const usuario = await response.json();
-        console.log('✅ Usuario obtenido:', usuario);
+        console.log(' Usuario obtenido:', usuario);
 
         // Rellenar el modal con los datos
         document.getElementById('modalUsuarioNombre').textContent =
@@ -766,9 +781,53 @@
       }
     }
 
-    function editarUsuario(id) {
-      alert('Editar usuario #' + id + '\n\nFuncionalidad en desarrollo...');
+    // Función SIMPLE para editar usuario - solo llena el formulario con datos actuales
+    async function editarUsuario(id) {
+      try {
+        console.log('Cargando datos del usuario para editar:', id);
+
+        // Obtener datos del usuario desde el servidor
+        const response = await fetch(`/admin/api/usuarios/${id}`);
+        if (!response.ok) {
+          throw new Error('Error al cargar usuario');
+        }
+
+        const usuario = await response.json();
+        console.log('Usuario cargado:', usuario);
+
+        // Actualizar el action del formulario con el ID correcto
+        const form = document.getElementById('formEditarUsuario');
+        form.action = `/admin/usuarios/actualizar/${id}`;
+
+        // Llenar los campos del formulario con los datos actuales
+        document.getElementById('editUsuarioId').value = usuario.idUsuario || '';
+        document.getElementById('editNombre').value = usuario.nombre || '';
+        document.getElementById('editApellido').value = usuario.apellido || '';
+        document.getElementById('editCorreo').value = usuario.correo || '';
+        document.getElementById('editTelefono').value = usuario.telefono || '';
+        document.getElementById('editCedula').value = usuario.cedula || '';
+        document.getElementById('editCiudad').value = usuario.ciudad || '';
+        document.getElementById('editDepartamento').value = usuario.departamento || '';
+        document.getElementById('editDireccion').value = usuario.direccion || '';
+
+        // Actualizar título del modal
+        document.getElementById('modalEditarUsuarioLabel').innerHTML = `
+          <i class="bi bi-pencil-square me-2"></i>Editar: ${usuario.nombre} ${usuario.apellido}
+        `;
+
+        // Mostrar el modal
+        const modal = new bootstrap.Modal(document.getElementById('modalEditarUsuario'));
+        modal.show();
+
+      } catch (error) {
+        console.error('Error al cargar usuario:', error);
+        alert('Error al cargar los datos del usuario. Por favor, intenta de nuevo.');
+      }
     }
+
+    // Ya NO necesitamos la función guardarCambiosUsuario complicada
+    // El formulario se envía automáticamente cuando haces clic en "Guardar Cambios"
+    // Spring Security maneja el token CSRF automáticamente en formularios tradicionales
 
     // Función para editar desde el modal (guarda el ID actual)
     let currentUserId = null;
@@ -894,6 +953,120 @@
           </button>
           <button type="button" class="btn btn-lg btn-success" onclick="editarUsuarioFromModal()" style="border-radius: 12px; padding: 12px 32px; font-weight: 600; background: linear-gradient(135deg, #2f6b31, #3f8a41); border: none;">
             <i class="bi bi-pencil me-2"></i>Editar Usuario
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL EDITAR USUARIO -->
+  <div class="modal fade" id="modalEditarUsuario" tabindex="-1" aria-labelledby="modalEditarUsuarioLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content" style="border-radius: 24px; border: none; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
+        <div class="modal-header border-0" style="background: linear-gradient(135deg, #2f6b31, #3f8a41); color: white; border-radius: 24px 24px 0 0; padding: 28px 36px;">
+          <div>
+            <h5 class="modal-title fw-bold mb-1" id="modalEditarUsuarioLabel">
+              <i class="bi bi-pencil-square me-2"></i>Editar Usuario
+            </h5>
+            <p class="mb-0 opacity-75" style="font-size: 0.9rem;">Actualiza la información del usuario</p>
+          </div>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body" style="padding: 36px;">
+          <!-- Formulario tradicional: se envía directamente al servidor sin JavaScript -->
+          <form id="formEditarUsuario"
+                th:action="@{/admin/usuarios/actualizar/{id}(id=${editUsuarioId})}"
+                method="post">
+
+            <!-- Campo oculto con el ID del usuario -->
+            <input type="hidden" id="editUsuarioId" name="editUsuarioId" th:value="${editUsuarioId}">
+
+            <div class="row g-4">
+              <!-- Nombre -->
+              <div class="col-md-6">
+                <label for="editNombre" class="form-label" style="font-weight: 600; color: var(--green-dark); font-size: 0.9rem; text-transform: uppercase;">
+                  <i class="bi bi-person me-2"></i>Nombre *
+                </label>
+                <input type="text" class="form-control" id="editNombre" name="nombre" required
+                       style="border-radius: 12px; border: 2px solid #e3e9e2; padding: 14px 20px;">
+              </div>
+
+              <!-- Apellido -->
+              <div class="col-md-6">
+                <label for="editApellido" class="form-label" style="font-weight: 600; color: var(--green-dark); font-size: 0.9rem; text-transform: uppercase;">
+                  <i class="bi bi-person-badge me-2"></i>Apellido *
+                </label>
+                <input type="text" class="form-control" id="editApellido" name="apellido" required
+                       style="border-radius: 12px; border: 2px solid #e3e9e2; padding: 14px 20px;">
+              </div>
+
+              <!-- Correo -->
+              <div class="col-md-6">
+                <label for="editCorreo" class="form-label" style="font-weight: 600; color: var(--green-dark); font-size: 0.9rem; text-transform: uppercase;">
+                  <i class="bi bi-envelope me-2"></i>Correo *
+                </label>
+                <input type="email" class="form-control" id="editCorreo" name="correo" required
+                       style="border-radius: 12px; border: 2px solid #e3e9e2; padding: 14px 20px;">
+              </div>
+
+              <!-- Teléfono -->
+              <div class="col-md-6">
+                <label for="editTelefono" class="form-label" style="font-weight: 600; color: var(--green-dark); font-size: 0.9rem; text-transform: uppercase;">
+                  <i class="bi bi-telephone me-2"></i>Teléfono *
+                </label>
+                <input type="tel" class="form-control" id="editTelefono" name="telefono" required
+                       style="border-radius: 12px; border: 2px solid #e3e9e2; padding: 14px 20px;">
+              </div>
+
+              <!-- Cédula -->
+              <div class="col-md-6">
+                <label for="editCedula" class="form-label" style="font-weight: 600; color: var(--green-dark); font-size: 0.9rem; text-transform: uppercase;">
+                  <i class="bi bi-card-text me-2"></i>Cédula
+                </label>
+                <input type="text" class="form-control" id="editCedula" name="cedula"
+                       style="border-radius: 12px; border: 2px solid #e3e9e2; padding: 14px 20px;">
+              </div>
+
+              <!-- Ciudad -->
+              <div class="col-md-6">
+                <label for="editCiudad" class="form-label" style="font-weight: 600; color: var(--green-dark); font-size: 0.9rem; text-transform: uppercase;">
+                  <i class="bi bi-geo-alt me-2"></i>Ciudad
+                </label>
+                <input type="text" class="form-control" id="editCiudad" name="ciudad"
+                       style="border-radius: 12px; border: 2px solid #e3e9e2; padding: 14px 20px;">
+              </div>
+
+              <!-- Departamento -->
+              <div class="col-md-6">
+                <label for="editDepartamento" class="form-label" style="font-weight: 600; color: var(--green-dark); font-size: 0.9rem; text-transform: uppercase;">
+                  <i class="bi bi-map me-2"></i>Departamento
+                </label>
+                <input type="text" class="form-control" id="editDepartamento" name="departamento"
+                       style="border-radius: 12px; border: 2px solid #e3e9e2; padding: 14px 20px;">
+              </div>
+
+              <!-- Dirección -->
+              <div class="col-md-6">
+                <label for="editDireccion" class="form-label" style="font-weight: 600; color: var(--green-dark); font-size: 0.9rem; text-transform: uppercase;">
+                  <i class="bi bi-house me-2"></i>Dirección
+                </label>
+                <input type="text" class="form-control" id="editDireccion" name="direccion"
+                       style="border-radius: 12px; border: 2px solid #e3e9e2; padding: 14px 20px;">
+              </div>
+            </div>
+
+            <div class="alert alert-info mt-4" style="border-radius: 12px; border-left: 4px solid #0dcaf0;">
+              <small><i class="bi bi-info-circle me-2"></i><strong>Nota:</strong> Los campos marcados con (*) son obligatorios</small>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer border-0" style="padding: 0 36px 36px 36px; gap: 12px;">
+          <button type="button" class="btn btn-lg btn-outline-secondary" data-bs-dismiss="modal" style="border-radius: 12px; padding: 12px 32px; font-weight: 600;">
+            <i class="bi bi-x-circle me-2"></i>Cancelar
+          </button>
+          <!-- Botón simple que envía el formulario directamente -->
+          <button type="submit" form="formEditarUsuario" class="btn btn-lg btn-success" style="border-radius: 12px; padding: 12px 32px; font-weight: 600; background: linear-gradient(135deg, #2f6b31, #3f8a41); border: none;">
+            <i class="bi bi-check-circle me-2"></i>Guardar Cambios
           </button>
         </div>
       </div>
