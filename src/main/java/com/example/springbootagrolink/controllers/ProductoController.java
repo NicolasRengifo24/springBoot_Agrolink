@@ -50,6 +50,9 @@ public class ProductoController {
     @Autowired
     private ProductoFincaService productoFincaService;
 
+    @Autowired
+    private com.example.springbootagrolink.services.DetalleCompraService detalleCompraService;
+
     // Directorio para guardar las imágenes (usar ruta absoluta que funcione en desarrollo y producción)
     private static final String UPLOAD_DIR = "target/classes/static/images/products/";
 
@@ -60,7 +63,7 @@ public class ProductoController {
     public String listarProductos(Model model) {
         // Obtener el usuario autenticado
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String username = authentication.getName();
+        String username = authentication != null ? authentication.getName() : null;
 
         // Buscar el productor correspondiente
         Optional<Productor> productorOpt = productorService.obtenerPorNombreUsuario(username);
@@ -486,21 +489,12 @@ public class ProductoController {
      */
     @GetMapping("/editar/{id:\\d+}")
     public String mostrarFormularioEditar(@PathVariable Integer id, Model model) {
+        // Redirigir al dashboard y abrir el modal de edición mediante ?edit={id}
         Optional<Producto> productoOpt = productoService.obtenerPorId(id);
         if (productoOpt.isEmpty()) {
             return "redirect:/productos";
         }
-
-        List<CategoriaProducto> categorias = categoriaProductoService.obtenerTodos();
-        List<Productor> productores = productorService.obtenerTodos();
-        List<Finca> fincas = fincaService.obtenerTodos();
-
-        model.addAttribute("producto", productoOpt.get());
-        model.addAttribute("categorias", categorias);
-        model.addAttribute("productores", productores);
-        model.addAttribute("fincas", fincas);
-
-        return "productos/editar";
+        return "redirect:/productos?edit=" + id;
     }
 
     /**
@@ -522,48 +516,78 @@ public class ProductoController {
     @ResponseBody
     public ResponseEntity<?> obtenerPedidosJson() {
         try {
+            // Obtener usuario autenticado y su productor (si existe)
+            org.springframework.security.core.Authentication authentication = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+            String username = authentication != null ? authentication.getName() : null;
+            // Resolver el productorId en una sola asignación final para ser compatible con lambdas
+            final Integer productorId = (username != null)
+                ? productorService.obtenerPorNombreUsuario(username)
+                    .map(com.example.springbootagrolink.model.Productor::getIdProductor)
+                    .orElse(null)
+                : null;
+
             List<Compra> compras = compraService.obtenerTodas();
 
-            // Si no hay compras, retornar lista vacía
-            if (compras == null || compras.isEmpty()) {
-                return ResponseEntity.ok(new ArrayList<>());
-            }
-
-            // Filtrar compras con fechas válidas para evitar errores
-            List<Map<String, Object>> comprasSimplificadas = new ArrayList<>();
-            for (Compra c : compras) {
-                try {
-                    Map<String, Object> compraMap = new HashMap<>();
-                    compraMap.put("idCompra", c.getIdCompra());
-                    compraMap.put("fechaHoraCompra", c.getFechaHoraCompra());
-                    compraMap.put("total", c.getTotal());
-                    compraMap.put("direccionEntrega", c.getDireccionEntrega());
-                    compraMap.put("metodoPago", c.getMetodoPago());
-
-                    // Datos del cliente (evitar referencia circular)
-                    if (c.getCliente() != null) {
-                        Map<String, Object> clienteMap = new HashMap<>();
-                        clienteMap.put("nombre", c.getCliente().getUsuario() != null ?
-                            c.getCliente().getUsuario().getNombre() : "Sin nombre");
-                        clienteMap.put("correo", c.getCliente().getUsuario() != null ?
-                            c.getCliente().getUsuario().getCorreo() : "");
-                        compraMap.put("cliente", clienteMap);
+            // Si tenemos un productor identificado, filtramos las compras que incluyan al menos
+            // un detalle cuyo producto pertenezca a dicho productor
+            if (productorId != null) {
+                List<Compra> comprasFiltradas = new java.util.ArrayList<>();
+                for (Compra c : compras) {
+                    try {
+                        java.util.List<com.example.springbootagrolink.model.DetalleCompra> detalles = detalleCompraService.listarPorCompra(c.getIdCompra());
+                        boolean pertenece = detalles.stream().anyMatch(d -> d.getProducto() != null
+                                && d.getProducto().getProductor() != null
+                                && d.getProducto().getProductor().getIdProductor() != null
+                                && d.getProducto().getProductor().getIdProductor().equals(productorId));
+                        if (pertenece) comprasFiltradas.add(c);
+                    } catch (Exception ex) {
+                        // Si falla al cargar detalles, omitimos esta compra
+                        log.debug("No se pudieron cargar detalles para compra {}: {}", c.getIdCompra(), ex.getMessage());
                     }
-
-                    comprasSimplificadas.add(compraMap);
-                } catch (Exception ex) {
-                    log.warn("Error al procesar compra {}: {}", c.getIdCompra(), ex.getMessage());
-                    // Continuar con las demás compras
                 }
+                compras = comprasFiltradas;
             }
 
-            return ResponseEntity.ok(comprasSimplificadas);
-        } catch (Exception e) {
-            log.error("Error al obtener pedidos: {}", e.getMessage(), e);
-            Map<String, String> error = new HashMap<>();
-            error.put("error", "Error al cargar pedidos: " + e.getMessage());
-            return ResponseEntity.status(500).body(error);
-        }
+             // Si no hay compras, retornar lista vacía
+             if (compras == null || compras.isEmpty()) {
+                 return ResponseEntity.ok(new ArrayList<>());
+             }
+
+             // Filtrar compras con fechas válidas para evitar errores
+             List<Map<String, Object>> comprasSimplificadas = new ArrayList<>();
+             for (Compra c : compras) {
+                 try {
+                     Map<String, Object> compraMap = new HashMap<>();
+                     compraMap.put("idCompra", c.getIdCompra());
+                     compraMap.put("fechaHoraCompra", c.getFechaHoraCompra());
+                     compraMap.put("total", c.getTotal());
+                     compraMap.put("direccionEntrega", c.getDireccionEntrega());
+                     compraMap.put("metodoPago", c.getMetodoPago());
+
+                     // Datos del cliente (evitar referencia circular)
+                     if (c.getCliente() != null) {
+                         Map<String, Object> clienteMap = new HashMap<>();
+                         clienteMap.put("nombre", c.getCliente().getUsuario() != null ?
+                             c.getCliente().getUsuario().getNombre() : "Sin nombre");
+                         clienteMap.put("correo", c.getCliente().getUsuario() != null ?
+                             c.getCliente().getUsuario().getCorreo() : "");
+                         compraMap.put("cliente", clienteMap);
+                     }
+
+                     comprasSimplificadas.add(compraMap);
+                 } catch (Exception ex) {
+                     log.warn("Error al procesar compra {}: {}", c.getIdCompra(), ex.getMessage());
+                     // Continuar con las demás compras
+                 }
+             }
+
+             return ResponseEntity.ok(comprasSimplificadas);
+         } catch (Exception e) {
+             log.error("Error al obtener pedidos: {}", e.getMessage(), e);
+             Map<String, String> error = new HashMap<>();
+             error.put("error", "Error al cargar pedidos: " + e.getMessage());
+             return ResponseEntity.status(500).body(error);
+         }
     }
 
     /**
@@ -789,5 +813,139 @@ public class ProductoController {
     @GetMapping("/nuevo")
     public String redirigirNuevo() {
         return "redirect:/productos/crear";
+    }
+
+    /**
+     * Endpoint JSON para obtener los datos básicos de un producto por ID
+     * Incluye fincas asociadas (solo IDs) para edición en modal
+     */
+    @GetMapping("/api/{id}")
+    @ResponseBody
+    public ResponseEntity<?> obtenerProductoJsonPorId(@PathVariable Integer id) {
+        try {
+            Optional<Producto> productoOpt = productoService.obtenerPorId(id);
+            if (productoOpt.isEmpty()) {
+                return ResponseEntity.notFound().build();
+            }
+            Producto p = productoOpt.get();
+            Map<String, Object> resp = new HashMap<>();
+            resp.put("idProducto", p.getIdProducto());
+            resp.put("nombreProducto", p.getNombreProducto());
+            resp.put("descripcionProducto", p.getDescripcionProducto());
+            resp.put("precio", p.getPrecio());
+            resp.put("stock", p.getStock());
+            resp.put("pesoKg", p.getPesoKg());
+
+            if (p.getCategoria() != null) {
+                Map<String, Object> cat = new HashMap<>();
+                // Intentar incluir id y nombre si existen
+                try { cat.put("id", p.getCategoria().getIdCategoria()); } catch (Exception ignore) {}
+                try { cat.put("nombre", p.getCategoria().getNombreCategoria()); } catch (Exception ignore) {}
+                resp.put("categoria", cat);
+            }
+
+            // Lista de fincas asociadas (ids)
+            try {
+                List<Integer> fincaIds = new ArrayList<>();
+                if (p.getProductoFincas() != null) {
+                    for (ProductoFinca pf : p.getProductoFincas()) {
+                        if (pf != null && pf.getFinca() != null && pf.getFinca().getIdFinca() != null) {
+                            fincaIds.add(pf.getFinca().getIdFinca());
+                        }
+                    }
+                }
+                resp.put("fincaIds", fincaIds);
+            } catch (Exception ignore) {
+                resp.put("fincaIds", new ArrayList<>());
+            }
+
+            return ResponseEntity.ok(resp);
+        } catch (Exception e) {
+            log.error("Error al obtener producto JSON {}: {}", id, e.getMessage(), e);
+            return ResponseEntity.status(500).body(Map.of("error", "Error al cargar producto: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * Endpoint JSON para actualizar los campos básicos del producto
+     * Reemplaza las asociaciones con fincas si se envía fincaIds en el payload
+     */
+    @PostMapping("/api/actualizar/{id}")
+    @ResponseBody
+    public ResponseEntity<?> actualizarProductoJson(@PathVariable Integer id, @RequestBody Map<String, Object> payload) {
+        try {
+            Optional<Producto> productoOpt = productoService.obtenerPorId(id);
+            if (productoOpt.isEmpty()) {
+                return ResponseEntity.notFound().build();
+            }
+            Producto productoExistente = productoOpt.get();
+
+            // Campos simples
+            if (payload.containsKey("nombreProducto")) {
+                productoExistente.setNombreProducto((String) payload.get("nombreProducto"));
+            }
+            if (payload.containsKey("descripcionProducto")) {
+                productoExistente.setDescripcionProducto((String) payload.get("descripcionProducto"));
+            }
+            if (payload.containsKey("precio") && payload.get("precio") != null) {
+                try {
+                    productoExistente.setPrecio(new BigDecimal(payload.get("precio").toString()));
+                } catch (Exception ignore) {}
+            }
+            if (payload.containsKey("stock") && payload.get("stock") != null) {
+                try {
+                    productoExistente.setStock(Integer.parseInt(payload.get("stock").toString()));
+                } catch (Exception ignore) {}
+            }
+            if (payload.containsKey("pesoKg") && payload.get("pesoKg") != null) {
+                try {
+                    productoExistente.setPesoKg(new BigDecimal(payload.get("pesoKg").toString()));
+                } catch (Exception ignore) {}
+            }
+
+            // Categoria
+            if (payload.containsKey("categoriaId") && payload.get("categoriaId") != null) {
+                try {
+                    Integer catId = Integer.parseInt(payload.get("categoriaId").toString());
+                    categoriaProductoService.obtenerPorId(catId).ifPresent(productoExistente::setCategoria);
+                } catch (Exception ignore) {}
+            }
+
+            // Guardar producto básico primero
+            Producto productoGuardado = productoService.guardar(productoExistente);
+
+            // Actualizar asociaciones con fincas (si vienen)
+            if (payload.containsKey("fincaIds") && payload.get("fincaIds") instanceof java.util.List) {
+                List<?> lista = (List<?>) payload.get("fincaIds");
+                // Eliminar asociaciones existentes
+                List<ProductoFinca> asociacionesExistentes = productoFincaService.obtenerTodos().stream()
+                        .filter(pf -> pf.getProducto() != null && pf.getProducto().getIdProducto().equals(id))
+                        .toList();
+                for (ProductoFinca pf : asociacionesExistentes) {
+                    productoFincaService.eliminar(pf.getIdProductoFinca());
+                }
+
+                // Crear nuevas asociaciones
+                for (Object o : lista) {
+                    try {
+                        Integer fincaId = Integer.parseInt(o.toString());
+                        Optional<Finca> fincaOpt = fincaService.obtenerPorId(fincaId);
+                        if (fincaOpt.isPresent()) {
+                            ProductoFinca productoFinca = new ProductoFinca();
+                            productoFinca.setProducto(productoGuardado);
+                            productoFinca.setFinca(fincaOpt.get());
+                            productoFinca.setCantidadProduccion(BigDecimal.ZERO);
+                            productoFinca.setFechaCosecha(null);
+                            productoFincaService.guardar(productoFinca);
+                        }
+                    } catch (Exception ignore) {}
+                }
+            }
+
+            return ResponseEntity.ok(Map.of("success", true));
+        } catch (Exception e) {
+            log.error("Error al actualizar producto via API {}: {}", id, e.getMessage(), e);
+            return ResponseEntity.status(500).body(Map.of("error", "Error al actualizar producto: " + e.getMessage()));
+        }
     }
 }

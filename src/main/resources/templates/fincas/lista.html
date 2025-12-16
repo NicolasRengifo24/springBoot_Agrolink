@@ -23,8 +23,13 @@
         </thead>
         <tbody>
             <tr th:each="finca : ${fincas}">
-                <td th:text="${finca.nombre}"></td>
-                <td th:text="${finca.ubicacion}"></td>
+                <td th:text="${finca.nombreFinca}"></td>
+                <td>
+                    <span th:text="${finca.ciudad}"></span>
+                    <span th:if="${finca.ciudad != null and finca.departamento != null}">, </span>
+                    <span th:text="${finca.departamento}"></span>
+                    <div class="small text-muted" th:if="${finca.direccionFinca != null}" th:text="${finca.direccionFinca}"></div>
+                </td>
                 <td>
                     <a th:href="@{/fincas/ver/{id}(id=${finca.idFinca})}" class="btn btn-info btn-sm">Ver</a>
                     <a th:href="@{/fincas/editar/{id}(id=${finca.idFinca})}" class="btn btn-primary btn-sm">Editar</a>
@@ -36,4 +41,3 @@
 </div>
 </body>
 </html>
-

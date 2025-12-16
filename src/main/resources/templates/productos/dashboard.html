@@ -12,8 +12,13 @@
   <!-- Google Font -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet"/>
 
-  <!-- Chart.js -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Stub temprano para evitar ReferenceError si hay onclick inline antes de cargar el script principal -->
+  <script>
+    // Si se llama antes de que el script principal esté listo, guardamos la sección pendiente
+    window.cambiarSeccion = function(seccion) {
+      window.__pending_cambiarSeccion = seccion;
+    };
+  </script>
 
   <style>
     :root{
@@ -254,15 +259,13 @@
       </div>
 
       <nav>
-        <div class="nav-item active" data-section="productos" onclick="cambiarSeccion('productos')">
+        <div class="nav-item active" data-section="productos">
           <i class="bi bi-box-seam"></i><span class="nav-label"> Productos</span>
         </div>
-        <div class="nav-item" data-section="pedidos" onclick="cambiarSeccion('pedidos')">
+        <div class="nav-item" data-section="pedidos">
           <i class="bi bi-receipt"></i><span class="nav-label"> Pedidos</span>
         </div>
-        <div class="nav-item" data-section="fincas" onclick="cambiarSeccion('fincas')">
-          <i class="bi bi-geo-alt-fill"></i><span class="nav-label"> Fincas</span>
-        </div>
+        <!-- Botón Fincas removido del sidebar por petición del usuario -->
       </nav>
 
     </aside>
@@ -345,7 +348,8 @@
           <a th:href="@{/productor/crear}" class="btn btn-success mb-3"><i class="bi bi-plus-circle me-1"></i>Agregar Producto</a>
         </div>
         <div th:if="${!productos.isEmpty()}">
-          <a th:href="@{/productor/lista}" class="btn btn-outline-primary mb-3">Ver todos los productos</a>
+          <!-- Enlace corregido: la ruta del controlador expone /productor (no /productor/lista) -->
+          <a th:href="@{/productor}" class="btn btn-outline-primary mb-3">Ver todos los productos</a>
         </div>
 
         <!-- Fincas -->
@@ -355,12 +359,6 @@
         </div>
         <div th:if="${!fincas.isEmpty()}">
           <a th:href="@{/fincas/lista}" class="btn btn-outline-primary mb-3">Ver todas las fincas</a>
-        </div>
-
-        <!-- CHART -->
-        <div class="card-glass fade">
-          <h5 class="mb-3">Ventas últimos 6 meses</h5>
-          <canvas id="chartSales" style="max-height:300px;"></canvas>
         </div>
 
         <!-- PRODUCTOS -->
@@ -425,19 +423,20 @@
                     <strong th:text="${#numbers.formatCurrency(producto.precio)}">$0</strong>
                   </td>
                   <td class="text-end">
-                    <!-- Enlace único para editar en la página separada -->
-                    <a th:href="@{/productor/editar/{id}(id=${producto.idProducto})}" class="btn btn-sm btn-outline-primary me-1" title="Editar">
+                    <!-- Botón que abre modal para editar sin navegar fuera -->
+                    <button type="button" class="btn btn-sm btn-outline-primary me-1" title="Editar"
+                            onclick="abrirModalEditar([[${producto.idProducto}]])">
                       <i class="bi bi-pencil"></i>
-                    </a>
-                     <form th:action="@{/productor/eliminar/{id}(id=${producto.idProducto})}"
-                           method="post"
-                           style="display:inline;"
-                           onsubmit="return confirm('¿Está seguro de eliminar este producto?');">
-                       <button type="submit" class="btn btn-sm btn-outline-danger">
-                         <i class="bi bi-trash"></i>
-                       </button>
-                     </form>
-                   </td>
+                    </button>
+                    <form th:action="@{/productos/eliminar/{id}(id=${producto.idProducto})}"
+                          method="post"
+                          style="display:inline;"
+                          onsubmit="return confirm('¿Está seguro de eliminar este producto?');">
+                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                          <i class="bi bi-trash"></i>
+                        </button>
+                    </form>
+                  </td>
                 </tr>
 
                 <tr th:if="${productos == null || productos.isEmpty()}">
@@ -653,38 +652,17 @@
         });
       }
 
-      /* ============================ */
-      /*        CHART SALES           */
-      /* ============================ */
-      // Gráfico simple con datos de ejemplo
-      var chartCanvas = document.getElementById('chartSales');
-      if (chartCanvas && typeof Chart !== 'undefined') {
-        new Chart(chartCanvas, {
-          type: 'line',
-          data: {
-            labels: ['Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov'],
-            datasets: [{
-              label: 'Ventas COP',
-              data: [12000, 22000, 18000, 26000, 30000, 42000],
-              borderColor: '#2f6b31',
-              backgroundColor: 'rgba(47,107,49,0.15)',
-              borderWidth: 3,
-              pointRadius: 5,
-              tension: 0.3
-            }]
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: true,
-            plugins: {
-              legend: { display: true, position: 'top' }
-            },
-            scales: {
-              y: { beginAtZero: true }
-            }
+      // Asegurar que los items del sidebar con data-section respondan al clic
+      var sidebarItems = document.querySelectorAll('#sidebar .nav-item[data-section]');
+      sidebarItems.forEach(function(item){
+        item.addEventListener('click', function(e){
+          var sec = item.getAttribute('data-section');
+          if (sec) {
+            window.cambiarSeccion(sec);
           }
         });
-      }
+      });
+
 
       /* ============================ */
       /*  FORMULARIO DE FINCAS        */
@@ -821,6 +799,18 @@
       }
     }
 
+    // Si el stub guardó una sección pendiente antes de que el script real se cargara, ejecutarla ahora
+    if (window.__pending_cambiarSeccion) {
+      try {
+        var __s = window.__pending_cambiarSeccion;
+        window.__pending_cambiarSeccion = null;
+        // Ejecutar en el siguiente tick para asegurar que el DOM esté listo
+        setTimeout(function(){ window.cambiarSeccion(__s); }, 0);
+      } catch (err) {
+        console.warn('No se pudo procesar sección pendiente:', err);
+      }
+    }
+
     /* ================================================ */
     /*  CARGAR PEDIDOS VÍA AJAX                        */
     /* ================================================ */
@@ -949,8 +939,10 @@
             }
 
             html += '<div class="d-flex gap-2 mt-3">';
-            html += '<button class="btn btn-sm btn-outline-primary flex-fill" onclick="verDetalleFinca(' + finca.idFinca + ')"><i class="bi bi-eye"></i> Ver</button>';
-            html += '<button class="btn btn-sm btn-outline-secondary" title="Editar finca"><i class="bi bi-pencil"></i></button>';
+            // Usar navegación a la vista web de finca y enlace de eliminación existente
+            html += '<a class="btn btn-sm btn-outline-primary flex-fill" href="/fincas/ver/' + finca.idFinca + '"><i class="bi bi-eye"></i> Ver</a>';
+            html += '<a class="btn btn-sm btn-outline-secondary" href="/fincas/editar/' + finca.idFinca + '" title="Editar finca"><i class="bi bi-pencil"></i></a>';
+            html += '<button class="btn btn-sm btn-outline-danger" onclick="if(confirm(\'¿Eliminar finca " + (finca.nombreFinca || '') + "?\')) window.location=\'/fincas/eliminar/' + finca.idFinca + '\';"><i class="bi bi-trash"></i></button>';
             html += '</div>';
             html += '</div></div></div>';
           }
@@ -982,5 +974,145 @@
     // fetch('/productos/api/listar').then(r => r.json()).then(data => { ... });
   </script>
 
-</body>
-</html>
+  <!-- Modal de edición rápida -->
+  <div class="modal fade" id="modalEditarProducto" tabindex="-1" aria-labelledby="modalEditarProductoLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="modalEditarProductoLabel">Editar producto</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div id="modalAlertPlaceholder"></div>
+          <form id="formEditarProducto">
+            <input type="hidden" id="editProductoId" />
+            <div class="mb-3">
+              <label class="form-label">Nombre</label>
+              <input id="editNombre" class="form-control" required />
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Descripción</label>
+              <textarea id="editDescripcion" class="form-control" rows="3"></textarea>
+            </div>
+            <div class="row g-2">
+              <div class="col-md-4">
+                <label class="form-label">Precio</label>
+                <input id="editPrecio" type="number" step="0.01" class="form-control" />
+              </div>
+              <div class="col-md-4">
+                <label class="form-label">Stock</label>
+                <input id="editStock" type="number" class="form-control" />
+              </div>
+              <div class="col-md-4">
+                <label class="form-label">Peso (kg)</label>
+                <input id="editPeso" type="number" step="0.01" class="form-control" />
+              </div>
+            </div>
+
+            <div class="mt-3">
+              <label class="form-label">Categoría</label>
+              <select id="editCategoria" class="form-select">
+                <option value="">-- Sin categoría --</option>
+                <th:block th:each="cat : ${categorias}">
+                  <option th:value="${cat.idCategoria}" th:text="${cat.nombreCategoria}"></option>
+                </th:block>
+              </select>
+            </div>
+
+            <div class="mt-3">
+              <label class="form-label">Fincas asociadas</label>
+              <div class="d-flex flex-wrap gap-2" id="editFincasContainer">
+                <th:block th:each="f : ${fincas}">
+                  <div class="form-check">
+                    <input class="form-check-input edit-finca-checkbox" type="checkbox" th:id="${'finca-'+f.idFinca}" th:value="${f.idFinca}" />
+                    <label class="form-check-label" th:for="${'finca-'+f.idFinca}" th:text="${f.nombreFinca}"></label>
+                  </div>
+                </th:block>
+              </div>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button id="btnGuardarEdicion" type="button" class="btn btn-primary">Guardar cambios</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Abre el modal y carga los datos del producto vía AJAX
+    function abrirModalEditar(id) {
+      var modalEl = document.getElementById('modalEditarProducto');
+      var modal = new bootstrap.Modal(modalEl);
+      // Limpiar estado previo
+      document.getElementById('modalAlertPlaceholder').innerHTML = '';
+      document.getElementById('formEditarProducto').reset();
+      // Llenar con carga desde API
+      fetch('/productos/api/' + id)
+        .then(function(res) { if (!res.ok) throw new Error('Producto no encontrado'); return res.json(); })
+        .then(function(data) {
+          document.getElementById('editProductoId').value = data.idProducto || '';
+          document.getElementById('editNombre').value = data.nombreProducto || '';
+          document.getElementById('editDescripcion').value = data.descripcionProducto || '';
+          document.getElementById('editPrecio').value = data.precio || '';
+          document.getElementById('editStock').value = data.stock || '';
+          document.getElementById('editPeso').value = data.pesoKg || '';
+          // Categoria
+          try { document.getElementById('editCategoria').value = data.categoria ? data.categoria.id : ''; } catch (e) {}
+          // Fincas: marcar checkboxes
+          try {
+            var fincaIds = Array.isArray(data.fincaIds) ? data.fincaIds.map(String) : [];
+            var checkboxes = document.querySelectorAll('.edit-finca-checkbox');
+            checkboxes.forEach(function(cb) { cb.checked = fincaIds.indexOf(cb.value) !== -1; });
+          } catch (e) {}
+
+          modal.show();
+        })
+        .catch(function(err) {
+          alert('Error al cargar producto: ' + err.message);
+        });
+    }
+
+    // Manejar envío del formulario de edición
+    document.addEventListener('DOMContentLoaded', function() {
+      var btnGuardar = document.getElementById('btnGuardarEdicion');
+      if (!btnGuardar) return;
+      btnGuardar.addEventListener('click', function() {
+        var id = document.getElementById('editProductoId').value;
+        if (!id) return;
+        var payload = {
+          nombreProducto: document.getElementById('editNombre').value,
+          descripcionProducto: document.getElementById('editDescripcion').value,
+          precio: document.getElementById('editPrecio').value,
+          stock: document.getElementById('editStock').value,
+          pesoKg: document.getElementById('editPeso').value,
+          categoriaId: document.getElementById('editCategoria').value || null,
+          fincaIds: Array.from(document.querySelectorAll('.edit-finca-checkbox:checked')).map(function(cb){ return parseInt(cb.value); })
+        };
+
+        fetch('/productos/api/actualizar/' + id, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        })
+        .then(function(res) { return res.json().then(function(body){ return { ok: res.ok, body: body }; }); })
+        .then(function(res) {
+          if (!res.ok) throw new Error(res.body && res.body.error ? res.body.error : 'Error al actualizar');
+          // Cerrar modal y recargar para ver cambios (simple y seguro)
+          var modalEl = document.getElementById('modalEditarProducto');
+          var modal = bootstrap.Modal.getInstance(modalEl);
+          if (modal) modal.hide();
+          // Mostrar alerta de éxito y recargar
+          location.reload();
+        })
+        .catch(function(err) {
+          var ph = document.getElementById('modalAlertPlaceholder');
+          ph.innerHTML = '<div class="alert alert-danger">Error: ' + err.message + '</div>';
+        });
+      });
+    });
+  </script>
+
+ </body>
+ </html>

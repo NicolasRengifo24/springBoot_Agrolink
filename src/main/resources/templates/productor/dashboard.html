@@ -12,9 +12,6 @@
   <!-- Google Font -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet"/>
 
-  <!-- Chart.js -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
   <style>
     :root{
       --green: #2f6b31;
@@ -357,11 +354,6 @@
           <a th:href="@{/fincas/lista}" class="btn btn-outline-primary mb-3">Ver todas las fincas</a>
         </div>
 
-        <!-- CHART -->
-        <div class="card-glass fade">
-          <h5 class="mb-3">Ventas últimos 6 meses</h5>
-          <canvas id="chartSales" style="max-height:300px;"></canvas>
-        </div>
 
         <!-- PRODUCTOS -->
         <div class="card-glass fade">
@@ -653,38 +645,6 @@
         });
       }
 
-      /* ============================ */
-      /*        CHART SALES           */
-      /* ============================ */
-      // Gráfico simple con datos de ejemplo
-      var chartCanvas = document.getElementById('chartSales');
-      if (chartCanvas && typeof Chart !== 'undefined') {
-        new Chart(chartCanvas, {
-          type: 'line',
-          data: {
-            labels: ['Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov'],
-            datasets: [{
-              label: 'Ventas COP',
-              data: [12000, 22000, 18000, 26000, 30000, 42000],
-              borderColor: '#2f6b31',
-              backgroundColor: 'rgba(47,107,49,0.15)',
-              borderWidth: 3,
-              pointRadius: 5,
-              tension: 0.3
-            }]
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: true,
-            plugins: {
-              legend: { display: true, position: 'top' }
-            },
-            scales: {
-              y: { beginAtZero: true }
-            }
-          }
-        });
-      }
 
       /* ============================ */
       /*  FORMULARIO DE FINCAS        */

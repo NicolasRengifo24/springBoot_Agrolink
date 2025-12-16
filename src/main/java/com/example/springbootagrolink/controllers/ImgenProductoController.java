@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -44,8 +45,13 @@ public class ImgenProductoController {
 
     @PostMapping("/guardar")
     public String guardar(@ModelAttribute ImagenProducto imagen,
-                          @RequestParam Integer productoId) {
-        imagenProductoService.guardar(imagen, productoId);
+                          @RequestParam Integer productoId,
+                          @RequestParam(value = "archivo", required = false) MultipartFile archivo) {
+        if (archivo != null && !archivo.isEmpty()) {
+            imagenProductoService.guardar(imagen, productoId, archivo);
+        } else {
+            imagenProductoService.guardar(imagen, productoId);
+        }
         return "redirect:/imagenes-producto";
     }
 
