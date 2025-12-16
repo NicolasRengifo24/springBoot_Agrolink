@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.math.BigDecimal;
 import java.util.*;
@@ -28,6 +29,7 @@ public class AdminController {
     private final FincaRepository fincaRepository;
     private final EnvioRepository envioRepository;
     private final DetalleCompraRepository detalleCompraRepository;
+    private final ServicioRepository servicioRepository;
 
     public AdminController(ProductoRepository productoRepository,
                            CompraRepository compraRepository,
@@ -38,7 +40,8 @@ public class AdminController {
                            AsesorRepository asesorRepository,
                            FincaRepository fincaRepository,
                            EnvioRepository envioRepository,
-                           DetalleCompraRepository detalleCompraRepository) {
+                           DetalleCompraRepository detalleCompraRepository,
+                           ServicioRepository servicioRepository) {
         this.productoRepository = productoRepository;
         this.compraRepository = compraRepository;
         this.transportistaRepository = transportistaRepository;
@@ -49,6 +52,7 @@ public class AdminController {
         this.fincaRepository = fincaRepository;
         this.envioRepository = envioRepository;
         this.detalleCompraRepository = detalleCompraRepository;
+        this.servicioRepository = servicioRepository;
     }
 
     /**
@@ -173,6 +177,38 @@ public class AdminController {
             // En caso de error, redirigir con mensaje de error
             return "redirect:/admin/usuarios?error=actualizar";
         }
+    }
+
+    /**
+     * Eliminar usuario
+     */
+    @PostMapping("/usuarios/{id}/eliminar")
+    public String eliminarUsuario(@PathVariable("id") Integer idUsuario, RedirectAttributes redirectAttributes) {
+        try {
+            log.info("=== Intentando eliminar usuario ID: {} ===", idUsuario);
+
+            Optional<Usuario> usuarioOpt = usuarioRepository.findById(idUsuario);
+
+            if (usuarioOpt.isPresent()) {
+                Usuario usuario = usuarioOpt.get();
+                String nombreUsuario = usuario.getNombre() + " " + usuario.getApellido();
+
+                // Eliminar el usuario de la base de datos
+                usuarioRepository.deleteById(idUsuario);
+
+                log.info(" Usuario {} eliminado correctamente", nombreUsuario);
+                redirectAttributes.addFlashAttribute("success", "Usuario " + nombreUsuario + " eliminado correctamente");
+            } else {
+                log.warn("⚠ No se encontró el usuario con ID: {}", idUsuario);
+                redirectAttributes.addFlashAttribute("error", "No se encontró el usuario #" + idUsuario);
+            }
+
+        } catch (Exception e) {
+            log.error("❌ Error al eliminar usuario {}: {}", idUsuario, e.getMessage(), e);
+            redirectAttributes.addFlashAttribute("error", "Error al eliminar el usuario: " + e.getMessage());
+        }
+
+        return "redirect:/admin/usuarios";
     }
 
     /**
@@ -359,6 +395,113 @@ public class AdminController {
             model.addAttribute("error", "Error al cargar envíos");
             return "admin/envios";
         }
+    }
+
+    /**
+     * Eliminar envío
+     */
+    @PostMapping("/envios/{id}/eliminar")
+    public String eliminarEnvio(@PathVariable("id") Integer idEnvio, RedirectAttributes redirectAttributes) {
+        try {
+            Optional<Envio> envioOpt = envioRepository.findById(idEnvio);
+
+            if (envioOpt.isPresent()) {
+                envioRepository.deleteById(idEnvio);
+                redirectAttributes.addFlashAttribute("success", "Envío #" + idEnvio + " eliminado correctamente");
+            } else {
+                redirectAttributes.addFlashAttribute("error", "No se encontró el envío #" + idEnvio);
+            }
+
+        } catch (Exception e) {
+            log.error("Error al eliminar envío {}: {}", idEnvio, e.getMessage(), e);
+            redirectAttributes.addFlashAttribute("error", "Error al eliminar el envío: " + e.getMessage());
+        }
+
+        return "redirect:/admin/envios";
+    }
+
+    /**
+     * Vista de servicios
+     */
+    @GetMapping("/servicios")
+    public String gestionServicios(Model model) {
+        try {
+            List<Servicio> servicios = servicioRepository.findAll();
+
+            List<Servicio> serviciosOrdenados = servicios.stream()
+                .sorted((s1, s2) -> s2.getIdServicio().compareTo(s1.getIdServicio()))
+                .toList();
+
+            long serviciosActivos = servicios.stream()
+                .filter(s -> s.getEstado() == Servicio.EstadoServicio.Activo)
+                .count();
+
+            long serviciosInactivos = servicios.stream()
+                .filter(s -> s.getEstado() == Servicio.EstadoServicio.Inactivo)
+                .count();
+
+            model.addAttribute("servicios", serviciosOrdenados);
+            model.addAttribute("totalServicios", servicios.size());
+            model.addAttribute("serviciosActivos", serviciosActivos);
+            model.addAttribute("serviciosInactivos", serviciosInactivos);
+
+            return "admin/servicios";
+
+        } catch (Exception e) {
+            log.error("Error al cargar servicios: {}", e.getMessage(), e);
+            model.addAttribute("error", "Error al cargar servicios");
+            return "admin/servicios";
+        }
+    }
+
+    /**
+     * Eliminar servicio
+     */
+    @PostMapping("/servicios/{id}/eliminar")
+    public String eliminarServicio(@PathVariable("id") Integer idServicio, RedirectAttributes redirectAttributes) {
+        try {
+            Optional<Servicio> servicioOpt = servicioRepository.findById(idServicio);
+
+            if (servicioOpt.isPresent()) {
+                servicioRepository.deleteById(idServicio);
+                redirectAttributes.addFlashAttribute("success", "Servicio #" + idServicio + " eliminado correctamente");
+            } else {
+                redirectAttributes.addFlashAttribute("error", "No se encontró el servicio #" + idServicio);
+            }
+
+        } catch (Exception e) {
+            log.error("Error al eliminar servicio {}: {}", idServicio, e.getMessage(), e);
+            redirectAttributes.addFlashAttribute("error", "Error al eliminar el servicio: " + e.getMessage());
+        }
+
+        return "redirect:/admin/servicios";
+    }
+
+    /**
+     * Cambiar estado del servicio (Activo/Inactivo)
+     */
+    @PostMapping("/servicios/{id}/cambiar-estado")
+    public String cambiarEstadoServicio(@PathVariable("id") Integer idServicio, RedirectAttributes redirectAttributes) {
+        try {
+            Servicio servicio = servicioRepository.findById(idServicio)
+                .orElseThrow(() -> new RuntimeException("Servicio no encontrado"));
+
+            // Alternar entre Activo e Inactivo
+            if (servicio.getEstado() == Servicio.EstadoServicio.Activo) {
+                servicio.setEstado(Servicio.EstadoServicio.Inactivo);
+            } else {
+                servicio.setEstado(Servicio.EstadoServicio.Activo);
+            }
+
+            servicioRepository.save(servicio);
+            redirectAttributes.addFlashAttribute("success", "Estado del servicio actualizado correctamente");
+
+        } catch (Exception e) {
+            log.error("Error al cambiar estado del servicio {}: {}", idServicio, e.getMessage(), e);
+            redirectAttributes.addFlashAttribute("error", "Error al cambiar el estado del servicio: " + e.getMessage());
+        }
+
+        return "redirect:/admin/servicios";
     }
 
     /**

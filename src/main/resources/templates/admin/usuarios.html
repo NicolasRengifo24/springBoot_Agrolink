@@ -521,10 +521,15 @@
                               title="Ver detalles">
                         <i class="bi bi-eye"></i>
                       </button>
-                      <button class="btn btn-sm btn-outline-success"
+                      <button class="btn btn-sm btn-outline-success me-1"
                               th:onclick="|editarUsuario(${cliente.usuario.idUsuario})|"
                               title="Editar">
                         <i class="bi bi-pencil"></i>
+                      </button>
+                      <button class="btn btn-sm btn-outline-danger"
+                              th:onclick="|confirmarEliminarUsuario(${cliente.usuario.idUsuario})|"
+                              title="Eliminar">
+                        <i class="bi bi-trash"></i>
                       </button>
                     </td>
                   </tr>
@@ -576,10 +581,15 @@
                               title="Ver detalles">
                         <i class="bi bi-eye"></i>
                       </button>
-                      <button class="btn btn-sm btn-outline-success"
+                      <button class="btn btn-sm btn-outline-success me-1"
                               th:onclick="|editarUsuario(${productor.usuario.idUsuario})|"
                               title="Editar">
                         <i class="bi bi-pencil"></i>
+                      </button>
+                      <button class="btn btn-sm btn-outline-danger"
+                              th:onclick="|confirmarEliminarUsuario(${productor.usuario.idUsuario})|"
+                              title="Eliminar">
+                        <i class="bi bi-trash"></i>
                       </button>
                     </td>
                   </tr>
@@ -631,10 +641,15 @@
                               title="Ver detalles">
                         <i class="bi bi-eye"></i>
                       </button>
-                      <button class="btn btn-sm btn-outline-success"
+                      <button class="btn btn-sm btn-outline-success me-1"
                               th:onclick="|editarUsuario(${transportista.usuario.idUsuario})|"
                               title="Editar">
                         <i class="bi bi-pencil"></i>
+                      </button>
+                      <button class="btn btn-sm btn-outline-danger"
+                              th:onclick="|confirmarEliminarUsuario(${transportista.usuario.idUsuario})|"
+                              title="Eliminar">
+                        <i class="bi bi-trash"></i>
                       </button>
                     </td>
                   </tr>
@@ -686,10 +701,15 @@
                               title="Ver detalles">
                         <i class="bi bi-eye"></i>
                       </button>
-                      <button class="btn btn-sm btn-outline-success"
+                      <button class="btn btn-sm btn-outline-success me-1"
                               th:onclick="|editarUsuario(${asesor.usuario.idUsuario})|"
                               title="Editar">
                         <i class="bi bi-pencil"></i>
+                      </button>
+                      <button class="btn btn-sm btn-outline-danger"
+                              th:onclick="|confirmarEliminarUsuario(${asesor.usuario.idUsuario})|"
+                              title="Eliminar">
+                        <i class="bi bi-trash"></i>
                       </button>
                     </td>
                   </tr>
@@ -855,6 +875,54 @@
         row.style.display = text.includes(searchTerm) ? '' : 'none';
       });
     });
+
+    // ============================================
+    // ELIMINAR USUARIO
+    // ============================================
+    function confirmarEliminarUsuario(id) {
+      // Buscar la fila del usuario en la tabla activa
+      const activeTab = document.querySelector('.tab-pane.active');
+      const filas = activeTab?.querySelectorAll('tbody tr');
+      let nombreUsuario = 'este usuario';
+
+      // Intentar obtener el nombre del usuario de la tabla
+      filas?.forEach(fila => {
+        const botones = fila.querySelectorAll('button');
+        botones.forEach(boton => {
+          if (boton.getAttribute('onclick')?.includes(`confirmarEliminarUsuario(${id})`)) {
+            const nombreDiv = fila.querySelector('.fw-bold');
+            if (nombreDiv) {
+              nombreUsuario = nombreDiv.textContent.trim();
+            }
+          }
+        });
+      });
+
+      if (confirm(`¿Estás seguro de que deseas eliminar al usuario "${nombreUsuario}"?\n\nEsta acción no se puede deshacer y eliminará todos los datos asociados.`)) {
+        eliminarUsuario(id);
+      }
+    }
+
+    function eliminarUsuario(id) {
+      // Crear formulario para enviar POST request
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = `/admin/usuarios/${id}/eliminar`;
+
+      // Agregar token CSRF
+      const csrfToken = document.querySelector('meta[name="_csrf"]');
+
+      if (csrfToken) {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = '_csrf';
+        input.value = csrfToken.getAttribute('content');
+        form.appendChild(input);
+      }
+
+      document.body.appendChild(form);
+      form.submit();
+    }
 
     // Log de carga exitosa
     console.log('✅ Vista de usuarios cargada correctamente');

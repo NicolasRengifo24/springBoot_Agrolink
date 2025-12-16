@@ -337,6 +337,13 @@
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
       </div>
 
+      <!-- Mensaje de Éxito si existe -->
+      <div th:if="${success}" class="alert alert-success alert-dismissible fade show mb-4" role="alert">
+        <i class="bi bi-check-circle-fill me-2"></i>
+        <strong>Éxito:</strong> <span th:text="${success}">Operación realizada correctamente</span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+
       <!-- KPI CARDS -->
       <div class="row g-4 mb-5 fade-admin">
         <div class="col-xl-3 col-lg-6">
@@ -430,7 +437,7 @@
               </tr>
             </thead>
             <tbody>
-              <tr th:each="envio : ${envios}" class="envio-item">
+              <tr th:each="envio : ${envios}" class="envio-item" th:data-id="${envio.idEnvio}">
                 <td class="text-center">
                   <strong style="color:var(--green);" th:text="'#' + ${envio.idEnvio}">001</strong>
                 </td>
@@ -489,6 +496,11 @@
                             title="Rastrear envío">
                       <i class="bi bi-geo-alt"></i>
                     </button>
+                    <button class="btn btn-sm btn-outline-danger"
+                            th:onclick="|confirmarEliminarEnvio(${envio.idEnvio})|"
+                            title="Eliminar envío">
+                      <i class="bi bi-trash"></i>
+                    </button>
                   </div>
                 </td>
               </tr>
@@ -518,11 +530,88 @@
     });
 
     // ============================================
-    // VER DETALLES DEL ENVÍO
+    // VER DETALLES DEL ENVÍO - LEYENDO DE LA TABLA
     // ============================================
     function verDetallesEnvio(id) {
-      alert(`Ver detalles del envío #${id}\n\nFuncionalidad en desarrollo...`);
-      // Futuro: window.location.href = `/admin/envios/${id}`;
+      console.log('📦 Mostrando detalles del envío:', id);
+
+      // Buscar la fila del envío en la tabla
+      let filaEnvio = null;
+      document.querySelectorAll('.envio-item').forEach(fila => {
+        if (fila.getAttribute('data-id') == id) {
+          filaEnvio = fila;
+        }
+      });
+
+      if (!filaEnvio) {
+        alert('No se encontró el envío');
+        return;
+      }
+
+      // Leer datos directamente de las celdas de la tabla
+      const celdas = filaEnvio.querySelectorAll('td');
+
+      // Celda 0: ID del envío (ya lo tenemos)
+      // Celda 1: Pedido
+      const textoPedido = celdas[1]?.textContent || '';
+      const pedidoMatch = textoPedido.match(/Pedido #(\d+)/);
+      const pedidoId = pedidoMatch ? pedidoMatch[1] : '0';
+      const totalMatch = textoPedido.match(/\$([0-9,]+(\.\d{2})?)/);
+      const pedidoTotal = totalMatch ? totalMatch[1].replace(/,/g, '') : '0';
+
+      // Celda 3: Transportista
+      const transportistaNombre = celdas[3]?.textContent.trim() || 'Sin asignar';
+
+      // Celda 4: Estado
+      const estado = celdas[4]?.textContent.trim() || 'Sin Estado';
+
+      // Celda 5: Seguimiento
+      const seguimiento = celdas[5]?.textContent.trim() || 'N/A';
+
+      // Celda 6: Distancia
+      const distanciaTexto = celdas[6]?.textContent.trim() || '0 km';
+      const distancia = distanciaTexto.replace(' km', '').trim();
+
+      // Llenar el modal con los datos
+      document.getElementById('modalEnvioId').textContent = id;
+      document.getElementById('modalPedidoId').textContent = pedidoId !== '0' ? '#' + pedidoId : 'Sin pedido';
+      document.getElementById('modalPedidoTotal').textContent = '$' + formatearPrecio(pedidoTotal);
+      document.getElementById('modalTransportistaNombre').textContent = transportistaNombre;
+      document.getElementById('modalTransportistaTelefono').textContent = 'N/A';
+      document.getElementById('modalNumeroSeguimiento').textContent = seguimiento;
+      document.getElementById('modalDistancia').textContent = distancia + ' km';
+      document.getElementById('modalDireccionOrigen').textContent = 'Información no disponible';
+      document.getElementById('modalDireccionDestino').textContent = 'Información no disponible';
+      document.getElementById('modalCostoEnvio').textContent = 'Sin información';
+
+      // Actualizar el badge de estado con el color correspondiente
+      const badgeEstado = document.getElementById('modalBadgeEstado');
+      badgeEstado.textContent = estado;
+      badgeEstado.className = 'badge ';
+
+      if (estado.includes('Entregado') || estado.includes('Finalizado')) {
+        badgeEstado.className += 'bg-success';
+      } else if (estado.includes('Transito') || estado.includes('Tránsito')) {
+        badgeEstado.className += 'bg-primary';
+      } else if (estado.includes('Buscando') || estado.includes('Asignado') || estado.includes('Listo')) {
+        badgeEstado.className += 'bg-warning text-dark';
+      } else if (estado.includes('Cancelado')) {
+        badgeEstado.className += 'bg-danger';
+      } else {
+        badgeEstado.className += 'bg-secondary';
+      }
+
+      console.log('✅ Modal listo para mostrar');
+
+      // Mostrar el modal
+      const modal = new bootstrap.Modal(document.getElementById('modalVerEnvio'));
+      modal.show();
+    }
+
+    // Función auxiliar para formatear precios
+    function formatearPrecio(valor) {
+      if (!valor || isNaN(valor)) return '0.00';
+      return Number(valor).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
     }
 
     // ============================================
@@ -533,10 +622,173 @@
       // Futuro: abrir modal con mapa de Google Maps
     }
 
+    // ============================================
+    // ELIMINAR ENVÍO
+    // ============================================
+    function confirmarEliminarEnvio(id) {
+      if (confirm(`¿Estás seguro de que deseas eliminar el envío #${id}?\n\nEsta acción no se puede deshacer.`)) {
+        eliminarEnvio(id);
+      }
+    }
+
+    function eliminarEnvio(id) {
+      // Crear formulario para enviar DELETE request
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = `/admin/envios/${id}/eliminar`;
+
+      // Agregar token CSRF si existe
+      const csrfToken = document.querySelector('meta[name="_csrf"]');
+      const csrfHeader = document.querySelector('meta[name="_csrf_header"]');
+
+      if (csrfToken && csrfHeader) {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = csrfToken.getAttribute('content');
+        input.value = csrfHeader.getAttribute('content');
+        form.appendChild(input);
+      }
+
+      document.body.appendChild(form);
+      form.submit();
+    }
+
 
 
   </script>
 
+
+  <!-- MODAL VER DETALLES DEL ENVÍO -->
+  <div class="modal fade" id="modalVerEnvio" tabindex="-1" aria-labelledby="modalVerEnvioLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content" style="border-radius: 24px; border: none; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
+        <!-- Header del Modal -->
+        <div class="modal-header border-0" style="background: linear-gradient(135deg, #2f6b31, #3f8a41); color: white; border-radius: 24px 24px 0 0; padding: 28px 36px;">
+          <div>
+            <h5 class="modal-title fw-bold mb-1" id="modalVerEnvioLabel">
+              <i class="bi bi-truck me-2"></i>Detalles del Envío #<span id="modalEnvioId">0</span>
+            </h5>
+            <p class="mb-0 opacity-75" style="font-size: 0.9rem;">Información completa del envío</p>
+          </div>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <!-- Body del Modal -->
+        <div class="modal-body" style="padding: 36px;">
+          <!-- Estado del Envío -->
+          <div class="mb-4 p-4 text-center" style="background: rgba(47,107,49,0.05); border-radius: 16px;">
+            <h6 class="fw-bold mb-2" style="color: var(--green);">
+              <i class="bi bi-info-circle me-2"></i>Estado Actual
+            </h6>
+            <h3 class="mb-0">
+              <span id="modalBadgeEstado" class="badge bg-primary" style="font-size: 1.2rem; padding: 12px 24px;">
+                Estado
+              </span>
+            </h3>
+          </div>
+
+          <!-- Información del Pedido -->
+          <div class="mb-4 p-4" style="background: rgba(52,152,219,0.05); border-radius: 16px; border-left: 4px solid #3498db;">
+            <h6 class="fw-bold mb-3" style="color: #3498db;">
+              <i class="bi bi-cart-check me-2"></i>Información del Pedido
+            </h6>
+            <div class="row">
+              <div class="col-md-6 mb-2">
+                <small class="text-muted d-block fw-600">Pedido:</small>
+                <strong id="modalPedidoId">-</strong>
+              </div>
+              <div class="col-md-6 mb-2">
+                <small class="text-muted d-block fw-600">Total del Pedido:</small>
+                <strong id="modalPedidoTotal" style="color: var(--green);">-</strong>
+              </div>
+            </div>
+          </div>
+
+          <!-- Información del Transportista -->
+          <div class="mb-4 p-4" style="background: rgba(243,156,18,0.05); border-radius: 16px; border-left: 4px solid #f39c12;">
+            <h6 class="fw-bold mb-3" style="color: #f39c12;">
+              <i class="bi bi-person-badge me-2"></i>Transportista
+            </h6>
+            <div class="row">
+              <div class="col-md-6 mb-2">
+                <small class="text-muted d-block fw-600">Nombre:</small>
+                <strong id="modalTransportistaNombre">-</strong>
+              </div>
+              <div class="col-md-6 mb-2">
+                <small class="text-muted d-block fw-600">Teléfono:</small>
+                <strong id="modalTransportistaTelefono">-</strong>
+              </div>
+            </div>
+          </div>
+
+          <!-- Información del Envío -->
+          <div class="mb-4">
+            <h6 class="fw-bold mb-3" style="color: var(--green);">
+              <i class="bi bi-box-seam me-2"></i>Detalles del Envío
+            </h6>
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <div class="p-3" style="background: #f8f9fa; border-radius: 12px;">
+                  <small class="text-muted d-block mb-1 fw-600">
+                    <i class="bi bi-hash me-1"></i>Número de Seguimiento
+                  </small>
+                  <code class="fs-6" id="modalNumeroSeguimiento">-</code>
+                </div>
+              </div>
+              <div class="col-md-6 mb-3">
+                <div class="p-3" style="background: #f8f9fa; border-radius: 12px;">
+                  <small class="text-muted d-block mb-1 fw-600">
+                    <i class="bi bi-rulers me-1"></i>Distancia
+                  </small>
+                  <h6 class="mb-0" id="modalDistancia">-</h6>
+                </div>
+              </div>
+              <div class="col-md-12 mb-3">
+                <div class="p-3" style="background: #f8f9fa; border-radius: 12px;">
+                  <small class="text-muted d-block mb-1 fw-600">
+                    <i class="bi bi-geo-alt me-1"></i>Dirección Origen
+                  </small>
+                  <h6 class="mb-0" id="modalDireccionOrigen">-</h6>
+                </div>
+              </div>
+              <div class="col-md-12 mb-3">
+                <div class="p-3" style="background: #f8f9fa; border-radius: 12px;">
+                  <small class="text-muted d-block mb-1 fw-600">
+                    <i class="bi bi-geo me-1"></i>Dirección Destino
+                  </small>
+                  <h6 class="mb-0" id="modalDireccionDestino">-</h6>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Costo del Envío -->
+          <div class="p-4" style="background: linear-gradient(135deg, rgba(47,107,49,0.05), rgba(63,138,65,0.05)); border-radius: 16px;">
+            <div class="row align-items-center">
+              <div class="col-md-6">
+                <h6 class="mb-0 fw-bold" style="color: var(--green);">
+                  <i class="bi bi-cash-coin me-2"></i>Costo del Envío
+                </h6>
+              </div>
+              <div class="col-md-6 text-end">
+                <h3 class="mb-0 fw-bold" style="color: var(--green);" id="modalCostoEnvio">$0.00</h3>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Footer del Modal -->
+        <div class="modal-footer border-0" style="padding: 0 36px 36px 36px; gap: 12px;">
+          <button type="button" class="btn btn-lg btn-outline-secondary" data-bs-dismiss="modal" style="border-radius: 12px; padding: 12px 32px; font-weight: 600;">
+            <i class="bi bi-x-circle me-2"></i>Cerrar
+          </button>
+          <button type="button" class="btn btn-lg btn-success" onclick="window.print()" style="border-radius: 12px; padding: 12px 32px; font-weight: 600; background: linear-gradient(135deg, #2f6b31, #3f8a41); border: none;">
+            <i class="bi bi-printer me-2"></i>Imprimir
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 
 </body>
 </html>

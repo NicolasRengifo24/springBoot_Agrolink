@@ -659,12 +659,132 @@
     }
 
     // Función para imprimir pedido
+    // ============================================
+    // IMPRIMIR PEDIDO
+    // ============================================
     function imprimirPedido() {
-      window.print();
+      // Obtener el contenido del modal
+      const modalContent = document.querySelector('#modalVerPedido .modal-body').cloneNode(true);
+      const pedidoId = document.getElementById('modalPedidoId').textContent;
+      const clienteNombre = document.getElementById('modalClienteNombre').textContent;
+      const total = document.getElementById('modalTotal').textContent;
+      const fechaCompra = document.getElementById('modalFechaCompra').textContent;
+
+      // Crear ventana de impresión
+      const ventanaImpresion = window.open('', '_blank', 'width=800,height=600');
+
+      ventanaImpresion.document.write(`
+        <!DOCTYPE html>
+        <html lang="es">
+        <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Pedido #${pedidoId} - Agrolink</title>
+          <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+          <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+          <style>
+            @media print {
+              body { margin: 0; padding: 20px; }
+              .no-print { display: none; }
+            }
+            body {
+              font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+              background: white;
+              padding: 40px;
+            }
+            .header-print {
+              text-align: center;
+              margin-bottom: 40px;
+              border-bottom: 3px solid #2f6b31;
+              padding-bottom: 20px;
+            }
+            .header-print h1 {
+              color: #2f6b31;
+              font-weight: 800;
+              margin-bottom: 10px;
+            }
+            .info-section {
+              margin-bottom: 30px;
+              padding: 20px;
+              background: #f8f9fa;
+              border-radius: 8px;
+            }
+            .info-section h5 {
+              color: #2f6b31;
+              font-weight: 700;
+              margin-bottom: 15px;
+            }
+            .table th {
+              background: #2f6b31;
+              color: white;
+              font-weight: 600;
+            }
+            .total-section {
+              background: #f0f8f0;
+              padding: 20px;
+              border-radius: 8px;
+              margin-top: 30px;
+            }
+            .total-amount {
+              font-size: 1.5rem;
+              color: #2f6b31;
+              font-weight: 800;
+            }
+            .footer-print {
+              text-align: center;
+              margin-top: 40px;
+              padding-top: 20px;
+              border-top: 2px solid #ddd;
+              color: #666;
+            }
+          </style>
+        </head>
+        <body>
+          <!-- Header -->
+          <div class="header-print">
+            <h1><i class="bi bi-leaf"></i> Agrolink</h1>
+            <h3>Comprobante de Pedido #${pedidoId}</h3>
+            <p class="mb-0">Fecha: ${fechaCompra}</p>
+          </div>
+
+          <!-- Contenido del Modal -->
+          <div id="contenido-impresion">
+            ${modalContent.innerHTML}
+          </div>
+
+          <!-- Footer -->
+          <div class="footer-print">
+            <p class="mb-1"><strong>Agrolink - Sistema de Gestión Agrícola</strong></p>
+            <p class="mb-0">Gracias por su compra</p>
+          </div>
+
+          <!-- Botón para imprimir (se oculta al imprimir) -->
+          <div class="text-center mt-4 no-print">
+            <button class="btn btn-success btn-lg" onclick="window.print()">
+              <i class="bi bi-printer me-2"></i>Imprimir Documento
+            </button>
+            <button class="btn btn-secondary btn-lg ms-2" onclick="window.close()">
+              <i class="bi bi-x-circle me-2"></i>Cerrar
+            </button>
+          </div>
+
+          <scr` + `ipt>
+            // Auto-abrir diálogo de impresión después de cargar
+            window.onload = function() {
+              setTimeout(function() {
+                window.print();
+              }, 500);
+            };
+          </scr` + `ipt>
+        </body>
+        </html>
+      `);
+
+      ventanaImpresion.document.close();
     }
 
     // Log de carga exitosa
-    console.log(' Vista de pedidos admin cargada correctamente');
+    console.log('✅ Vista de pedidos admin cargada correctamente');
     console.log('Total pedidos:', document.querySelectorAll('.pedido-item').length);
 
 

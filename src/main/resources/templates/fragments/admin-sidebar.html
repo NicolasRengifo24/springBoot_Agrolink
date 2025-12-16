@@ -42,6 +42,13 @@
             <span class="nav-label">Envíos</span>
         </a>
 
+        <a th:href="@{/admin/servicios}"
+           class="nav-item"
+           th:classappend="${active == 'servicios'} ? ' active' : ''">
+            <i class="bi bi-briefcase"></i>
+            <span class="nav-label">Servicios</span>
+        </a>
+
         <form th:action="@{/logout}" method="post" style="margin:0">
             <button type="submit" class="nav-item text-danger"
                     style="border:none;background:none;width:100%;text-align:left;">
