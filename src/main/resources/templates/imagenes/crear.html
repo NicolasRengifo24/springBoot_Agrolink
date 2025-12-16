@@ -1,0 +1,43 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Crear Imagen Producto</title>
+</head>
+<body>
+<div class="container">
+    <h1>Subir imagen para producto</h1>
+
+    <form th:action="@{/imagenes-producto/guardar}" method="post" enctype="multipart/form-data">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+
+        <div>
+            <label for="productoId">Producto</label>
+            <select id="productoId" name="productoId" required>
+                <option value="">-- Seleccione producto --</option>
+                <option th:each="prod : ${productos}"
+                        th:value="${prod.idProducto}"
+                        th:text="${prod.nombreProducto}">
+                </option>
+            </select>
+        </div>
+
+        <div>
+            <label for="archivo">Archivo (imagen)</label>
+            <input type="file" id="archivo" name="archivo" accept="image/*" required />
+        </div>
+
+        <div>
+            <label for="esPrincipal">Imagen principal</label>
+            <input type="checkbox" id="esPrincipal" name="esPrincipal" value="true" />
+        </div>
+
+        <div>
+            <button type="submit">Guardar</button>
+            <a th:href="@{/imagenes-producto}">Cancelar</a>
+        </div>
+    </form>
+</div>
+</body>
+</html>

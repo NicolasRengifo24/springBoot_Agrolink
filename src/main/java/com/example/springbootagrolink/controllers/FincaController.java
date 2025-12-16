@@ -14,6 +14,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.Collections;
 
 @Controller
 @RequestMapping("/fincas")
@@ -90,11 +92,69 @@ public class FincaController {
         }
     }
 
+    // Mostrar lista web de fincas
+    @GetMapping("/lista")
+    public String mostrarListaFincas(Model model) {
+        // Obtener usuario autenticado
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication != null ? authentication.getName() : null;
+
+        List<Finca> fincas;
+        if (username != null) {
+            Optional<Productor> productorOpt = productorService.obtenerPorNombreUsuario(username);
+            if (productorOpt.isPresent()) {
+                Productor productor = productorOpt.get();
+                fincas = fincaService.obtenerPorProductor(productor.getIdProductor());
+                model.addAttribute("productorLogueado", productor);
+            } else {
+                // Si no se encuentra productor asociado al usuario autenticado, retornar lista vacía
+                fincas = Collections.emptyList();
+            }
+        } else {
+            // Usuario no autenticado -> mostrar lista vacía
+            fincas = Collections.emptyList();
+        }
+
+        model.addAttribute("fincas", fincas);
+        return "fincas/lista";
+    }
+
+    // Mostrar detalle web de finca
+    @GetMapping("/ver/{id}")
+    public String mostrarVerFinca(@PathVariable Integer id, Model model) {
+        fincaService.obtenerPorId(id).ifPresentOrElse(
+            f -> model.addAttribute("finca", f),
+            () -> model.addAttribute("finca", null)
+        );
+        return "fincas/ver";
+    }
+
+    // Mostrar formulario web para editar finca
+    @GetMapping("/editar/{id}")
+    public String mostrarEditarFinca(@PathVariable Integer id, Model model) {
+        fincaService.obtenerPorId(id).ifPresentOrElse(
+            f -> model.addAttribute("finca", f),
+            () -> model.addAttribute("finca", null)
+        );
+        return "fincas/editar";
+    }
+
+    // Eliminar via GET (usado por botones en UI) y redirigir a la lista
+    @GetMapping("/eliminar/{id}")
+    public String eliminarFincaWeb(@PathVariable Integer id) {
+        try {
+            fincaService.eliminar(id);
+        } catch (Exception e) {
+            // log si es necesario
+        }
+        return "redirect:/fincas/lista";
+    }
+
     // Mostrar formulario web para crear finca
     @GetMapping("/crear")
     public String mostrarFormularioCrear(Model model) {
         model.addAttribute("finca", new Finca());
-        return "finca/crear";
+        return "fincas/crear";
     }
 
     // Procesar formulario web para crear finca

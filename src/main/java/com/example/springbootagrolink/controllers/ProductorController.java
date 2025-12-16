@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 @Controller
-@RequestMapping("/productores")
+@RequestMapping({"/productores", "/productor"})
 public class ProductorController {
 
     @Autowired
@@ -20,54 +20,48 @@ public class ProductorController {
     @GetMapping
     public String listarProductores(Model model) {
         model.addAttribute("productores", productorService.obtenerTodos());
-        return "productores/lista";
+        return "productor/lista"; // usar carpeta existente 'productor'
     }
 
     @GetMapping("/{id}")
     public String mostrarDetalleProductor(@PathVariable Integer id, Model model) {
         model.addAttribute("productor", productorService.obtenerPorId(id).orElse(null));
-        return "productores/detalle";
+        return "productor/ver"; // usar plantilla existente 'productor/ver'
     }
 
-    @GetMapping("/nuevo")
-    public String mostrarFormularioCrearProductor(Model model) {
-        model.addAttribute("productor", new Object());
-        return "productores/crear";
+    @GetMapping({"/nuevo", "/crear"})
+    public String mostrarFormularioCrearProductor() {
+        // Redirigir al controlador de productos que ya prepara todos los atributos necesarios
+        return "redirect:/productos/crear";
     }
 
     @PostMapping("/guardar")
     public String guardarProductor(Productor productor) {
         productorService.guardar(productor);
-        return "redirect:/productores";
+        return "redirect:/productor"; // redirigir a la ruta singular
     }
 
     @GetMapping("/editar/{id}")
     public String mostrarFormularioEditarProductor(@PathVariable Integer id, Model model) {
         Productor productorActual = productorService.obtenerPorId(id).orElse(null);
         if (productorActual == null) {
-            return "redirect:/productores";
+            return "redirect:/productor"; // redirigir a la ruta singular
         } else {
             model.addAttribute("productor", productorActual);
-            return "productores/editar";
+            return "productor/editar"; // usar plantilla existente 'productor/editar'
         }
     }
 
     @PostMapping("/actualizar/{id}")
     public String actualizarProductor(@PathVariable Integer id, Productor productor) {
         productorService.actualizar(id, productor);
-        return "redirect:/productores";
+        return "redirect:/productor"; // redirigir a la ruta singular
     }
 
 
     @PostMapping("/eliminar/{id}")
     public String eliminarProductor(@PathVariable Integer id) {
         productorService.eliminar(id);
-        return "redirect:/productores";
+        return "redirect:/productor"; // redirigir a la ruta singular
     }
 }
-
-
-
-
-
-
