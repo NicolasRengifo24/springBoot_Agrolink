@@ -4,40 +4,131 @@
     <meta charset="UTF-8">
     <title>Mis Fincas</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
 </head>
 <body>
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2><i class="bi bi-tree me-2"></i>Mis Fincas</h2>
-        <a th:href="@{/fincas/crear}" class="btn btn-success">
-            <i class="bi bi-plus-circle me-1"></i>Nueva Finca
-        </a>
+        <div>
+            <a th:href="@{/fincas/crear}" class="btn btn-success">
+                <i class="bi bi-plus-circle me-1"></i>Nueva Finca
+            </a>
+            <a href="javascript:location.reload()" class="btn btn-outline-secondary ms-2">Recargar</a>
+        </div>
     </div>
-    <table class="table table-bordered">
-        <thead>
-            <tr>
-                <th>Nombre</th>
-                <th>Ubicación</th>
-                <th>Acciones</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr th:each="finca : ${fincas}">
-                <td th:text="${finca.nombreFinca}"></td>
-                <td>
-                    <span th:text="${finca.ciudad}"></span>
-                    <span th:if="${finca.ciudad != null and finca.departamento != null}">, </span>
-                    <span th:text="${finca.departamento}"></span>
-                    <div class="small text-muted" th:if="${finca.direccionFinca != null}" th:text="${finca.direccionFinca}"></div>
-                </td>
-                <td>
-                    <a th:href="@{/fincas/ver/{id}(id=${finca.idFinca})}" class="btn btn-info btn-sm">Ver</a>
-                    <a th:href="@{/fincas/editar/{id}(id=${finca.idFinca})}" class="btn btn-primary btn-sm">Editar</a>
-                    <a th:href="@{/fincas/eliminar/{id}(id=${finca.idFinca})}" class="btn btn-danger btn-sm" onclick="return confirm('¿Seguro que deseas eliminar esta finca?');">Eliminar</a>
-                </td>
-            </tr>
-        </tbody>
-    </table>
+
+    <div id="fincasPlaceholder" class="card" th:attr="data-productor-id=${productorLogueado != null ? productorLogueado.idProductor : ''}">
+      <div class="card-body">
+        <div id="fincasLoading" class="text-center py-5">
+          <div class="spinner-border text-success" role="status"></div>
+          <div class="mt-2 text-muted">Cargando fincas...</div>
+        </div>
+
+        <div id="fincasError" style="display:none;" class="alert alert-danger" role="alert"></div>
+
+        <div id="fincasContent" style="display:none;">
+          <div class="table-responsive">
+            <table class="table table-bordered align-middle">
+                <thead>
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Ubicación</th>
+                        <th>Productos</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="fincasTableBody">
+                    <!-- Se llenará dinámicamente -->
+                    <!-- Fallback server-side: si el controlador suministra `fincas`, renderizarlas aquí -->
+                    <th:block th:if="${fincas != null}">
+                      <tr th:each="f : ${fincas}">
+                        <td th:text="${f.nombreFinca}">Nombre</td>
+                        <td>
+                          <span th:text="${f.ciudad}"></span>
+                          <span th:if="${f.ciudad != null and f.departamento != null}">, </span>
+                          <span th:text="${f.departamento}"></span>
+                          <div class="small text-muted" th:if="${f.direccionFinca != null}" th:text="${f.direccionFinca}"></div>
+                        </td>
+                        <td th:text="${f.productoFincas != null ? f.productoFincas.size() : 0}">0</td>
+                        <td>
+                          <a class="btn btn-sm btn-outline-primary me-1" th:href="@{/fincas/ver/{id}(id=${f.idFinca})}"><i class="bi bi-eye"></i></a>
+                          <a class="btn btn-sm btn-outline-secondary me-1" th:href="@{/fincas/editar/{id}(id=${f.idFinca})}"><i class="bi bi-pencil"></i></a>
+                          <a class="btn btn-sm btn-outline-danger" th:href="@{/fincas/eliminar/{id}(id=${f.idFinca})}" onclick="return confirm('¿Seguro que deseas eliminar esta finca?');"><i class="bi bi-trash"></i></a>
+                        </td>
+                      </tr>
+                    </th:block>
+                </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  // Cargar fincas vía AJAX desde el mismo endpoint que usa el dashboard
+  document.addEventListener('DOMContentLoaded', function(){
+    var loading = document.getElementById('fincasLoading');
+    var errorEl = document.getElementById('fincasError');
+    var content = document.getElementById('fincasContent');
+    var body = document.getElementById('fincasTableBody');
+
+    function showError(msg){
+      loading.style.display = 'none';
+      content.style.display = 'none';
+      errorEl.style.display = 'block';
+      errorEl.textContent = msg || 'Error al cargar las fincas.';
+    }
+
+    // Si tenemos productorId en el DOM, llamamos al endpoint filtrado por productror
+    var productorId = document.getElementById('fincasPlaceholder').dataset.productorId;
+    var url = '/productos/fincas/listar';
+    if (productorId && productorId !== '') {
+      url = '/productos/fincas/por-productor/' + encodeURIComponent(productorId);
+    }
+
+    fetch(url)
+      .then(function(res){ if(!res.ok) throw new Error('Respuesta del servidor: ' + res.status); return res.json(); })
+      .then(function(fincas){
+        loading.style.display = 'none';
+        errorEl.style.display = 'none';
+
+        if(!fincas || fincas.length === 0){
+          content.style.display = 'block';
+          body.innerHTML = '<tr><td colspan="4" class="text-center text-muted py-4"><i class="bi bi-inbox fs-1 d-block mb-2"></i>No tienes fincas registradas.</td></tr>';
+          return;
+        }
+
+        var html = '';
+        fincas.forEach(function(f){
+          var nombre = f.nombreFinca || 'Sin nombre';
+          var ubicacion = ((f.ciudad || '') + (f.ciudad && f.departamento ? ', ' : '') + (f.departamento || '')).trim();
+          var direccion = f.direccionFinca ? ('<div class="small text-muted">' + (f.direccionFinca) + '</div>') : '';
+          var cantidad = (typeof f.cantidadProductos !== 'undefined') ? f.cantidadProductos : '';
+
+          html += '<tr>' +
+                  '<td>' + nombre + '</td>' +
+                  '<td>' + (ubicacion || '-') + direccion + '</td>' +
+                  '<td>' + (cantidad !== '' ? cantidad : '-') + '</td>' +
+                  '<td>' +
+                    '<a class="btn btn-sm btn-outline-primary me-1" href="/fincas/ver/' + f.idFinca + '"><i class="bi bi-eye"></i></a>' +
+                    '<a class="btn btn-sm btn-outline-secondary me-1" href="/fincas/editar/' + f.idFinca + '"><i class="bi bi-pencil"></i></a>' +
+                    '<button class="btn btn-sm btn-outline-danger" onclick="if(confirm(\'¿Eliminar finca ' + (f.nombreFinca ? f.nombreFinca.replace(/'/g, "\\'") : '') + '?\')) location.href=\'/fincas/eliminar/' + f.idFinca + '\';"><i class="bi bi-trash"></i></button>' +
+                  '</td>' +
+                  '</tr>';
+        });
+
+        content.style.display = 'block';
+        body.innerHTML = html;
+      })
+      .catch(function(err){
+        console.error('Error al cargar fincas:', err);
+        showError('Error al cargar fincas: ' + (err.message || ''));
+      });
+  });
+</script>
 </body>
 </html>

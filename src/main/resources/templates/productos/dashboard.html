@@ -259,14 +259,21 @@
       </div>
 
       <nav>
-        <div class="nav-item active" data-section="productos">
+        <div class="nav-item active" data-section="productos" onclick="cambiarSeccion('productos')">
           <i class="bi bi-box-seam"></i><span class="nav-label"> Productos</span>
         </div>
-        <div class="nav-item" data-section="pedidos">
+        <div class="nav-item" data-section="pedidos" onclick="cambiarSeccion('pedidos')">
           <i class="bi bi-receipt"></i><span class="nav-label"> Pedidos</span>
         </div>
-        <!-- Botón Fincas removido del sidebar por petición del usuario -->
-      </nav>
+        <!-- Botón Cerrar sesión -->
+        <form th:action="@{/logout}" method="post" style="margin:0;">
+          <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+          <button type="submit" class="nav-item nav-logout" style="background:none;border:none;width:100%;text-align:left;padding:12px;border-radius:12px;">
+            <i class="bi bi-box-arrow-right" style="color:#d9534f"></i>
+            <span class="nav-label" style="color:#d9534f;margin-left:12px;">Cerrar sesión</span>
+          </button>
+        </form>
+       </nav>
 
     </aside>
 
@@ -348,9 +355,8 @@
           <a th:href="@{/productor/crear}" class="btn btn-success mb-3"><i class="bi bi-plus-circle me-1"></i>Agregar Producto</a>
         </div>
         <div th:if="${!productos.isEmpty()}">
-          <!-- Enlace corregido: la ruta del controlador expone /productor (no /productor/lista) -->
-          <a th:href="@{/productor}" class="btn btn-outline-primary mb-3">Ver todos los productos</a>
-        </div>
+          <!-- Botón 'Ver todos los productos' eliminado por petición del usuario -->
+       </div>
 
         <!-- Fincas -->
         <div th:if="${fincas.isEmpty()}">
@@ -425,7 +431,7 @@
                   <td class="text-end">
                     <!-- Botón que abre modal para editar sin navegar fuera -->
                     <button type="button" class="btn btn-sm btn-outline-primary me-1" title="Editar"
-                            onclick="abrirModalEditar([[${producto.idProducto}]])">
+                            th:attr="onclick=|abrirModalEditar(${producto.idProducto})|">
                       <i class="bi bi-pencil"></i>
                     </button>
                     <form th:action="@{/productos/eliminar/{id}(id=${producto.idProducto})}"
@@ -836,6 +842,9 @@
           loadingEl.style.display = 'none';
           pedidosCargados = true;
 
+          // Guardar cache global de pedidos para poder mostrar detalles rápidamente
+          window._pedidosCache = compras || [];
+
           if (!compras || compras.length === 0) {
             tableBodyEl.innerHTML = '<tr><td colspan="7" class="text-center text-muted py-4"><i class="bi bi-inbox fs-1 d-block mb-2"></i>No hay pedidos para mostrar.</td></tr>';
             return;
@@ -856,7 +865,7 @@
             html += '<td>' + (c.direccionEntrega || '—') + '</td>';
             html += '<td><strong>' + totalFormato + '</strong></td>';
             html += '<td>' + (c.metodoPago || '—') + '</td>';
-            html += '<td><button class="btn btn-sm btn-outline-primary" onclick="verDetallePedido(' + c.idCompra + ')"><i class="bi bi-eye"></i></button></td>';
+            html += '<td><button class="btn btn-sm btn-outline-primary" onclick="verDetallePedido(' + c.idCompra + ')" title="Ver detalle"><i class="bi bi-eye"></i></button></td>';
             html += '</tr>';
           }
           tableBodyEl.innerHTML = html;
@@ -869,98 +878,77 @@
     }
 
     window.verDetallePedido = function(idCompra) {
-      alert('Ver detalle del pedido #' + idCompra + '\n\n(Puedes implementar un modal o navegar a otra vista)');
-      // TODO: implementar modal o redirección para ver detalles
-    };
+      try {
+        var modalEl = document.getElementById('modalDetallePedido');
+        var modal = new bootstrap.Modal(modalEl);
 
-    /* ================================================ */
-    /*  GESTIÓN DE FINCAS                              */
-    /* ================================================ */
-    window.mostrarFormularioFinca = function() {
-      var formulario = document.getElementById('formularioFinca');
-      formulario.style.display = 'block';
-      formulario.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    };
+        // Reset contenido y mostrar spinner
+        document.getElementById('detalleSpinner').style.display = 'block';
+        document.getElementById('detalleContenido').style.display = 'none';
+        document.getElementById('detalleItemsBody').innerHTML = '';
 
-    window.cancelarFormularioFinca = function() {
-      document.getElementById('formularioFinca').style.display = 'none';
-      document.getElementById('formCrearFinca').reset();
-    };
+        // Obtener datos básicos desde la cache si está disponible
+        var compraBasica = null;
+        if (window._pedidosCache && Array.isArray(window._pedidosCache)) {
+          compraBasica = window._pedidosCache.find(function(x){ return x.idCompra == idCompra; });
+        }
 
+        if (compraBasica) {
+          document.getElementById('detalleId').textContent = compraBasica.idCompra || idCompra;
+          document.getElementById('detalleCliente').textContent = 'Cliente: ' + (compraBasica.cliente ? (compraBasica.cliente.nombre || '') : '—');
+          document.getElementById('detalleFecha').textContent = 'Fecha: ' + (compraBasica.fechaHoraCompra ? new Date(compraBasica.fechaHoraCompra).toLocaleString('es-CO') : '—');
+          document.getElementById('detalleDireccion').textContent = 'Dirección: ' + (compraBasica.direccionEntrega || '—');
+          document.getElementById('detalleMetodoPago').textContent = 'Pago: ' + (compraBasica.metodoPago || '—');
+          document.getElementById('detalleTotal').textContent = compraBasica.total ? new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(compraBasica.total) : '$0';
+        } else {
+          document.getElementById('detalleId').textContent = idCompra;
+        }
 
-    /* ================================================ */
-    /*  CARGAR FINCAS - FUNCIÓN GLOBAL                */
-    /* ================================================ */
-    window.cargarFincas = function() {
-      var container = document.getElementById('listadoFincas');
-      container.innerHTML = '<div class="col-12 text-center text-muted py-3">' +
-                           '<div class="spinner-border spinner-border-sm text-success me-2"></div>' +
-                           '<span>Cargando fincas...</span></div>';
+        // Cargar detalles vía AJAX desde el endpoint REST
+        fetch('/api/detalles-compra?idCompra=' + encodeURIComponent(idCompra))
+          .then(function(res){ if(!res.ok) throw new Error('Error al cargar detalle'); return res.json(); })
+          .then(function(detalles){
+            // detalles es una lista de DetalleCompra; intentar renderizar
+            var itemsHtml = '';
+            if (Array.isArray(detalles) && detalles.length > 0) {
+              detalles.forEach(function(d){
+                var nombre = (d.producto && (d.producto.nombreProducto || d.producto.nombre)) || d.nombreProducto || 'Producto';
+                // Intentar sacar precio y cantidad
+                var precio = d.precioUnitario || (d.producto && d.producto.precio) || d.precio || 0;
+                var cantidad = d.cantidad || d.cantidadProducto || 1;
+                var subtotal = (parseFloat(precio) || 0) * (parseFloat(cantidad) || 0);
+                var precioFmt = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(precio || 0);
+                var subtotalFmt = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(subtotal || 0);
 
-      fetch('/productos/fincas/listar')
-        .then(function(response) {
-          if (!response.ok) throw new Error('Error al cargar fincas');
-          return response.json();
-        })
-        .then(function(fincas) {
-          console.log('Fincas cargadas:', fincas); // Debug
-
-          if (!fincas || fincas.length === 0) {
-            container.innerHTML = '<div class="col-12 text-center text-muted py-5">' +
-                                 '<i class="bi bi-geo-alt fs-1 d-block mb-2 text-success"></i>' +
-                                 '<h6 class="mb-2">No tienes fincas registradas</h6>' +
-                                 '<p class="small">Haz clic en "Agregar Finca" para registrar tu primera finca.</p></div>';
-            return;
-          }
-
-          var html = '';
-          for (var i = 0; i < fincas.length; i++) {
-            var finca = fincas[i];
-            var cantidadProductos = finca.cantidadProductos || 0;
-
-            html += '<div class="col-md-6">';
-            html += '<div class="card border-0 shadow-sm h-100">';
-            html += '<div class="card-body">';
-            html += '<div class="d-flex justify-content-between align-items-start mb-3">';
-            html += '<div>';
-            html += '<h6 class="fw-bold mb-1 text-success">' + (finca.nombreFinca || 'Sin nombre') + '</h6>';
-            html += '<small class="text-muted"><i class="bi bi-geo-alt me-1"></i>' + (finca.departamento || '') + ', ' + (finca.ciudad || '') + '</small>';
-            html += '</div>';
-            html += '<span class="badge bg-success">Activa</span>';
-            html += '</div>';
-            html += '<div class="row g-2 mb-3">';
-            html += '<div class="col-6"><small class="text-muted d-block">Dirección</small><strong class="small">' + (finca.direccionFinca || '—') + '</strong></div>';
-            html += '<div class="col-6"><small class="text-muted d-block">Productos asociados</small><strong>' + cantidadProductos + '</strong></div>';
-            html += '</div>';
-
-            // Información adicional si existe
-            if (finca.certificadoBPA && finca.certificadoBPA !== 'Sin Certificado') {
-              html += '<div class="mb-2"><small class="badge bg-info-subtle text-info"><i class="bi bi-patch-check"></i> BPA: ' + finca.certificadoBPA + '</small></div>';
+                itemsHtml += '<tr>' +
+                  '<td>' + (nombre || '-') + '</td>' +
+                  '<td class="text-end">' + precioFmt + '</td>' +
+                  '<td class="text-end">' + cantidad + '</td>' +
+                  '<td class="text-end">' + subtotalFmt + '</td>' +
+                  '</tr>';
+              });
+            } else {
+              itemsHtml = '<tr><td colspan="4" class="text-center text-muted py-3">No hay items para este pedido.</td></tr>';
             }
 
-            html += '<div class="d-flex gap-2 mt-3">';
-            // Usar navegación a la vista web de finca y enlace de eliminación existente
-            html += '<a class="btn btn-sm btn-outline-primary flex-fill" href="/fincas/ver/' + finca.idFinca + '"><i class="bi bi-eye"></i> Ver</a>';
-            html += '<a class="btn btn-sm btn-outline-secondary" href="/fincas/editar/' + finca.idFinca + '" title="Editar finca"><i class="bi bi-pencil"></i></a>';
-            html += '<button class="btn btn-sm btn-outline-danger" onclick="if(confirm(\'¿Eliminar finca " + (finca.nombreFinca || '') + "?\')) window.location=\'/fincas/eliminar/' + finca.idFinca + '\';"><i class="bi bi-trash"></i></button>';
-            html += '</div>';
-            html += '</div></div></div>';
-          }
-          container.innerHTML = html;
-        })
-        .catch(function(error) {
-          console.error('Error al cargar fincas:', error);
-          container.innerHTML = '<div class="col-12">' +
-                               '<div class="alert alert-danger">' +
-                               '<i class="bi bi-exclamation-triangle me-2"></i>' +
-                               '<strong>Error al cargar fincas:</strong> ' + error.message +
-                               '</div></div>';
-        });
-    }
+            document.getElementById('detalleItemsBody').innerHTML = itemsHtml;
+            document.getElementById('detalleSpinner').style.display = 'none';
+            document.getElementById('detalleContenido').style.display = 'block';
 
-    window.verDetalleFinca = function(idFinca) {
-      alert('Ver detalle de la finca #' + idFinca + '\n\n(Funcionalidad en desarrollo)');
-      // TODO: Implementar vista de detalle con productos asociados
+            modal.show();
+          })
+          .catch(function(err){
+            console.error('Error al cargar detalles:', err);
+            document.getElementById('detalleSpinner').style.display = 'none';
+            document.getElementById('detalleItemsBody').innerHTML = '<tr><td colspan="4" class="text-center text-danger py-3">Error al cargar detalles: ' + (err.message || '') + '</td></tr>';
+            document.getElementById('detalleContenido').style.display = 'block';
+            modal.show();
+          });
+
+      } catch (e) {
+        console.error('verDetallePedido error:', e);
+        alert('No se pudo mostrar el detalle del pedido.');
+      }
     };
   </script>
 
@@ -973,6 +961,68 @@
     // Si necesitas datos de productos en JavaScript, usa el endpoint JSON:
     // fetch('/productos/api/listar').then(r => r.json()).then(data => { ... });
   </script>
+
+  <!-- Modal: Detalle de Pedido -->
+  <div class="modal fade" id="modalDetallePedido" tabindex="-1" aria-labelledby="modalDetallePedidoLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="modalDetallePedidoLabel">Detalle del pedido</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body">
+          <div id="detallePedidoPlaceholder">
+            <div class="text-center py-4" id="detalleSpinner">
+              <div class="spinner-border text-success" role="status"></div>
+              <div class="mt-2 text-muted">Cargando detalle...</div>
+            </div>
+            <div id="detalleContenido" style="display:none;">
+              <!-- Encabezado con información básica -->
+              <div class="mb-3">
+                <div class="d-flex justify-content-between align-items-start">
+                  <div>
+                    <h6 id="detalleTitulo">Pedido #<span id="detalleId">-</span></h6>
+                    <div id="detalleCliente" class="small text-muted">Cliente: -</div>
+                    <div id="detalleFecha" class="small text-muted">Fecha: -</div>
+                  </div>
+                  <div class="text-end">
+                    <div id="detalleMetodoPago" class="small text-muted">Pago: -</div>
+                    <div id="detalleDireccion" class="small text-muted">Dirección: -</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Tabla de items -->
+              <div class="table-responsive">
+                <table class="table">
+                  <thead>
+                    <tr>
+                      <th>Producto</th>
+                      <th class="text-end">Precio</th>
+                      <th class="text-end">Cantidad</th>
+                      <th class="text-end">Subtotal</th>
+                    </tr>
+                  </thead>
+                  <tbody id="detalleItemsBody">
+                  </tbody>
+                </table>
+              </div>
+
+              <div class="d-flex justify-content-end mt-3">
+                <div class="text-end">
+                  <div class="small text-muted">Total</div>
+                  <div class="fw-bold fs-5" id="detalleTotal">-</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- Modal de edición rápida -->
   <div class="modal fade" id="modalEditarProducto" tabindex="-1" aria-labelledby="modalEditarProductoLabel" aria-hidden="true">
@@ -1081,6 +1131,11 @@
       btnGuardar.addEventListener('click', function() {
         var id = document.getElementById('editProductoId').value;
         if (!id) return;
+        // Evitar envíos dobles: deshabilitar botón y mostrar spinner
+        var originalHtml = btnGuardar.innerHTML;
+        btnGuardar.disabled = true;
+        btnGuardar.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Guardando...';
+
         var payload = {
           nombreProducto: document.getElementById('editNombre').value,
           descripcionProducto: document.getElementById('editDescripcion').value,
@@ -1096,9 +1151,29 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
         })
-        .then(function(res) { return res.json().then(function(body){ return { ok: res.ok, body: body }; }); })
         .then(function(res) {
-          if (!res.ok) throw new Error(res.body && res.body.error ? res.body.error : 'Error al actualizar');
+          // Usar res.text() para soportar respuestas con body vacío y evitar "Unexpected end of JSON input"
+          return res.text().then(function(text){
+            var body = {};
+            if (text && text.trim().length > 0) {
+              try {
+                body = JSON.parse(text);
+              } catch (e) {
+                // Si no es JSON, conservar el texto bruto
+                body = { __raw: text };
+              }
+            }
+            return { ok: res.ok, status: res.status, body: body };
+          });
+        })
+        .then(function(res) {
+          if (!res.ok) {
+            var msg = 'Error al actualizar';
+            if (res.body) {
+              msg = res.body.error || res.body.message || (res.body.__raw || msg);
+            }
+            throw new Error(msg + ' (status ' + res.status + ')');
+          }
           // Cerrar modal y recargar para ver cambios (simple y seguro)
           var modalEl = document.getElementById('modalEditarProducto');
           var modal = bootstrap.Modal.getInstance(modalEl);
@@ -1108,7 +1183,10 @@
         })
         .catch(function(err) {
           var ph = document.getElementById('modalAlertPlaceholder');
-          ph.innerHTML = '<div class="alert alert-danger">Error: ' + err.message + '</div>';
+          ph.innerHTML = '<div class="alert alert-danger">Error: ' + (err.message || err) + '</div>';
+          // Restaurar estado del botón para permitir reintento
+          btnGuardar.disabled = false;
+          btnGuardar.innerHTML = originalHtml;
         });
       });
     });
